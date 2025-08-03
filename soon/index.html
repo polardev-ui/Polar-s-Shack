@@ -7,6 +7,8 @@
     <link id="favicon" rel="icon" href="../logo.png" type="image/png">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9156548662984796"
+     crossorigin="anonymous"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
@@ -127,66 +129,64 @@
             margin-right: auto;
         }
 
-        .hero {
+        .hero-section {
             text-align: center;
             margin-bottom: 4rem;
+            padding: 4rem 0;
         }
 
-        .hero h1 {
+        .hero-title {
             font-size: clamp(2.5rem, 8vw, 4rem);
-            font-weight: 300;
+            font-weight: 400;
             margin-bottom: 1rem;
             color: #fff;
             position: relative;
         }
 
-        .hero h1::after {
+        .hero-title::after {
             content: '_';
             color: #00ff00;
             animation: blink 1s infinite;
-            margin-left: 4px;
+            margin-left: 2px;
         }
 
-        .hero p {
+        .hero-subtitle {
             font-size: clamp(1rem, 3vw, 1.2rem);
             color: #666;
+            margin-bottom: 2rem;
             max-width: 600px;
-            margin: 0 auto 2rem;
-            line-height: 1.6;
+            margin-left: auto;
+            margin-right: auto;
         }
 
-        .stats-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 2rem;
-            margin-bottom: 4rem;
-        }
-
-        .stat-card {
+        .stats-section {
             background: #2a2a2a;
             border: 1px solid #333;
             border-radius: 8px;
             padding: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .stats-title {
+            color: #fff;
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+
+        .stat-card {
+            background: #333;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 2rem;
             text-align: center;
             transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: #00ff00;
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
-        }
-
-        .stat-card:hover::before {
-            transform: scaleX(1);
         }
 
         .stat-card:hover {
@@ -210,106 +210,112 @@
             letter-spacing: 1px;
         }
 
-        .services-grid {
+        .features-section {
+            margin-bottom: 3rem;
+        }
+
+        .features-title {
+            color: #fff;
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .features-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
-            margin-bottom: 4rem;
         }
 
-        .service-card {
+        .feature-card {
             background: #2a2a2a;
             border: 1px solid #333;
             border-radius: 8px;
             padding: 2rem;
+            text-align: center;
             transition: all 0.3s ease;
-            cursor: pointer;
-            text-decoration: none;
-            color: inherit;
         }
 
-        .service-card:hover {
+        .feature-card:hover {
             border-color: #00ff00;
             box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
             transform: translateY(-2px);
         }
 
-        .service-icon {
-            font-size: 2.5rem;
+        .feature-icon {
+            font-size: 3rem;
             color: #00ff00;
             margin-bottom: 1rem;
         }
 
-        .service-title {
+        .feature-title {
             color: #fff;
-            font-size: 1.3rem;
-            margin-bottom: 1rem;
-            font-weight: 500;
-        }
-
-        .service-description {
-            color: #888;
-            line-height: 1.6;
+            font-size: 1.2rem;
             margin-bottom: 1rem;
         }
 
-        .service-features {
-            list-style: none;
-            margin-bottom: 1.5rem;
-        }
-
-        .service-features li {
+        .feature-description {
             color: #666;
-            font-size: 0.8rem;
-            margin-bottom: 0.3rem;
-            position: relative;
-            padding-left: 1rem;
+            font-size: 0.9rem;
+            line-height: 1.6;
         }
 
-        .service-features li::before {
-            content: '>';
-            color: #00ff00;
-            position: absolute;
-            left: 0;
-        }
-
-        .service-btn {
-            background: #333;
-            color: #00ff00;
-            border: 1px solid #444;
-            padding: 0.6rem 1.2rem;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .service-btn:hover {
-            background: #444;
-            border-color: #00ff00;
-        }
-
-        .warning-banner {
-            background: #2a1a1a;
-            border: 1px solid #664444;
+        .cta-section {
+            background: #2a2a2a;
+            border: 1px solid #333;
             border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 3rem;
+            padding: 3rem;
             text-align: center;
         }
 
-        .warning-banner h3 {
-            color: #ff6666;
-            margin-bottom: 0.5rem;
-            font-size: 1rem;
+        .cta-title {
+            color: #fff;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
         }
 
-        .warning-banner p {
-            color: #888;
-            font-size: 0.8rem;
-            line-height: 1.5;
+        .cta-description {
+            color: #666;
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .cta-btn {
+            background: #00ff00;
+            color: #1a1a1a;
+            text-decoration: none;
+            padding: 1rem 2rem;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid #00ff00;
+        }
+
+        .cta-btn:hover {
+            background: #00cc00;
+            transform: translateY(-2px);
+        }
+
+        .cta-btn.secondary {
+            background: transparent;
+            color: #00ff00;
+        }
+
+        .cta-btn.secondary:hover {
+            background: #00ff00;
+            color: #1a1a1a;
         }
 
         @keyframes blink {
@@ -323,7 +329,7 @@
         }
 
         .stat-number.animate {
-            animation: countUp 0.6s ease-out;
+            animation: countUp 0.8s ease-out;
         }
 
         @media (max-width: 768px) {
@@ -340,22 +346,28 @@
                 margin-top: 70px;
             }
 
-            .stats-container {
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            .hero-section {
+                padding: 2rem 0;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
                 gap: 1rem;
             }
 
-            .stat-card {
-                padding: 1.5rem;
-            }
-
-            .services-grid {
+            .features-grid {
                 grid-template-columns: 1fr;
-                gap: 1.5rem;
+                gap: 1rem;
             }
 
-            .service-card {
-                padding: 1.5rem;
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .cta-btn {
+                width: 100%;
+                max-width: 300px;
             }
         }
     </style>
@@ -394,149 +406,100 @@
     </nav>
 
     <main class="main-content">
-        <section class="hero">
-            <h1>welcome to the system</h1>
-            <p>your gateway to unrestricted web access, secure tools, and digital freedom</p>
+        <section class="hero-section">
+            <h1 class="hero-title">polar's shack</h1>
+            <p class="hero-subtitle">your ultimate destination for games, tools, and digital exploration</p>
         </section>
 
-        <section class="warning-banner">
-            <h3><i class='bx bx-shield-alt'></i> educational purposes only</h3>
-            <p>this platform is designed for educational and research purposes. please use responsibly and in accordance with your local laws and regulations.</p>
-        </section>
-
-        <section class="stats-container">
-            <div class="stat-card">
-                <div class="stat-number" id="onlineUsers">0</div>
-                <div class="stat-label">users online</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="totalUsers">0</div>
-                <div class="stat-label">total users</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="gamesCount">22</div>
-                <div class="stat-label">games available</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="uptime">99.9%</div>
-                <div class="stat-label">uptime</div>
+        <section class="stats-section">
+            <h2 class="stats-title">live statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalUsers">0</div>
+                    <div class="stat-label">total users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="onlineUsers">0</div>
+                    <div class="stat-label">online users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalGames">120+</div>
+                    <div class="stat-label">games available</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalTools">25+</div>
+                    <div class="stat-label">tools & utilities</div>
+                </div>
             </div>
         </section>
 
-        <section class="services-grid">
-            <a href="proxy.html" class="service-card">
-                <div class="service-icon">
-                    <i class='bx bx-shield-alt-2'></i>
+        <section class="features-section">
+            <h2 class="features-title">what we offer</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class='bx bx-joystick'></i>
+                    </div>
+                    <h3 class="feature-title">extensive game library</h3>
+                    <p class="feature-description">access over 120 games including classics, modern hits, and exclusive titles. from action to puzzle games, we have something for everyone.</p>
                 </div>
-                <div class="service-title">web proxy</div>
-                <div class="service-description">
-                    bypass network restrictions and access blocked websites through our secure proxy servers.
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class='bx bx-search-alt'></i>
+                    </div>
+                    <h3 class="feature-title">osint tools</h3>
+                    <p class="feature-description">professional-grade open source intelligence tools for research, investigation, and digital forensics. all tools are ethical and educational.</p>
                 </div>
-                <ul class="service-features">
-                    <li>ssl encryption</li>
-                    <li>multiple proxy servers</li>
-                    <li>no logs policy</li>
-                    <li>high-speed browsing</li>
-                </ul>
-                <button class="service-btn">access proxy</button>
-            </a>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class='bx bx-shield-alt'></i>
+                    </div>
+                    <h3 class="feature-title">cybersecurity resources</h3>
+                    <p class="feature-description">comprehensive cybersecurity learning materials, practice platforms, and certification guides for aspiring security professionals.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class='bx bx-code-alt'></i>
+                    </div>
+                    <h3 class="feature-title">utility tools</h3>
+                    <p class="feature-description">powerful web-based tools for encoding, decoding, conversion, and analysis. perfect for developers and power users.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class='bx bx-globe'></i>
+                    </div>
+                    <h3 class="feature-title">web proxy</h3>
+                    <p class="feature-description">secure and fast web proxy service for accessing blocked content and maintaining privacy while browsing.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class='bx bx-chat'></i>
+                    </div>
+                    <h3 class="feature-title">community chat</h3>
+                    <p class="feature-description">connect with other users in our real-time chat system. share tips, discuss games, and build friendships.</p>
+                </div>
+            </div>
+        </section>
 
-            <a href="games.html" class="service-card">
-                <div class="service-icon">
-                    <i class='bx bx-game'></i>
-                </div>
-                <div class="service-title">unblocked games</div>
-                <div class="service-description">
-                    enjoy a curated collection of popular games that work anywhere, anytime.
-                </div>
-                <ul class="service-features">
-                    <li>22+ popular games</li>
-                    <li>no downloads required</li>
-                    <li>mobile compatible</li>
-                    <li>regular updates</li>
-                </ul>
-                <button class="service-btn">play games</button>
-            </a>
-
-            <a href="apps.html" class="service-card">
-                <div class="service-icon">
-                    <i class='bx bx-grid-alt'></i>
-                </div>
-                <div class="service-title">web applications</div>
-                <div class="service-description">
-                    access popular web apps and services through our secure proxy system.
-                </div>
-                <ul class="service-features">
-                    <li>productivity tools</li>
-                    <li>social platforms</li>
-                    <li>entertainment apps</li>
-                    <li>educational resources</li>
-                </ul>
-                <button class="service-btn">browse apps</button>
-            </a>
-
-            <a href="osint.html" class="service-card">
-                <div class="service-icon">
-                    <i class='bx bx-search-alt'></i>
-                </div>
-                <div class="service-title">osint tools</div>
-                <div class="service-description">
-                    open source intelligence gathering tools for research and investigation.
-                </div>
-                <ul class="service-features">
-                    <li>domain analysis</li>
-                    <li>social media research</li>
-                    <li>network scanning</li>
-                    <li>data visualization</li>
-                </ul>
-                <button class="service-btn">explore tools</button>
-            </a>
-
-            <a href="csint.html" class="service-card">
-                <div class="service-icon">
-                    <i class='bx bx-code-alt'></i>
-                </div>
-                <div class="service-title">csint resources</div>
-                <div class="service-description">
-                    computer science intelligence and cybersecurity resources for learning.
-                </div>
-                <ul class="service-features">
-                    <li>security tutorials</li>
-                    <li>coding challenges</li>
-                    <li>vulnerability research</li>
-                    <li>ethical hacking</li>
-                </ul>
-                <button class="service-btn">learn more</button>
-            </a>
-
-            <a href="chat.html" class="service-card">
-                <div class="service-icon">
-                    <i class='bx bx-chat'></i>
-                </div>
-                <div class="service-title">secure chat</div>
-                <div class="service-description">
-                    anonymous real-time chat system with user accounts and moderation.
-                </div>
-                <ul class="service-features">
-                    <li>real-time messaging</li>
-                    <li>user accounts</li>
-                    <li>admin moderation</li>
-                    <li>ban system</li>
-                </ul>
-                <button class="service-btn">join chat</button>
-            </a>
+        <section class="cta-section">
+            <h2 class="cta-title">ready to explore?</h2>
+            <p class="cta-description">join thousands of users who have already discovered the power of polar's shack. start your journey today!</p>
+            <div class="cta-buttons">
+                <a href="games.html" class="cta-btn">play games</a>
+                <a href="chat.html" class="cta-btn secondary">join chat</a>
+            </div>
         </section>
     </main>
 
     <script>
         // Firebase configuration
         const firebaseConfig = {
-            apiKey: process.env.FIREBASE_API_KEY || "AIzaSyBqJJQqJQqJQqJQqJQqJQqJQqJQqJQqJQq",
-            authDomain: process.env.FIREBASE_AUTH_DOMAIN || "polars-shack.firebaseapp.com",
-            projectId: process.env.FIREBASE_PROJECT_ID || "polars-shack",
-            storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "polars-shack.appspot.com",
-            messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "123456789012",
-            appId: process.env.FIREBASE_APP_ID || "1:123456789012:web:abcdefghijklmnopqr"
+            apiKey: "AIzaSyBqJJQqJQqJQqJQqJQqJQqJQqJQqJQqJQq",
+            authDomain: "polars-shack.firebaseapp.com",
+            projectId: "polars-shack",
+            storageBucket: "polars-shack.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdefghijklmnopqr"
         };
 
         // Initialize Firebase
@@ -545,79 +508,70 @@
 
         class StatsManager {
             constructor() {
-                this.init();
-            }
-
-            async init() {
-                await this.updateStats();
+                this.loadStats();
                 this.startRealTimeUpdates();
             }
 
-            async updateStats() {
+            async loadStats() {
                 try {
-                    // Get online users count
-                    const onlineSnapshot = await db.collection('online_users').get();
-                    const onlineCount = onlineSnapshot.size;
-                    
-                    // Get total users count
+                    // Load real user statistics from Firebase
                     const usersSnapshot = await db.collection('chat_users').get();
-                    const totalCount = usersSnapshot.size;
+                    const onlineSnapshot = await db.collection('online_users').get();
 
-                    // Animate counters
-                    this.animateCounter('onlineUsers', onlineCount);
-                    this.animateCounter('totalUsers', totalCount);
-                    
+                    // Animate the numbers
+                    this.animateNumber('totalUsers', usersSnapshot.size);
+                    this.animateNumber('onlineUsers', onlineSnapshot.size);
+
                 } catch (error) {
-                    console.error('Error fetching stats:', error);
-                    // Use fallback numbers if Firebase fails
-                    this.animateCounter('onlineUsers', Math.floor(Math.random() * 50) + 10);
-                    this.animateCounter('totalUsers', Math.floor(Math.random() * 500) + 100);
+                    console.error('Error loading stats:', error);
+                    // Fallback to demo numbers if Firebase fails
+                    this.animateNumber('totalUsers', 42);
+                    this.animateNumber('onlineUsers', 7);
                 }
-            }
-
-            animateCounter(elementId, targetValue) {
-                const element = document.getElementById(elementId);
-                const startValue = 0;
-                const duration = 1000;
-                const startTime = performance.now();
-
-                const animate = (currentTime) => {
-                    const elapsed = currentTime - startTime;
-                    const progress = Math.min(elapsed / duration, 1);
-                    
-                    const currentValue = Math.floor(startValue + (targetValue - startValue) * progress);
-                    element.textContent = currentValue;
-                    element.classList.add('animate');
-                    
-                    if (progress < 1) {
-                        requestAnimationFrame(animate);
-                    }
-                };
-
-                requestAnimationFrame(animate);
             }
 
             startRealTimeUpdates() {
-                // Update online users in real-time
-                db.collection('online_users').onSnapshot((snapshot) => {
-                    const onlineCount = snapshot.size;
-                    document.getElementById('onlineUsers').textContent = onlineCount;
-                });
+                // Listen for real-time updates to online users
+                try {
+                    db.collection('online_users').onSnapshot((snapshot) => {
+                        this.animateNumber('onlineUsers', snapshot.size);
+                    });
 
-                // Update total users periodically
-                setInterval(() => {
-                    this.updateTotalUsers();
-                }, 30000); // Every 30 seconds
+                    // Listen for new user registrations
+                    db.collection('chat_users').onSnapshot((snapshot) => {
+                        this.animateNumber('totalUsers', snapshot.size);
+                    });
+                } catch (error) {
+                    console.error('Error setting up real-time updates:', error);
+                }
             }
 
-            async updateTotalUsers() {
-                try {
-                    const usersSnapshot = await db.collection('chat_users').get();
-                    const totalCount = usersSnapshot.size;
-                    document.getElementById('totalUsers').textContent = totalCount;
-                } catch (error) {
-                    console.error('Error updating total users:', error);
-                }
+            animateNumber(elementId, targetNumber) {
+                const element = document.getElementById(elementId);
+                const currentNumber = parseInt(element.textContent) || 0;
+                
+                if (currentNumber === targetNumber) return;
+
+                element.classList.add('animate');
+                
+                const duration = 1000; // 1 second
+                const steps = 30;
+                const increment = (targetNumber - currentNumber) / steps;
+                let current = currentNumber;
+                let step = 0;
+
+                const timer = setInterval(() => {
+                    step++;
+                    current += increment;
+                    
+                    if (step >= steps) {
+                        element.textContent = targetNumber;
+                        clearInterval(timer);
+                        setTimeout(() => element.classList.remove('animate'), 100);
+                    } else {
+                        element.textContent = Math.round(current);
+                    }
+                }, duration / steps);
             }
         }
 
@@ -656,16 +610,6 @@
                 document.title = "Polar's Shack";
                 document.getElementById("favicon").href = "../logo.png";
             }
-        });
-
-        // Smooth scroll for service cards
-        document.querySelectorAll('.service-card').forEach(card => {
-            card.addEventListener('click', function(e) {
-                if (this.href) {
-                    e.preventDefault();
-                    window.location.href = this.href;
-                }
-            });
         });
     </script>
 </body>
