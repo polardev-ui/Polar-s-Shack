@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nullify's Corner</title>
+    <title>Polar's Shack</title>
     <link id="favicon" rel="icon" href="../logo.png" type="image/png">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -77,6 +77,48 @@
             color: #00ff00;
         }
 
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .mobile-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #1a1a1a;
+            border-bottom: 1px solid #333;
+            padding: 1rem 2rem;
+        }
+
+        .mobile-menu.active {
+            display: block;
+        }
+
+        .mobile-menu a {
+            display: block;
+            color: #888;
+            text-decoration: none;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #333;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu a:hover, .mobile-menu a.active {
+            color: #00ff00;
+        }
+
+        .mobile-menu a:last-child {
+            border-bottom: none;
+        }
+
         .main-content {
             margin-top: 80px;
             padding: 2rem;
@@ -90,21 +132,29 @@
         }
 
         .page-header h1 {
-            font-size: 2.5rem;
+            font-size: clamp(2rem, 6vw, 2.5rem);
             font-weight: 400;
             margin-bottom: 1rem;
             color: #fff;
+            position: relative;
+        }
+
+        .page-header h1::after {
+            content: '_';
+            color: #00ff00;
+            animation: blink 1s infinite;
+            margin-left: 2px;
         }
 
         .page-header p {
-            font-size: 1rem;
+            font-size: clamp(0.9rem, 2.5vw, 1rem);
             color: #666;
             max-width: 600px;
         }
 
         .warning-banner {
-            background: #3a1a1a;
-            border: 1px solid #663333;
+            background: #2a1a1a;
+            border: 1px solid #664444;
             border-radius: 8px;
             padding: 1.5rem;
             margin-bottom: 3rem;
@@ -114,75 +164,256 @@
         .warning-banner h3 {
             color: #ff6666;
             margin-bottom: 0.5rem;
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
 
         .warning-banner p {
-            color: #cc6666;
-            font-size: 0.9rem;
+            color: #888;
+            font-size: 0.8rem;
+            line-height: 1.5;
         }
 
-        .tools-grid {
+        .categories {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
             margin-bottom: 3rem;
         }
 
-        .tool-card {
+        .category-card {
             background: #2a2a2a;
-            padding: 2rem;
             border-radius: 8px;
             border: 1px solid #333;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .category-card:hover {
+            border-color: #00ff00;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .category-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #333;
+            text-align: center;
+        }
+
+        .category-icon {
+            font-size: 2.5rem;
+            color: #00ff00;
+            margin-bottom: 1rem;
+        }
+
+        .category-title {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .category-description {
+            color: #666;
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+
+        .category-content {
+            padding: 1.5rem;
+        }
+
+        .resource-list {
+            list-style: none;
+        }
+
+        .resource-item {
+            margin-bottom: 1rem;
+            padding: 0.8rem;
+            background: #333;
+            border-radius: 4px;
+            border-left: 3px solid #00ff00;
+            transition: all 0.3s ease;
+        }
+
+        .resource-item:hover {
+            background: #444;
+        }
+
+        .resource-title {
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 0.3rem;
+        }
+
+        .resource-description {
+            color: #888;
+            font-size: 0.7rem;
+            line-height: 1.3;
+        }
+
+        .resource-link {
+            color: #00ff00;
+            text-decoration: none;
+            font-size: 0.7rem;
+            margin-top: 0.3rem;
+            display: inline-block;
+        }
+
+        .resource-link:hover {
+            text-decoration: underline;
+        }
+
+        .interactive-tools {
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding: 2rem;
+            border: 1px solid #333;
+            margin-bottom: 3rem;
+        }
+
+        .interactive-tools h3 {
+            color: #fff;
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .tool-item {
+            background: #333;
+            padding: 1.5rem;
+            border-radius: 4px;
+            border: 1px solid #444;
+            text-align: center;
             transition: all 0.3s ease;
             cursor: pointer;
         }
 
-        .tool-card:hover {
+        .tool-item:hover {
+            background: #444;
             border-color: #00ff00;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
         }
 
-        .tool-card h3 {
-            font-size: 1.2rem;
-            margin-bottom: 1rem;
-            color: #fff;
-        }
-
-        .tool-card p {
-            color: #666;
-            line-height: 1.6;
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
-        }
-
-        .tool-card .status {
-            display: inline-block;
-            padding: 0.3rem 0.8rem;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-
-        .status.coming-soon {
-            background: #3a3a00;
-            color: #ffff00;
-        }
-
-        .status.available {
-            background: #003a00;
+        .tool-item i {
+            font-size: 2rem;
             color: #00ff00;
+            margin-bottom: 1rem;
+        }
+
+        .tool-item h4 {
+            color: #fff;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .tool-item p {
+            color: #888;
+            font-size: 0.8rem;
+            line-height: 1.3;
+        }
+
+        .learning-paths {
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding: 2rem;
+            border: 1px solid #333;
+        }
+
+        .learning-paths h3 {
+            color: #fff;
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+
+        .path-item {
+            background: #333;
+            padding: 1.5rem;
+            border-radius: 4px;
+            border: 1px solid #444;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .path-item:hover {
+            background: #444;
+            border-color: #00ff00;
+        }
+
+        .path-title {
+            color: #00ff00;
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .path-description {
+            color: #888;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            margin-bottom: 1rem;
+        }
+
+        .path-steps {
+            list-style: none;
+            padding-left: 1rem;
+        }
+
+        .path-steps li {
+            color: #666;
+            font-size: 0.7rem;
+            margin-bottom: 0.3rem;
+            position: relative;
+        }
+
+        .path-steps li::before {
+            content: '→';
+            color: #00ff00;
+            position: absolute;
+            left: -1rem;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
         }
 
         @media (max-width: 768px) {
             .nav-links {
                 display: none;
             }
-            .page-header h1 {
-                font-size: 2rem;
+            
+            .mobile-menu-btn {
+                display: block;
             }
+
             .main-content {
                 padding: 1rem;
+                margin-top: 70px;
+            }
+
+            .categories {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .category-header, .category-content {
+                padding: 1rem;
+            }
+
+            .interactive-tools, .learning-paths {
+                padding: 1rem;
+            }
+
+            .tools-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -200,104 +431,303 @@
                 <li><a href="csint.html" class="active">csint</a></li>
                 <li><a href="tools.html">tools</a></li>
                 <li><a href="games.html">games</a></li>
+                <li><a href="apps.html">apps</a></li>
                 <li><a href="proxy.html">proxy</a></li>
+                <li><a href="chat.html">chat</a></li>
             </ul>
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+                <i class='bx bx-menu'></i>
+            </button>
+        </div>
+        <div class="mobile-menu" id="mobileMenu">
+            <a href="index.html">home</a>
+            <a href="osint.html">osint</a>
+            <a href="csint.html" class="active">csint</a>
+            <a href="tools.html">tools</a>
+            <a href="games.html">games</a>
+            <a href="apps.html">apps</a>
+            <a href="proxy.html">proxy</a>
+            <a href="chat.html">chat</a>
         </div>
     </nav>
 
     <main class="main-content">
         <section class="page-header">
-            <h1>csint tools</h1>
-            <p>cyber source intelligence tools for digital forensics, security analysis, and penetration testing.</p>
+            <h1>csint resources</h1>
+            <p>computer science intelligence and cybersecurity resources for learning and research. educational content only.</p>
         </section>
 
         <div class="warning-banner">
-            <h3>educational use only</h3>
-            <p>these tools are provided for educational and authorized testing purposes only. always ensure you have proper authorization before using any security tools.</p>
+            <h3><i class='bx bx-shield-alt'></i> educational purposes only</h3>
+            <p>all resources and tools are provided for educational and legitimate security research purposes. always follow ethical guidelines and applicable laws.</p>
         </div>
 
-        <section class="tools-grid">
-            <div class="tool-card" onclick="window.open('https://www.kali.org/', '_blank')">
-                <h3>kali linux tools</h3>
-                <p>access to popular kali linux penetration testing tools and utilities for security assessment.</p>
-                <span class="status available">available</span>
+        <section class="categories">
+            <div class="category-card">
+                <div class="category-header">
+                    <div class="category-icon">
+                        <i class='bx bx-shield-alt-2'></i>
+                    </div>
+                    <div class="category-title">cybersecurity fundamentals</div>
+                    <div class="category-description">essential cybersecurity concepts and principles</div>
+                </div>
+                <div class="category-content">
+                    <ul class="resource-list">
+                        <li class="resource-item">
+                            <div class="resource-title">OWASP Top 10</div>
+                            <div class="resource-description">most critical web application security risks</div>
+                            <a href="https://owasp.org/www-project-top-ten/" target="_blank" class="resource-link">learn more →</a>
+                        </li>
+                        <li class="resource-item">
+                            <div class="resource-title">NIST Cybersecurity Framework</div>
+                            <div class="resource-description">comprehensive cybersecurity guidelines and best practices</div>
+                            <a href="https://www.nist.gov/cyberframework" target="_blank" class="resource-link">learn more →</a>
+                        </li>
+                        <li class="resource-item">
+                            <div class="resource-title">SANS Reading Room</div>
+                            <div class="resource-description">free cybersecurity research papers and whitepapers</div>
+                            <a href="https://www.sans.org/reading-room/" target="_blank" class="resource-link">learn more →</a>
+                        </li>
+                        <li class="resource-item">
+                            <div class="resource-title">CVE Database</div>
+                            <div class="resource-description">common vulnerabilities and exposures database</div>
+                            <a href="https://cve.mitre.org/" target="_blank" class="resource-link">learn more →</a>
+                        </li>
+                    </ul>
+                </div>
             </div>
 
-            <div class="tool-card" onclick="window.open('https://nmap.org/', '_blank')">
-                <h3>network scanner</h3>
-                <p>network discovery and security auditing tool for mapping networks and identifying open ports.</p>
-                <span class="status available">available</span>
+            <div class="category-card">
+                <div class="category-header">
+                    <div class="category-icon">
+                        <i class='bx bx-bug'></i>
+                    </div>
+                    <div class="category-title">ethical hacking</div>
+                    <div class="category-description">penetration testing and vulnerability assessment</div>
+                </div>
+                <div class="category-content">
+                    <ul class="resource-list">
+                        <li class="resource-item">
+                            <div class="resource-title">Kali Linux</div>
+                            <div class="resource-description">penetration testing and security auditing platform</div>
+                            <a href="https://www.kali.org/" target="_blank" class="resource-link">learn more →</a>
+                        </li>
+                        <li class="resource-item">
+                            <div class="resource-title">Metasploit Framework</div>
+                            <div class="resource-description">penetration testing framework and exploit development</div>
+                            <a href="https://www.metasploit.com/" target="_blank" class="resource-link">learn more →</a>
+                        </li>
+                        <li class="resource-item">
+                            <div class="resource-title">Burp Suite</div>
+                            <div class="resource-description">web application security testing platform</div>
+                            <a href="https://portswigger.net/burp" target="_blank" class="resource-link">learn more →</a>
+                        </li>
+                        <li class="resource-item">
+                            <div class="resource-title">OWASP ZAP</div>
+                            <div class="resource-description">free web application security scanner</div>
+                            <a href="https://www.zaproxy.org/" target="_blank" class="resource-link">learn more →</a>
+                        </li>
+                    </ul>
+                </div>
             </div>
 
-            <div class="tool-card" onclick="window.open('https://www.wireshark.org/', '_blank')">
-                <h3>packet analyzer</h3>
-                <p>network protocol analyzer for troubleshooting, analysis, and security auditing.</p>
-                <span class="status available">available</span>
+            <div class="category-card">
+                <div class="category-header">
+                    <div class="category-icon">
+                        <i class='bx bx-code-alt'></i>
+                    </div>
+                    <div class="category-title">programming & scripting</div>
+                    <div class="category-description">coding skills for cybersecurity professionals</div>
+                </div>
+                <div class="category-content">
+                    <ul class="resource-list">
+                        <li class="resource-item">
+                            <div class="resource-title">Python for Cybersecurity</div>
+                            <div class="resource-description">automation, scripting, and security tool development</div>
+                            <a href="https://automatetheboringstuff.com/" target="_blank" class="resource-link">learn more →</a>
+                        </li>
+                        <li class="resource-item">
+                            <div class="resource-title">PowerShell Empire</div>
+                            <div class="resource-description">post-exploitation framework for windows environments</div>
+                            <a href="https://github.com/EmpireProject/Empire" target="_blank" class="resource-link">learn more →</a>
+                        </li>
+                        <li class="resource-item">
+                            <div class="resource-title">Bash Scripting Guide</div>
+                            <div class="resource-description">advanced bash scripting for linux security</div>
+                            <a href="https://tldp.org/LDP/abs/html/" target="_blank" class="resource-link">learn more →</a>
+                        </li>
+                        <li class="resource-item">
+                            <div class="resource-title">Exploit Development</div>
+                            <div class="resource-description">buffer overflows and memory corruption exploits</div>
+                            <a href="https://www.corelan.be/index.php/articles/" target="_blank" class="resource-link">learn more →</a>
+                        </li>
+                    </ul>
+                </div>
             </div>
 
-            <div class="tool-card">
-                <h3>password cracking</h3>
-                <p>advanced password cracking tools including dictionary attacks and brute force methods.</p>
-                <span class="status coming-soon">coming soon</span>
+            <div class="category-card">
+                <div class="category-header">
+                    <div class="category-icon">
+                        <i class='bx bx-search-alt-2'></i>
+                    </div>
+                    <div class="category-title">digital forensics</div>
+                    <div class="category-description">incident response and evidence analysis</div>
+                </div>
+                <div class="category-content">
+                    <ul class="resource-list">
+                        <li class="resource-item">
+                            <div class="resource-title">Autopsy Digital Forensics</div>
+                            <div class="resource-description">open source digital forensics platform</div>
+                            <a href="https://www.autopsy.com/" target="_blank" class="resource-link">learn more →</a>
+                        </li>
+                        <li class="resource-item">
+                            <div class="resource-title">Volatility Framework</div>
+                            <div class="resource-description">advanced memory forensics framework</div>
+                            <a href="https://www.volatilityfoundation.org/" target="_blank" class="resource-link">learn more →</a>
+                        </li>
+                        <li class="resource-item">
+                            <div class="resource-title">Wireshark</div>
+                            <div class="resource-description">network protocol analyzer and packet capture</div>
+                            <a href="https://www.wireshark.org/" target="_blank" class="resource-link">learn more →</a>
+                        </li>
+                        <li class="resource-item">
+                            <div class="resource-title">SANS DFIR</div>
+                            <div class="resource-description">digital forensics and incident response resources</div>
+                            <a href="https://www.sans.org/cyber-security-courses/digital-forensics/" target="_blank" class="resource-link">learn more →</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="interactive-tools">
+            <h3>practice platforms & ctf sites</h3>
+            <div class="tools-grid">
+                <div class="tool-item" onclick="openTool('https://tryhackme.com/')">
+                    <i class='bx bx-shield-alt'></i>
+                    <h4>TryHackMe</h4>
+                    <p>hands-on cybersecurity training with guided learning paths</p>
+                </div>
+                <div class="tool-item" onclick="openTool('https://www.hackthebox.com/')">
+                    <i class='bx bx-cube'></i>
+                    <h4>Hack The Box</h4>
+                    <p>penetration testing labs and cybersecurity challenges</p>
+                </div>
+                <div class="tool-item" onclick="openTool('https://overthewire.org/wargames/')">
+                    <i class='bx bx-game'></i>
+                    <h4>OverTheWire</h4>
+                    <p>wargames and security challenges for all skill levels</p>
+                </div>
+                <div class="tool-item" onclick="openTool('https://picoctf.org/')">
+                    <i class='bx bx-flag'></i>
+                    <h4>PicoCTF</h4>
+                    <p>beginner-friendly capture the flag competition</p>
+                </div>
+                <div class="tool-item" onclick="openTool('https://www.vulnhub.com/')">
+                    <i class='bx bx-bug-alt'></i>
+                    <h4>VulnHub</h4>
+                    <p>vulnerable virtual machines for practice</p>
+                </div>
+                <div class="tool-item" onclick="openTool('https://cryptohack.org/')">
+                    <i class='bx bx-lock-alt'></i>
+                    <h4>CryptoHack</h4>
+                    <p>cryptography challenges and learning platform</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="learning-paths">
+            <h3>certification learning paths</h3>
+            
+            <div class="path-item">
+                <div class="path-title">CompTIA Security+ Path</div>
+                <div class="path-description">entry-level cybersecurity certification covering fundamental concepts</div>
+                <ul class="path-steps">
+                    <li>Network security fundamentals</li>
+                    <li>Threats, attacks, and vulnerabilities</li>
+                    <li>Architecture and design principles</li>
+                    <li>Identity and access management</li>
+                    <li>Risk management and cryptography</li>
+                    <li>Practice with Professor Messer videos</li>
+                </ul>
             </div>
 
-            <div class="tool-card">
-                <h3>wifi security tools</h3>
-                <p>wireless network security testing tools for wpa/wep analysis and penetration testing.</p>
-                <span class="status coming-soon">coming soon</span>
+            <div class="path-item">
+                <div class="path-title">Certified Ethical Hacker (CEH)</div>
+                <div class="path-description">learn ethical hacking methodologies and penetration testing</div>
+                <ul class="path-steps">
+                    <li>Footprinting and reconnaissance</li>
+                    <li>Scanning networks and enumeration</li>
+                    <li>System hacking and malware threats</li>
+                    <li>Web application and wireless security</li>
+                    <li>Social engineering and physical security</li>
+                    <li>Practice with EC-Council labs</li>
+                </ul>
             </div>
 
-            <div class="tool-card">
-                <h3>vulnerability scanner</h3>
-                <p>automated vulnerability scanning tools for identifying security weaknesses in systems.</p>
-                <span class="status coming-soon">coming soon</span>
+            <div class="path-item">
+                <div class="path-title">OSCP (Offensive Security)</div>
+                <div class="path-description">hands-on penetration testing certification with practical exam</div>
+                <ul class="path-steps">
+                    <li>Linux and Windows privilege escalation</li>
+                    <li>Buffer overflow exploitation</li>
+                    <li>Web application penetration testing</li>
+                    <li>Active Directory attacks</li>
+                    <li>Report writing and documentation</li>
+                    <li>24-hour practical exam preparation</li>
+                </ul>
             </div>
 
-            <div class="tool-card">
-                <h3>payload generator</h3>
-                <p>generate custom payloads for penetration testing and security research purposes.</p>
-                <span class="status coming-soon">coming soon</span>
-            </div>
-
-            <div class="tool-card">
-                <h3>reverse shell tools</h3>
-                <p>tools for creating and managing reverse shells for authorized penetration testing.</p>
-                <span class="status coming-soon">coming soon</span>
-            </div>
-
-            <div class="tool-card">
-                <h3>digital forensics</h3>
-                <p>digital forensics tools for analyzing digital evidence and recovering deleted data.</p>
-                <span class="status coming-soon">coming soon</span>
-            </div>
-
-            <div class="tool-card">
-                <h3>encryption tools</h3>
-                <p>advanced encryption and decryption tools for securing and analyzing encrypted data.</p>
-                <span class="status coming-soon">coming soon</span>
-            </div>
-
-            <div class="tool-card">
-                <h3>steganography</h3>
-                <p>tools for hiding and extracting hidden data from images, audio, and other media files.</p>
-                <span class="status coming-soon">coming soon</span>
-            </div>
-
-            <div class="tool-card">
-                <h3>mobile security</h3>
-                <p>mobile device security testing tools for android and ios penetration testing.</p>
-                <span class="status coming-soon">coming soon</span>
+            <div class="path-item">
+                <div class="path-title">CISSP (Information Security)</div>
+                <div class="path-description">advanced information security management certification</div>
+                <ul class="path-steps">
+                    <li>Security and risk management</li>
+                    <li>Asset security and architecture</li>
+                    <li>Communication and network security</li>
+                    <li>Identity and access management</li>
+                    <li>Security assessment and testing</li>
+                    <li>Security operations and software development</li>
+                </ul>
             </div>
         </section>
     </main>
 
     <script>
+        function openTool(url) {
+            window.open(url, '_blank');
+        }
+
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            const menuBtn = document.querySelector('.mobile-menu-btn i');
+            
+            mobileMenu.classList.toggle('active');
+            
+            if (mobileMenu.classList.contains('active')) {
+                menuBtn.className = 'bx bx-x';
+            } else {
+                menuBtn.className = 'bx bx-menu';
+            }
+        }
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const navbar = document.querySelector('.navbar');
+            const mobileMenu = document.getElementById('mobileMenu');
+            
+            if (!navbar.contains(event.target) && mobileMenu.classList.contains('active')) {
+                toggleMobileMenu();
+            }
+        });
+
+        // Tab cloaking script
         document.addEventListener("visibilitychange", function () {
             if (document.hidden) {
                 document.title = "Dashboard";
                 document.getElementById("favicon").href = "https://s3.amazonaws.com/cdn.app.cte.virginia.edu/tools/images/XmeGg2PHFfRHaj3upWvncc2gmaG91fApdtDC8bdU.png";
             } else {
-                document.title = "Nullify's Corner";
+                document.title = "Polar's Shack";
                 document.getElementById("favicon").href = "../logo.png";
             }
         });

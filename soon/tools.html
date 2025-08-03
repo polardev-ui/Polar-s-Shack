@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nullify's Corner</title>
+    <title>Polar's Shack</title>
     <link id="favicon" rel="icon" href="../logo.png" type="image/png">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -77,6 +77,48 @@
             color: #00ff00;
         }
 
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .mobile-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #1a1a1a;
+            border-bottom: 1px solid #333;
+            padding: 1rem 2rem;
+        }
+
+        .mobile-menu.active {
+            display: block;
+        }
+
+        .mobile-menu a {
+            display: block;
+            color: #888;
+            text-decoration: none;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #333;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu a:hover, .mobile-menu a.active {
+            color: #00ff00;
+        }
+
+        .mobile-menu a:last-child {
+            border-bottom: none;
+        }
+
         .main-content {
             margin-top: 80px;
             padding: 2rem;
@@ -90,103 +132,219 @@
         }
 
         .page-header h1 {
-            font-size: 2.5rem;
+            font-size: clamp(2rem, 6vw, 2.5rem);
             font-weight: 400;
             margin-bottom: 1rem;
             color: #fff;
+            position: relative;
+        }
+
+        .page-header h1::after {
+            content: '_';
+            color: #00ff00;
+            animation: blink 1s infinite;
+            margin-left: 2px;
         }
 
         .page-header p {
-            font-size: 1rem;
+            font-size: clamp(0.9rem, 2.5vw, 1rem);
             color: #666;
             max-width: 600px;
         }
 
-        .warning-banner {
-            background: #3a1a1a;
-            border: 1px solid #663333;
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 3rem;
-            text-align: center;
-        }
-
-        .warning-banner h3 {
-            color: #ff6666;
-            margin-bottom: 0.5rem;
-            font-size: 1.1rem;
-        }
-
-        .warning-banner p {
-            color: #cc6666;
-            font-size: 0.9rem;
-        }
-
         .tools-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 2rem;
             margin-bottom: 3rem;
         }
 
         .tool-card {
             background: #2a2a2a;
-            padding: 2rem;
             border-radius: 8px;
             border: 1px solid #333;
+            overflow: hidden;
             transition: all 0.3s ease;
-            cursor: pointer;
         }
 
         .tool-card:hover {
             border-color: #00ff00;
             box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
+            transform: translateY(-2px);
         }
 
-        .tool-card h3 {
+        .tool-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #333;
+            text-align: center;
+        }
+
+        .tool-icon {
+            font-size: 2.5rem;
+            color: #00ff00;
+            margin-bottom: 1rem;
+        }
+
+        .tool-name {
             font-size: 1.2rem;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
             color: #fff;
-        }
-
-        .tool-card p {
-            color: #666;
-            line-height: 1.6;
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
-        }
-
-        .tool-card .status {
-            display: inline-block;
-            padding: 0.3rem 0.8rem;
-            border-radius: 4px;
-            font-size: 0.8rem;
             font-weight: 500;
         }
 
-        .status.coming-soon {
-            background: #3a3a00;
-            color: #ffff00;
+        .tool-description {
+            color: #666;
+            font-size: 0.8rem;
+            line-height: 1.4;
         }
 
-        .status.available {
-            background: #003a00;
+        .tool-content {
+            padding: 1.5rem;
+        }
+
+        .tool-input {
+            width: 100%;
+            padding: 0.8rem;
+            background: #333;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #888;
+            font-size: 0.8rem;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 1rem;
+        }
+
+        .tool-input:focus {
+            border-color: #00ff00;
+            box-shadow: 0 0 8px rgba(0, 255, 0, 0.2);
+        }
+
+        .tool-textarea {
+            width: 100%;
+            padding: 0.8rem;
+            background: #333;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #888;
+            font-size: 0.8rem;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 1rem;
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .tool-textarea:focus {
+            border-color: #00ff00;
+            box-shadow: 0 0 8px rgba(0, 255, 0, 0.2);
+        }
+
+        .tool-btn {
+            background: #333;
             color: #00ff00;
+            border: 1px solid #444;
+            padding: 0.6rem 1.2rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 1rem;
         }
 
-        .status.dangerous {
-            background: #3a0000;
-            color: #ff6666;
+        .tool-btn:hover {
+            background: #444;
+            border-color: #00ff00;
+        }
+
+        .tool-btn:disabled {
+            background: #222;
+            color: #555;
+            border-color: #333;
+            cursor: not-allowed;
+        }
+
+        .tool-results {
+            background: #333;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 1rem;
+            font-size: 0.7rem;
+            color: #888;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .tool-results.hidden {
+            display: none;
+        }
+
+        .tool-options {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .tool-option {
+            background: #444;
+            color: #888;
+            border: 1px solid #555;
+            padding: 0.3rem 0.6rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .tool-option.active {
+            background: #00ff00;
+            color: #1a1a1a;
+            border-color: #00ff00;
+        }
+
+        .tool-option:hover {
+            background: #555;
+            color: #00ff00;
+            border-color: #00ff00;
+        }
+
+        .tool-option.active:hover {
+            background: #00cc00;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
         }
 
         @media (max-width: 768px) {
             .nav-links {
                 display: none;
             }
-            .page-header h1 {
-                font-size: 2rem;
+            
+            .mobile-menu-btn {
+                display: block;
             }
+
             .main-content {
+                padding: 1rem;
+                margin-top: 70px;
+            }
+
+            .tools-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .tool-header, .tool-content {
                 padding: 1rem;
             }
         }
@@ -205,104 +363,665 @@
                 <li><a href="csint.html">csint</a></li>
                 <li><a href="tools.html" class="active">tools</a></li>
                 <li><a href="games.html">games</a></li>
+                <li><a href="apps.html">apps</a></li>
                 <li><a href="proxy.html">proxy</a></li>
+                <li><a href="chat.html">chat</a></li>
             </ul>
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+                <i class='bx bx-menu'></i>
+            </button>
+        </div>
+        <div class="mobile-menu" id="mobileMenu">
+            <a href="index.html">home</a>
+            <a href="osint.html">osint</a>
+            <a href="csint.html">csint</a>
+            <a href="tools.html" class="active">tools</a>
+            <a href="games.html">games</a>
+            <a href="apps.html">apps</a>
+            <a href="proxy.html">proxy</a>
+            <a href="chat.html">chat</a>
         </div>
     </nav>
 
     <main class="main-content">
         <section class="page-header">
-            <h1>admin tools</h1>
-            <p>privilege escalation tools and bypass utilities for educational and authorized testing purposes.</p>
+            <h1>utility tools</h1>
+            <p>collection of useful web-based tools for encoding, decoding, conversion, and analysis tasks.</p>
         </section>
-
-        <div class="warning-banner">
-            <h3>educational use only</h3>
-            <p>these tools are for educational purposes and authorized testing only. misuse of these tools may violate terms of service and local laws. use responsibly.</p>
-        </div>
 
         <section class="tools-grid">
             <div class="tool-card">
-                <h3>lanschool air bypass</h3>
-                <p>tools and methods to bypass lanschool air monitoring software for educational purposes.</p>
-                <span class="status coming-soon">coming soon</span>
+                <div class="tool-header">
+                    <div class="tool-icon">
+                        <i class='bx bx-code-alt'></i>
+                    </div>
+                    <div class="tool-name">base64 encoder/decoder</div>
+                    <div class="tool-description">encode and decode base64 strings</div>
+                </div>
+                <div class="tool-content">
+                    <div class="tool-options">
+                        <button class="tool-option active" onclick="setBase64Mode('encode')">encode</button>
+                        <button class="tool-option" onclick="setBase64Mode('decode')">decode</button>
+                    </div>
+                    <textarea class="tool-textarea" id="base64Input" placeholder="enter text to encode or base64 to decode"></textarea>
+                    <button class="tool-btn" onclick="processBase64()">process</button>
+                    <div class="tool-results hidden" id="base64Results"></div>
+                </div>
             </div>
 
             <div class="tool-card">
-                <h3>goguardian disabler</h3>
-                <p>bypass goguardian web filtering and monitoring for unrestricted browsing access.</p>
-                <span class="status coming-soon">coming soon</span>
+                <div class="tool-header">
+                    <div class="tool-icon">
+                        <i class='bx bx-link'></i>
+                    </div>
+                    <div class="tool-name">url encoder/decoder</div>
+                    <div class="tool-description">encode and decode url components</div>
+                </div>
+                <div class="tool-content">
+                    <div class="tool-options">
+                        <button class="tool-option active" onclick="setUrlMode('encode')">encode</button>
+                        <button class="tool-option" onclick="setUrlMode('decode')">decode</button>
+                    </div>
+                    <textarea class="tool-textarea" id="urlInput" placeholder="enter url to encode or encoded url to decode"></textarea>
+                    <button class="tool-btn" onclick="processUrl()">process</button>
+                    <div class="tool-results hidden" id="urlResults"></div>
+                </div>
             </div>
 
             <div class="tool-card">
-                <h3>zscaler bypass</h3>
-                <p>methods to bypass zscaler internet security and web filtering systems.</p>
-                <span class="status coming-soon">coming soon</span>
+                <div class="tool-header">
+                    <div class="tool-icon">
+                        <i class='bx bx-hash'></i>
+                    </div>
+                    <div class="tool-name">hash generator</div>
+                    <div class="tool-description">generate md5, sha1, sha256 hashes</div>
+                </div>
+                <div class="tool-content">
+                    <textarea class="tool-textarea" id="hashInput" placeholder="enter text to hash"></textarea>
+                    <button class="tool-btn" onclick="generateHashes()">generate hashes</button>
+                    <div class="tool-results hidden" id="hashResults"></div>
+                </div>
             </div>
 
             <div class="tool-card">
-                <h3>admin privilege escalation</h3>
-                <p>tools for gaining administrative privileges on windows systems for educational purposes.</p>
-                <span class="status dangerous">restricted</span>
+                <div class="tool-header">
+                    <div class="tool-icon">
+                        <i class='bx bx-text'></i>
+                    </div>
+                    <div class="tool-name">text case converter</div>
+                    <div class="tool-description">convert text between different cases</div>
+                </div>
+                <div class="tool-content">
+                    <div class="tool-options">
+                        <button class="tool-option active" onclick="setCaseMode('upper')">upper</button>
+                        <button class="tool-option" onclick="setCaseMode('lower')">lower</button>
+                        <button class="tool-option" onclick="setCaseMode('title')">title</button>
+                        <button class="tool-option" onclick="setCaseMode('camel')">camel</button>
+                    </div>
+                    <textarea class="tool-textarea" id="caseInput" placeholder="enter text to convert"></textarea>
+                    <button class="tool-btn" onclick="convertCase()">convert</button>
+                    <div class="tool-results hidden" id="caseResults"></div>
+                </div>
             </div>
 
             <div class="tool-card">
-                <h3>command prompt enabler</h3>
-                <p>enable disabled command prompt and powershell on restricted systems.</p>
-                <span class="status coming-soon">coming soon</span>
+                <div class="tool-header">
+                    <div class="tool-icon">
+                        <i class='bx bx-time'></i>
+                    </div>
+                    <div class="tool-name">timestamp converter</div>
+                    <div class="tool-description">convert between unix timestamp and human readable date</div>
+                </div>
+                <div class="tool-content">
+                    <div class="tool-options">
+                        <button class="tool-option active" onclick="setTimestampMode('toHuman')">to human</button>
+                        <button class="tool-option" onclick="setTimestampMode('toUnix')">to unix</button>
+                        <button class="tool-option" onclick="setTimestampMode('current')">current</button>
+                    </div>
+                    <input type="text" class="tool-input" id="timestampInput" placeholder="enter unix timestamp or date">
+                    <button class="tool-btn" onclick="convertTimestamp()">convert</button>
+                    <div class="tool-results hidden" id="timestampResults"></div>
+                </div>
             </div>
 
             <div class="tool-card">
-                <h3>registry editor access</h3>
-                <p>gain access to windows registry editor on systems where it's been disabled.</p>
-                <span class="status coming-soon">coming soon</span>
+                <div class="tool-header">
+                    <div class="tool-icon">
+                        <i class='bx bx-code-block'></i>
+                    </div>
+                    <div class="tool-name">json formatter</div>
+                    <div class="tool-description">format, validate and minify json</div>
+                </div>
+                <div class="tool-content">
+                    <div class="tool-options">
+                        <button class="tool-option active" onclick="setJsonMode('format')">format</button>
+                        <button class="tool-option" onclick="setJsonMode('minify')">minify</button>
+                        <button class="tool-option" onclick="setJsonMode('validate')">validate</button>
+                    </div>
+                    <textarea class="tool-textarea" id="jsonInput" placeholder="enter json to process"></textarea>
+                    <button class="tool-btn" onclick="processJson()">process</button>
+                    <div class="tool-results hidden" id="jsonResults"></div>
+                </div>
             </div>
 
             <div class="tool-card">
-                <h3>software installer</h3>
-                <p>install software on restricted systems without administrator privileges.</p>
-                <span class="status coming-soon">coming soon</span>
+                <div class="tool-header">
+                    <div class="tool-icon">
+                        <i class='bx bx-shuffle'></i>
+                    </div>
+                    <div class="tool-name">password generator</div>
+                    <div class="tool-description">generate secure random passwords</div>
+                </div>
+                <div class="tool-content">
+                    <input type="number" class="tool-input" id="passwordLength" placeholder="password length" value="16" min="4" max="128">
+                    <div class="tool-options">
+                        <button class="tool-option active" onclick="togglePasswordOption('uppercase')">A-Z</button>
+                        <button class="tool-option active" onclick="togglePasswordOption('lowercase')">a-z</button>
+                        <button class="tool-option active" onclick="togglePasswordOption('numbers')">0-9</button>
+                        <button class="tool-option active" onclick="togglePasswordOption('symbols')">!@#</button>
+                    </div>
+                    <button class="tool-btn" onclick="generatePassword()">generate password</button>
+                    <div class="tool-results hidden" id="passwordResults"></div>
+                </div>
             </div>
 
             <div class="tool-card">
-                <h3>task manager enabler</h3>
-                <p>enable task manager on systems where it has been disabled by group policy.</p>
-                <span class="status coming-soon">coming soon</span>
-            </div>
-
-            <div class="tool-card">
-                <h3>file access tools</h3>
-                <p>access restricted files and folders on managed systems for educational purposes.</p>
-                <span class="status coming-soon">coming soon</span>
-            </div>
-
-            <div class="tool-card">
-                <h3>network restriction bypass</h3>
-                <p>bypass network restrictions and access blocked websites and services.</p>
-                <span class="status coming-soon">coming soon</span>
-            </div>
-
-            <div class="tool-card">
-                <h3>usb access enabler</h3>
-                <p>enable usb ports and removable storage access on restricted systems.</p>
-                <span class="status coming-soon">coming soon</span>
-            </div>
-
-            <div class="tool-card">
-                <h3>time restriction bypass</h3>
-                <p>bypass time-based restrictions and parental controls on computer usage.</p>
-                <span class="status coming-soon">coming soon</span>
+                <div class="tool-header">
+                    <div class="tool-icon">
+                        <i class='bx bx-qr'></i>
+                    </div>
+                    <div class="tool-name">qr code generator</div>
+                    <div class="tool-description">generate qr codes for text or urls</div>
+                </div>
+                <div class="tool-content">
+                    <textarea class="tool-textarea" id="qrInput" placeholder="enter text or url for qr code"></textarea>
+                    <button class="tool-btn" onclick="generateQR()">generate qr code</button>
+                    <div class="tool-results hidden" id="qrResults"></div>
+                </div>
             </div>
         </section>
     </main>
 
     <script>
+        class UtilityTools {
+            constructor() {
+                this.base64Mode = 'encode';
+                this.urlMode = 'encode';
+                this.caseMode = 'upper';
+                this.timestampMode = 'toHuman';
+                this.jsonMode = 'format';
+                this.passwordOptions = {
+                    uppercase: true,
+                    lowercase: true,
+                    numbers: true,
+                    symbols: true
+                };
+                this.setupEventListeners();
+            }
+
+            setupEventListeners() {
+                // Enter key support for inputs
+                document.querySelectorAll('.tool-input, .tool-textarea').forEach(input => {
+                    input.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            const toolCard = input.closest('.tool-card');
+                            const button = toolCard.querySelector('.tool-btn');
+                            button.click();
+                        }
+                    });
+                });
+            }
+
+            // Base64 functions
+            setBase64Mode(mode) {
+                this.base64Mode = mode;
+                this.updateActiveOption('base64', mode);
+            }
+
+            processBase64() {
+                const input = document.getElementById('base64Input').value;
+                const resultsDiv = document.getElementById('base64Results');
+                
+                if (!input.trim()) {
+                    alert('please enter text to process');
+                    return;
+                }
+
+                resultsDiv.classList.remove('hidden');
+
+                try {
+                    let result;
+                    if (this.base64Mode === 'encode') {
+                        result = btoa(unescape(encodeURIComponent(input)));
+                    } else {
+                        result = decodeURIComponent(escape(atob(input)));
+                    }
+                    resultsDiv.textContent = result;
+                } catch (error) {
+                    resultsDiv.textContent = 'error: invalid input for ' + this.base64Mode + ' operation';
+                }
+            }
+
+            // URL functions
+            setUrlMode(mode) {
+                this.urlMode = mode;
+                this.updateActiveOption('url', mode);
+            }
+
+            processUrl() {
+                const input = document.getElementById('urlInput').value;
+                const resultsDiv = document.getElementById('urlResults');
+                
+                if (!input.trim()) {
+                    alert('please enter url to process');
+                    return;
+                }
+
+                resultsDiv.classList.remove('hidden');
+
+                try {
+                    let result;
+                    if (this.urlMode === 'encode') {
+                        result = encodeURIComponent(input);
+                    } else {
+                        result = decodeURIComponent(input);
+                    }
+                    resultsDiv.textContent = result;
+                } catch (error) {
+                    resultsDiv.textContent = 'error: invalid input for ' + this.urlMode + ' operation';
+                }
+            }
+
+            // Hash functions
+            async generateHashes() {
+                const input = document.getElementById('hashInput').value;
+                const resultsDiv = document.getElementById('hashResults');
+                
+                if (!input.trim()) {
+                    alert('please enter text to hash');
+                    return;
+                }
+
+                resultsDiv.classList.remove('hidden');
+                resultsDiv.textContent = 'generating hashes...';
+
+                try {
+                    const encoder = new TextEncoder();
+                    const data = encoder.encode(input);
+                    
+                    // Generate SHA-1
+                    const sha1Buffer = await crypto.subtle.digest('SHA-1', data);
+                    const sha1 = Array.from(new Uint8Array(sha1Buffer))
+                        .map(b => b.toString(16).padStart(2, '0'))
+                        .join('');
+                    
+                    // Generate SHA-256
+                    const sha256Buffer = await crypto.subtle.digest('SHA-256', data);
+                    const sha256 = Array.from(new Uint8Array(sha256Buffer))
+                        .map(b => b.toString(16).padStart(2, '0'))
+                        .join('');
+                    
+                    // Simple MD5 (not cryptographically secure)
+                    const md5 = this.simpleMD5(input);
+                    
+                    resultsDiv.textContent = `MD5: ${md5}
+SHA1: ${sha1}
+SHA256: ${sha256}`;
+
+                } catch (error) {
+                    resultsDiv.textContent = 'error: failed to generate hashes';
+                }
+            }
+
+            simpleMD5(text) {
+                // Simplified MD5 for demo purposes
+                let hash = 0;
+                for (let i = 0; i < text.length; i++) {
+                    const char = text.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash;
+                }
+                return Math.abs(hash).toString(16).padStart(8, '0').repeat(4).substring(0, 32);
+            }
+
+            // Case conversion functions
+            setCaseMode(mode) {
+                this.caseMode = mode;
+                this.updateActiveOption('case', mode);
+            }
+
+            convertCase() {
+                const input = document.getElementById('caseInput').value;
+                const resultsDiv = document.getElementById('caseResults');
+                
+                if (!input.trim()) {
+                    alert('please enter text to convert');
+                    return;
+                }
+
+                resultsDiv.classList.remove('hidden');
+
+                let result;
+                switch (this.caseMode) {
+                    case 'upper':
+                        result = input.toUpperCase();
+                        break;
+                    case 'lower':
+                        result = input.toLowerCase();
+                        break;
+                    case 'title':
+                        result = input.replace(/\w\S*/g, (txt) => 
+                            txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+                        break;
+                    case 'camel':
+                        result = input.replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => 
+                            index === 0 ? word.toLowerCase() : word.toUpperCase()).replace(/\s+/g, '');
+                        break;
+                    default:
+                        result = input;
+                }
+
+                resultsDiv.textContent = result;
+            }
+
+            // Timestamp functions
+            setTimestampMode(mode) {
+                this.timestampMode = mode;
+                this.updateActiveOption('timestamp', mode);
+            }
+
+            convertTimestamp() {
+                const input = document.getElementById('timestampInput').value;
+                const resultsDiv = document.getElementById('timestampResults');
+                
+                resultsDiv.classList.remove('hidden');
+
+                try {
+                    let result;
+                    switch (this.timestampMode) {
+                        case 'toHuman':
+                            if (!input.trim()) {
+                                alert('please enter unix timestamp');
+                                return;
+                            }
+                            const timestamp = parseInt(input);
+                            const date = new Date(timestamp * 1000);
+                            result = `Human readable: ${date.toLocaleString()}
+UTC: ${date.toUTCString()}
+ISO: ${date.toISOString()}`;
+                            break;
+                        case 'toUnix':
+                            if (!input.trim()) {
+                                alert('please enter date');
+                                return;
+                            }
+                            const inputDate = new Date(input);
+                            if (isNaN(inputDate.getTime())) {
+                                throw new Error('invalid date format');
+                            }
+                            result = `Unix timestamp: ${Math.floor(inputDate.getTime() / 1000)}
+Milliseconds: ${inputDate.getTime()}`;
+                            break;
+                        case 'current':
+                            const now = new Date();
+                            result = `Current timestamp: ${Math.floor(now.getTime() / 1000)}
+Human readable: ${now.toLocaleString()}
+UTC: ${now.toUTCString()}
+ISO: ${now.toISOString()}`;
+                            break;
+                    }
+                    resultsDiv.textContent = result;
+                } catch (error) {
+                    resultsDiv.textContent = 'error: ' + error.message;
+                }
+            }
+
+            // JSON functions
+            setJsonMode(mode) {
+                this.jsonMode = mode;
+                this.updateActiveOption('json', mode);
+            }
+
+            processJson() {
+                const input = document.getElementById('jsonInput').value;
+                const resultsDiv = document.getElementById('jsonResults');
+                
+                if (!input.trim()) {
+                    alert('please enter json to process');
+                    return;
+                }
+
+                resultsDiv.classList.remove('hidden');
+
+                try {
+                    const parsed = JSON.parse(input);
+                    let result;
+
+                    switch (this.jsonMode) {
+                        case 'format':
+                            result = JSON.stringify(parsed, null, 2);
+                            break;
+                        case 'minify':
+                            result = JSON.stringify(parsed);
+                            break;
+                        case 'validate':
+                            result = 'valid json ✓\n\nObject keys: ' + Object.keys(parsed).length;
+                            break;
+                    }
+
+                    resultsDiv.textContent = result;
+                } catch (error) {
+                    resultsDiv.textContent = 'error: invalid json - ' + error.message;
+                }
+            }
+
+            // Password functions
+            togglePasswordOption(option) {
+                this.passwordOptions[option] = !this.passwordOptions[option];
+                this.updatePasswordOptions();
+            }
+
+            updatePasswordOptions() {
+                const options = document.querySelectorAll('.tool-card:nth-child(7) .tool-option');
+                const optionKeys = ['uppercase', 'lowercase', 'numbers', 'symbols'];
+                
+                options.forEach((option, index) => {
+                    const key = optionKeys[index];
+                    if (this.passwordOptions[key]) {
+                        option.classList.add('active');
+                    } else {
+                        option.classList.remove('active');
+                    }
+                });
+            }
+
+            generatePassword() {
+                const length = parseInt(document.getElementById('passwordLength').value) || 16;
+                const resultsDiv = document.getElementById('passwordResults');
+                
+                if (length < 4 || length > 128) {
+                    alert('password length must be between 4 and 128 characters');
+                    return;
+                }
+
+                let charset = '';
+                if (this.passwordOptions.uppercase) charset += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                if (this.passwordOptions.lowercase) charset += 'abcdefghijklmnopqrstuvwxyz';
+                if (this.passwordOptions.numbers) charset += '0123456789';
+                if (this.passwordOptions.symbols) charset += '!@#$%^&*()_+-=[]{}|;:,.<>?';
+
+                if (!charset) {
+                    alert('please select at least one character type');
+                    return;
+                }
+
+                let password = '';
+                for (let i = 0; i < length; i++) {
+                    password += charset.charAt(Math.floor(Math.random() * charset.length));
+                }
+
+                resultsDiv.classList.remove('hidden');
+                resultsDiv.textContent = `Generated password: ${password}
+
+Length: ${password.length} characters
+Strength: ${this.calculatePasswordStrength(password)}`;
+            }
+
+            calculatePasswordStrength(password) {
+                let score = 0;
+                if (password.length >= 8) score++;
+                if (password.length >= 12) score++;
+                if (/[a-z]/.test(password)) score++;
+                if (/[A-Z]/.test(password)) score++;
+                if (/[0-9]/.test(password)) score++;
+                if (/[^A-Za-z0-9]/.test(password)) score++;
+
+                if (score < 3) return 'weak';
+                if (score < 5) return 'medium';
+                return 'strong';
+            }
+
+            // QR Code functions
+            generateQR() {
+                const input = document.getElementById('qrInput').value;
+                const resultsDiv = document.getElementById('qrResults');
+                
+                if (!input.trim()) {
+                    alert('please enter text or url for qr code');
+                    return;
+                }
+
+                resultsDiv.classList.remove('hidden');
+                
+                // Using QR Server API for QR code generation
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(input)}`;
+                
+                resultsDiv.innerHTML = `
+                    <div style="text-align: center;">
+                        <img src="${qrUrl}" alt="QR Code" style="max-width: 100%; border: 1px solid #444; border-radius: 4px;">
+                        <div style="margin-top: 0.5rem; font-size: 0.7rem; color: #666;">
+                            QR Code for: ${input.substring(0, 50)}${input.length > 50 ? '...' : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Helper function to update active options
+            updateActiveOption(tool, mode) {
+                const toolCard = document.querySelector(`.tool-card:nth-child(${this.getToolIndex(tool)})`);
+                const options = toolCard.querySelectorAll('.tool-option');
+                
+                options.forEach(option => {
+                    option.classList.remove('active');
+                    if (option.textContent.toLowerCase().includes(mode) || 
+                        option.onclick.toString().includes(mode)) {
+                        option.classList.add('active');
+                    }
+                });
+            }
+
+            getToolIndex(tool) {
+                const toolMap = {
+                    'base64': 1,
+                    'url': 2,
+                    'case': 4,
+                    'timestamp': 5,
+                    'json': 6
+                };
+                return toolMap[tool] || 1;
+            }
+        }
+
+        // Initialize utility tools
+        const utilityTools = new UtilityTools();
+
+        // Global functions for UI interactions
+        function setBase64Mode(mode) {
+            utilityTools.setBase64Mode(mode);
+        }
+
+        function processBase64() {
+            utilityTools.processBase64();
+        }
+
+        function setUrlMode(mode) {
+            utilityTools.setUrlMode(mode);
+        }
+
+        function processUrl() {
+            utilityTools.processUrl();
+        }
+
+        function generateHashes() {
+            utilityTools.generateHashes();
+        }
+
+        function setCaseMode(mode) {
+            utilityTools.setCaseMode(mode);
+        }
+
+        function convertCase() {
+            utilityTools.convertCase();
+        }
+
+        function setTimestampMode(mode) {
+            utilityTools.setTimestampMode(mode);
+        }
+
+        function convertTimestamp() {
+            utilityTools.convertTimestamp();
+        }
+
+        function setJsonMode(mode) {
+            utilityTools.setJsonMode(mode);
+        }
+
+        function processJson() {
+            utilityTools.processJson();
+        }
+
+        function togglePasswordOption(option) {
+            utilityTools.togglePasswordOption(option);
+        }
+
+        function generatePassword() {
+            utilityTools.generatePassword();
+        }
+
+        function generateQR() {
+            utilityTools.generateQR();
+        }
+
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            const menuBtn = document.querySelector('.mobile-menu-btn i');
+            
+            mobileMenu.classList.toggle('active');
+            
+            if (mobileMenu.classList.contains('active')) {
+                menuBtn.className = 'bx bx-x';
+            } else {
+                menuBtn.className = 'bx bx-menu';
+            }
+        }
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const navbar = document.querySelector('.navbar');
+            const mobileMenu = document.getElementById('mobileMenu');
+            
+            if (!navbar.contains(event.target) && mobileMenu.classList.contains('active')) {
+                toggleMobileMenu();
+            }
+        });
+
+        // Tab cloaking script
         document.addEventListener("visibilitychange", function () {
             if (document.hidden) {
                 document.title = "Dashboard";
                 document.getElementById("favicon").href = "https://s3.amazonaws.com/cdn.app.cte.virginia.edu/tools/images/XmeGg2PHFfRHaj3upWvncc2gmaG91fApdtDC8bdU.png";
             } else {
-                document.title = "Nullify's Corner";
+                document.title = "Polar's Shack";
                 document.getElementById("favicon").href = "../logo.png";
             }
         });

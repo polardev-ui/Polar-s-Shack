@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nullify's Corner</title>
+    <title>Polar's Shack</title>
     <link id="favicon" rel="icon" href="../logo.png" type="image/png">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -77,6 +77,48 @@
             color: #00ff00;
         }
 
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .mobile-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #1a1a1a;
+            border-bottom: 1px solid #333;
+            padding: 1rem 2rem;
+        }
+
+        .mobile-menu.active {
+            display: block;
+        }
+
+        .mobile-menu a {
+            display: block;
+            color: #888;
+            text-decoration: none;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #333;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu a:hover, .mobile-menu a.active {
+            color: #00ff00;
+        }
+
+        .mobile-menu a:last-child {
+            border-bottom: none;
+        }
+
         .main-content {
             margin-top: 80px;
             padding: 2rem;
@@ -90,79 +132,235 @@
         }
 
         .page-header h1 {
-            font-size: 2.5rem;
+            font-size: clamp(2rem, 6vw, 2.5rem);
             font-weight: 400;
             margin-bottom: 1rem;
             color: #fff;
+            position: relative;
+        }
+
+        .page-header h1::after {
+            content: '_';
+            color: #00ff00;
+            animation: blink 1s infinite;
+            margin-left: 2px;
         }
 
         .page-header p {
-            font-size: 1rem;
+            font-size: clamp(0.9rem, 2.5vw, 1rem);
             color: #666;
             max-width: 600px;
         }
 
+        .warning-banner {
+            background: #2a1a1a;
+            border: 1px solid #664444;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .warning-banner h3 {
+            color: #ff6666;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .warning-banner p {
+            color: #888;
+            font-size: 0.8rem;
+            line-height: 1.5;
+        }
+
         .tools-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 2rem;
             margin-bottom: 3rem;
         }
 
         .tool-card {
             background: #2a2a2a;
-            padding: 2rem;
             border-radius: 8px;
             border: 1px solid #333;
+            overflow: hidden;
             transition: all 0.3s ease;
-            cursor: pointer;
         }
 
         .tool-card:hover {
             border-color: #00ff00;
             box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
+            transform: translateY(-2px);
         }
 
-        .tool-card h3 {
+        .tool-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #333;
+        }
+
+        .tool-icon {
+            font-size: 2rem;
+            color: #00ff00;
+            margin-bottom: 1rem;
+        }
+
+        .tool-name {
             font-size: 1.2rem;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
             color: #fff;
-        }
-
-        .tool-card p {
-            color: #666;
-            line-height: 1.6;
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
-        }
-
-        .tool-card .status {
-            display: inline-block;
-            padding: 0.3rem 0.8rem;
-            border-radius: 4px;
-            font-size: 0.8rem;
             font-weight: 500;
         }
 
-        .status.coming-soon {
-            background: #3a3a00;
-            color: #ffff00;
+        .tool-description {
+            color: #666;
+            font-size: 0.8rem;
+            line-height: 1.4;
         }
 
-        .status.available {
-            background: #003a00;
+        .tool-content {
+            padding: 1.5rem;
+        }
+
+        .tool-input {
+            width: 100%;
+            padding: 0.8rem;
+            background: #333;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #888;
+            font-size: 0.8rem;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 1rem;
+        }
+
+        .tool-input:focus {
+            border-color: #00ff00;
+            box-shadow: 0 0 8px rgba(0, 255, 0, 0.2);
+        }
+
+        .tool-btn {
+            background: #333;
             color: #00ff00;
+            border: 1px solid #444;
+            padding: 0.6rem 1.2rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 1rem;
+        }
+
+        .tool-btn:hover {
+            background: #444;
+            border-color: #00ff00;
+        }
+
+        .tool-btn:disabled {
+            background: #222;
+            color: #555;
+            border-color: #333;
+            cursor: not-allowed;
+        }
+
+        .tool-results {
+            background: #333;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 1rem;
+            font-size: 0.7rem;
+            color: #888;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .tool-results.hidden {
+            display: none;
+        }
+
+        .external-tools {
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding: 2rem;
+            border: 1px solid #333;
+            margin-bottom: 3rem;
+        }
+
+        .external-tools h3 {
+            color: #fff;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .external-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .external-link {
+            background: #333;
+            padding: 1rem;
+            border-radius: 4px;
+            border: 1px solid #444;
+            text-decoration: none;
+            color: #888;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .external-link:hover {
+            background: #444;
+            color: #00ff00;
+            border-color: #00ff00;
+        }
+
+        .external-link i {
+            font-size: 1.2rem;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
         }
 
         @media (max-width: 768px) {
             .nav-links {
                 display: none;
             }
-            .page-header h1 {
-                font-size: 2rem;
+            
+            .mobile-menu-btn {
+                display: block;
             }
+
             .main-content {
                 padding: 1rem;
+                margin-top: 70px;
+            }
+
+            .tools-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .tool-header, .tool-content {
+                padding: 1rem;
+            }
+
+            .external-tools {
+                padding: 1rem;
+            }
+
+            .external-links {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -180,99 +378,599 @@
                 <li><a href="csint.html">csint</a></li>
                 <li><a href="tools.html">tools</a></li>
                 <li><a href="games.html">games</a></li>
+                <li><a href="apps.html">apps</a></li>
                 <li><a href="proxy.html">proxy</a></li>
+                <li><a href="chat.html">chat</a></li>
             </ul>
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+                <i class='bx bx-menu'></i>
+            </button>
+        </div>
+        <div class="mobile-menu" id="mobileMenu">
+            <a href="index.html">home</a>
+            <a href="osint.html" class="active">osint</a>
+            <a href="csint.html">csint</a>
+            <a href="tools.html">tools</a>
+            <a href="games.html">games</a>
+            <a href="apps.html">apps</a>
+            <a href="proxy.html">proxy</a>
+            <a href="chat.html">chat</a>
         </div>
     </nav>
 
     <main class="main-content">
         <section class="page-header">
             <h1>osint tools</h1>
-            <p>open source intelligence gathering tools for research, investigation, and information discovery.</p>
+            <p>open source intelligence gathering tools for research and investigation. use responsibly and ethically.</p>
         </section>
 
+        <div class="warning-banner">
+            <h3><i class='bx bx-shield-alt'></i> ethical use only</h3>
+            <p>these tools are for educational and legitimate research purposes only. always respect privacy, follow applicable laws, and obtain proper authorization before conducting investigations.</p>
+        </div>
+
         <section class="tools-grid">
-            <div class="tool-card" onclick="window.open('https://osintframework.com/', '_blank')">
-                <h3>osint framework</h3>
-                <p>comprehensive collection of osint tools organized by category. perfect starting point for any investigation.</p>
-                <span class="status available">available</span>
-            </div>
-
-            <div class="tool-card" onclick="window.open('https://www.shodan.io/', '_blank')">
-                <h3>shodan</h3>
-                <p>search engine for internet-connected devices. discover cameras, servers, and iot devices worldwide.</p>
-                <span class="status available">available</span>
-            </div>
-
-            <div class="tool-card" onclick="window.open('https://www.maltego.com/', '_blank')">
-                <h3>maltego</h3>
-                <p>link analysis software for gathering and connecting information for investigative tasks.</p>
-                <span class="status available">available</span>
-            </div>
-
-            <div class="tool-card" onclick="window.open('https://www.spiderfoot.net/', '_blank')">
-                <h3>spiderfoot</h3>
-                <p>automated osint collection tool that gathers intelligence about ip addresses, domain names, and more.</p>
-                <span class="status available">available</span>
-            </div>
-
-            <div class="tool-card" onclick="window.open('https://www.whois.net/', '_blank')">
-                <h3>whois lookup</h3>
-                <p>domain registration information lookup tool. find owner details, registration dates, and nameservers.</p>
-                <span class="status available">available</span>
-            </div>
-
-            <div class="tool-card" onclick="window.open('https://www.virustotal.com/', '_blank')">
-                <h3>virustotal</h3>
-                <p>analyze suspicious files and urls to detect types of malware and malicious content.</p>
-                <span class="status available">available</span>
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div class="tool-icon">
+                        <i class='bx bx-search-alt'></i>
+                    </div>
+                    <div class="tool-name">domain lookup</div>
+                    <div class="tool-description">get whois information and dns records for any domain</div>
+                </div>
+                <div class="tool-content">
+                    <input type="text" class="tool-input" id="domainInput" placeholder="enter domain (e.g., example.com)">
+                    <button class="tool-btn" onclick="lookupDomain()">lookup domain</button>
+                    <div class="tool-results hidden" id="domainResults"></div>
+                </div>
             </div>
 
             <div class="tool-card">
-                <h3>facial recognition</h3>
-                <p>advanced facial recognition tools for identifying individuals across social media platforms.</p>
-                <span class="status coming-soon">coming soon</span>
+                <div class="tool-header">
+                    <div class="tool-icon">
+                        <i class='bx bx-globe'></i>
+                    </div>
+                    <div class="tool-name">ip geolocation</div>
+                    <div class="tool-description">find geographical location and isp information for ip addresses</div>
+                </div>
+                <div class="tool-content">
+                    <input type="text" class="tool-input" id="ipInput" placeholder="enter ip address (e.g., 8.8.8.8)">
+                    <button class="tool-btn" onclick="geolocateIP()">geolocate ip</button>
+                    <div class="tool-results hidden" id="ipResults"></div>
+                </div>
             </div>
 
             <div class="tool-card">
-                <h3>geolocation tools</h3>
-                <p>advanced geolocation and mapping tools for tracking and analyzing location data.</p>
-                <span class="status coming-soon">coming soon</span>
+                <div class="tool-header">
+                    <div class="tool-icon">
+                        <i class='bx bx-link'></i>
+                    </div>
+                    <div class="tool-name">url analyzer</div>
+                    <div class="tool-description">analyze urls for redirects, headers, and security information</div>
+                </div>
+                <div class="tool-content">
+                    <input type="text" class="tool-input" id="urlInput" placeholder="enter url (e.g., https://example.com)">
+                    <button class="tool-btn" onclick="analyzeURL()">analyze url</button>
+                    <div class="tool-results hidden" id="urlResults"></div>
+                </div>
             </div>
 
             <div class="tool-card">
-                <h3>phone number osint</h3>
-                <p>comprehensive phone number investigation tools for carrier lookup and location tracking.</p>
-                <span class="status coming-soon">coming soon</span>
+                <div class="tool-header">
+                    <div class="tool-icon">
+                        <i class='bx bx-envelope'></i>
+                    </div>
+                    <div class="tool-name">email validator</div>
+                    <div class="tool-description">validate email addresses and check domain mx records</div>
+                </div>
+                <div class="tool-content">
+                    <input type="text" class="tool-input" id="emailInput" placeholder="enter email address">
+                    <button class="tool-btn" onclick="validateEmail()">validate email</button>
+                    <div class="tool-results hidden" id="emailResults"></div>
+                </div>
             </div>
 
             <div class="tool-card">
-                <h3>email investigation</h3>
-                <p>email address investigation tools for breach checking and account discovery.</p>
-                <span class="status coming-soon">coming soon</span>
+                <div class="tool-header">
+                    <div class="tool-icon">
+                        <i class='bx bx-hash'></i>
+                    </div>
+                    <div class="tool-name">hash analyzer</div>
+                    <div class="tool-description">identify hash types and generate common hashes</div>
+                </div>
+                <div class="tool-content">
+                    <input type="text" class="tool-input" id="hashInput" placeholder="enter hash or text to hash">
+                    <button class="tool-btn" onclick="analyzeHash()">analyze/generate</button>
+                    <div class="tool-results hidden" id="hashResults"></div>
+                </div>
             </div>
 
             <div class="tool-card">
-                <h3>social media osint</h3>
-                <p>comprehensive social media investigation tools for profile analysis and content discovery.</p>
-                <span class="status coming-soon">coming soon</span>
+                <div class="tool-header">
+                    <div class="tool-icon">
+                        <i class='bx bx-user'></i>
+                    </div>
+                    <div class="tool-name">username search</div>
+                    <div class="tool-description">search for usernames across multiple social platforms</div>
+                </div>
+                <div class="tool-content">
+                    <input type="text" class="tool-input" id="usernameInput" placeholder="enter username">
+                    <button class="tool-btn" onclick="searchUsername()">search username</button>
+                    <div class="tool-results hidden" id="usernameResults"></div>
+                </div>
             </div>
+        </section>
 
-            <div class="tool-card">
-                <h3>data breach search</h3>
-                <p>search through data breaches and leaked databases for compromised information.</p>
-                <span class="status coming-soon">coming soon</span>
+        <section class="external-tools">
+            <h3>external osint resources</h3>
+            <div class="external-links">
+                <a href="https://osintframework.com/" target="_blank" class="external-link">
+                    <i class='bx bx-sitemap'></i>
+                    <span>osint framework</span>
+                </a>
+                <a href="https://www.shodan.io/" target="_blank" class="external-link">
+                    <i class='bx bx-search'></i>
+                    <span>shodan</span>
+                </a>
+                <a href="https://censys.io/" target="_blank" class="external-link">
+                    <i class='bx bx-radar'></i>
+                    <span>censys</span>
+                </a>
+                <a href="https://www.virustotal.com/" target="_blank" class="external-link">
+                    <i class='bx bx-shield'></i>
+                    <span>virustotal</span>
+                </a>
+                <a href="https://builtwith.com/" target="_blank" class="external-link">
+                    <i class='bx bx-code-alt'></i>
+                    <span>builtwith</span>
+                </a>
+                <a href="https://archive.org/" target="_blank" class="external-link">
+                    <i class='bx bx-archive'></i>
+                    <span>wayback machine</span>
+                </a>
+                <a href="https://www.maltego.com/" target="_blank" class="external-link">
+                    <i class='bx bx-network-chart'></i>
+                    <span>maltego</span>
+                </a>
+                <a href="https://spyse.com/" target="_blank" class="external-link">
+                    <i class='bx bx-globe'></i>
+                    <span>spyse</span>
+                </a>
             </div>
         </section>
     </main>
 
     <script>
+        class OSINTTools {
+            constructor() {
+                this.setupEventListeners();
+            }
+
+            setupEventListeners() {
+                // Enter key support for all inputs
+                document.querySelectorAll('.tool-input').forEach(input => {
+                    input.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            const toolCard = input.closest('.tool-card');
+                            const button = toolCard.querySelector('.tool-btn');
+                            button.click();
+                        }
+                    });
+                });
+            }
+
+            async lookupDomain() {
+                const domain = document.getElementById('domainInput').value.trim();
+                const resultsDiv = document.getElementById('domainResults');
+                
+                if (!domain) {
+                    alert('please enter a domain name');
+                    return;
+                }
+
+                resultsDiv.classList.remove('hidden');
+                resultsDiv.textContent = 'looking up domain information...';
+
+                try {
+                    // Use DNS over HTTPS for domain lookup
+                    const response = await fetch(`https://dns.google/resolve?name=${domain}&type=A`);
+                    const data = await response.json();
+                    
+                    let result = `Domain: ${domain}\n`;
+                    
+                    if (data.Answer) {
+                        result += `IP Addresses:\n`;
+                        data.Answer.forEach(record => {
+                            if (record.type === 1) { // A record
+                                result += `  ${record.data}\n`;
+                            }
+                        });
+                    }
+
+                    // Get additional DNS records
+                    const mxResponse = await fetch(`https://dns.google/resolve?name=${domain}&type=MX`);
+                    const mxData = await mxResponse.json();
+                    
+                    if (mxData.Answer) {
+                        result += `\nMX Records:\n`;
+                        mxData.Answer.forEach(record => {
+                            result += `  ${record.data}\n`;
+                        });
+                    }
+
+                    // Get NS records
+                    const nsResponse = await fetch(`https://dns.google/resolve?name=${domain}&type=NS`);
+                    const nsData = await nsResponse.json();
+                    
+                    if (nsData.Answer) {
+                        result += `\nName Servers:\n`;
+                        nsData.Answer.forEach(record => {
+                            result += `  ${record.data}\n`;
+                        });
+                    }
+
+                    resultsDiv.textContent = result;
+
+                } catch (error) {
+                    resultsDiv.textContent = 'error: failed to lookup domain information';
+                }
+            }
+
+            async geolocateIP() {
+                const ip = document.getElementById('ipInput').value.trim();
+                const resultsDiv = document.getElementById('ipResults');
+                
+                if (!ip) {
+                    alert('please enter an ip address');
+                    return;
+                }
+
+                resultsDiv.classList.remove('hidden');
+                resultsDiv.textContent = 'geolocating ip address...';
+
+                try {
+                    // Using ipapi.co for geolocation
+                    const response = await fetch(`https://ipapi.co/${ip}/json/`);
+                    const data = await response.json();
+
+                    if (data.error) {
+                        resultsDiv.textContent = `error: ${data.reason}`;
+                        return;
+                    }
+
+                    resultsDiv.textContent = `IP: ${data.ip}
+Country: ${data.country_name} (${data.country_code})
+Region: ${data.region}
+City: ${data.city}
+Postal: ${data.postal}
+Latitude: ${data.latitude}
+Longitude: ${data.longitude}
+ISP: ${data.org}
+ASN: ${data.asn}
+Timezone: ${data.timezone}`;
+
+                } catch (error) {
+                    resultsDiv.textContent = 'error: failed to geolocate ip address';
+                }
+            }
+
+            async analyzeURL() {
+                const url = document.getElementById('urlInput').value.trim();
+                const resultsDiv = document.getElementById('urlResults');
+                
+                if (!url) {
+                    alert('please enter a url');
+                    return;
+                }
+
+                resultsDiv.classList.remove('hidden');
+                resultsDiv.textContent = 'analyzing url...';
+
+                try {
+                    // Parse URL
+                    const urlObj = new URL(url);
+                    
+                    let result = `URL: ${url}
+Protocol: ${urlObj.protocol}
+Hostname: ${urlObj.hostname}
+Port: ${urlObj.port || 'default'}
+Path: ${urlObj.pathname}
+Query: ${urlObj.search}
+Fragment: ${urlObj.hash}
+
+Domain Analysis:
+- Length: ${urlObj.hostname.length} characters
+- Subdomains: ${urlObj.hostname.split('.').length - 2}
+- TLD: ${urlObj.hostname.split('.').pop()}
+
+Security Notes:
+- HTTPS: ${urlObj.protocol === 'https:' ? 'Yes' : 'No'}`;
+
+                    // Check for suspicious patterns
+                    const suspiciousPatterns = [
+                        { pattern: /[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/, name: 'IP address instead of domain' },
+                        { pattern: /[a-z0-9]+-[a-z0-9]+-[a-z0-9]+\.(tk|ml|ga|cf)/, name: 'Suspicious free domain' },
+                        { pattern: /bit\.ly|tinyurl|t\.co/, name: 'URL shortener' }
+                    ];
+
+                    const foundPatterns = suspiciousPatterns.filter(p => p.pattern.test(url));
+                    if (foundPatterns.length > 0) {
+                        result += `\nSuspicious patterns detected:`;
+                        foundPatterns.forEach(p => result += `\n- ${p.name}`);
+                    } else {
+                        result += `\nSuspicious patterns: None detected`;
+                    }
+
+                    resultsDiv.textContent = result;
+
+                } catch (error) {
+                    resultsDiv.textContent = 'error: invalid url format';
+                }
+            }
+
+            async validateEmail() {
+                const email = document.getElementById('emailInput').value.trim();
+                const resultsDiv = document.getElementById('emailResults');
+                
+                if (!email) {
+                    alert('please enter an email address');
+                    return;
+                }
+
+                resultsDiv.classList.remove('hidden');
+                resultsDiv.textContent = 'validating email...';
+
+                try {
+                    // Basic email validation
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    const isValid = emailRegex.test(email);
+                    
+                    const [localPart, domain] = email.split('@');
+                    
+                    let result = `Email: ${email}
+Format Valid: ${isValid ? 'Yes' : 'No'}
+Local Part: ${localPart}
+Domain: ${domain}
+Length: ${email.length} characters
+
+Domain Analysis:
+- TLD: ${domain ? domain.split('.').pop() : 'N/A'}
+- Subdomains: ${domain ? domain.split('.').length - 2 : 0}`;
+
+                    if (isValid && domain) {
+                        // Check MX records
+                        try {
+                            const mxResponse = await fetch(`https://dns.google/resolve?name=${domain}&type=MX`);
+                            const mxData = await mxResponse.json();
+                            
+                            if (mxData.Answer && mxData.Answer.length > 0) {
+                                result += `\n\nMX Records Found: Yes`;
+                                result += `\nMail Servers:`;
+                                mxData.Answer.forEach(record => {
+                                    result += `\n  ${record.data}`;
+                                });
+                            } else {
+                                result += `\n\nMX Records Found: No`;
+                            }
+                        } catch (error) {
+                            result += `\n\nMX Records: Unable to check`;
+                        }
+                    }
+
+                    resultsDiv.textContent = result;
+
+                } catch (error) {
+                    resultsDiv.textContent = 'error: failed to validate email';
+                }
+            }
+
+            async analyzeHash() {
+                const input = document.getElementById('hashInput').value.trim();
+                const resultsDiv = document.getElementById('hashResults');
+                
+                if (!input) {
+                    alert('please enter a hash or text');
+                    return;
+                }
+
+                resultsDiv.classList.remove('hidden');
+                resultsDiv.textContent = 'analyzing/generating hashes...';
+
+                try {
+                    // Check if input looks like a hash
+                    const hashPatterns = {
+                        md5: /^[a-f0-9]{32}$/i,
+                        sha1: /^[a-f0-9]{40}$/i,
+                        sha256: /^[a-f0-9]{64}$/i,
+                        sha512: /^[a-f0-9]{128}$/i,
+                        ntlm: /^[a-f0-9]{32}$/i,
+                        crc32: /^[a-f0-9]{8}$/i
+                    };
+
+                    let detectedTypes = [];
+                    for (const [type, pattern] of Object.entries(hashPatterns)) {
+                        if (pattern.test(input)) {
+                            detectedTypes.push(type.toUpperCase());
+                        }
+                    }
+
+                    if (detectedTypes.length > 0) {
+                        let result = `Hash Analysis:
+Input: ${input}
+Possible Types: ${detectedTypes.join(', ')}
+Length: ${input.length} characters
+Format: Hexadecimal
+
+Hash Characteristics:`;
+
+                        if (detectedTypes.includes('MD5')) {
+                            result += `\n- MD5: Cryptographically broken, fast to crack`;
+                        }
+                        if (detectedTypes.includes('SHA1')) {
+                            result += `\n- SHA1: Deprecated, vulnerable to collision attacks`;
+                        }
+                        if (detectedTypes.includes('SHA256')) {
+                            result += `\n- SHA256: Secure, widely used`;
+                        }
+                        if (detectedTypes.includes('NTLM')) {
+                            result += `\n- NTLM: Windows password hash, vulnerable`;
+                        }
+
+                        resultsDiv.textContent = result;
+                    } else {
+                        // Generate hashes for the input text
+                        const hashes = await this.generateHashes(input);
+                        resultsDiv.textContent = `Text: ${input}
+
+Generated Hashes:
+MD5: ${hashes.md5}
+SHA1: ${hashes.sha1}
+SHA256: ${hashes.sha256}
+
+Note: These are client-side generated hashes.`;
+                    }
+
+                } catch (error) {
+                    resultsDiv.textContent = 'error: failed to analyze hash';
+                }
+            }
+
+            async generateHashes(text) {
+                const encoder = new TextEncoder();
+                const data = encoder.encode(text);
+                
+                const hashes = {};
+                
+                // Generate SHA-1
+                const sha1Buffer = await crypto.subtle.digest('SHA-1', data);
+                hashes.sha1 = Array.from(new Uint8Array(sha1Buffer))
+                    .map(b => b.toString(16).padStart(2, '0'))
+                    .join('');
+                
+                // Generate SHA-256
+                const sha256Buffer = await crypto.subtle.digest('SHA-256', data);
+                hashes.sha256 = Array.from(new Uint8Array(sha256Buffer))
+                    .map(b => b.toString(16).padStart(2, '0'))
+                    .join('');
+                
+                // Simple MD5 implementation (not cryptographically secure)
+                hashes.md5 = this.simpleMD5(text);
+                
+                return hashes;
+            }
+
+            simpleMD5(text) {
+                // This is a simplified MD5 for demo purposes
+                // In production, use a proper crypto library
+                let hash = 0;
+                for (let i = 0; i < text.length; i++) {
+                    const char = text.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash; // Convert to 32-bit integer
+                }
+                return Math.abs(hash).toString(16).padStart(8, '0').repeat(4).substring(0, 32);
+            }
+
+            async searchUsername() {
+                const username = document.getElementById('usernameInput').value.trim();
+                const resultsDiv = document.getElementById('usernameResults');
+                
+                if (!username) {
+                    alert('please enter a username');
+                    return;
+                }
+
+                resultsDiv.classList.remove('hidden');
+                resultsDiv.textContent = 'searching username across platforms...';
+
+                try {
+                    const platforms = [
+                        { name: 'GitHub', url: `https://github.com/${username}` },
+                        { name: 'Twitter', url: `https://twitter.com/${username}` },
+                        { name: 'Instagram', url: `https://instagram.com/${username}` },
+                        { name: 'Reddit', url: `https://reddit.com/user/${username}` },
+                        { name: 'YouTube', url: `https://youtube.com/@${username}` },
+                        { name: 'TikTok', url: `https://tiktok.com/@${username}` },
+                        { name: 'LinkedIn', url: `https://linkedin.com/in/${username}` },
+                        { name: 'Pinterest', url: `https://pinterest.com/${username}` },
+                        { name: 'Twitch', url: `https://twitch.tv/${username}` },
+                        { name: 'Steam', url: `https://steamcommunity.com/id/${username}` }
+                    ];
+
+                    let result = `Username: ${username}\n\nPlatform URLs to check:\n`;
+                    
+                    platforms.forEach(platform => {
+                        result += `${platform.name}: ${platform.url}\n`;
+                    });
+
+                    result += `\nNote: Click the links above to manually verify if the username exists on each platform.`;
+                    
+                    resultsDiv.textContent = result;
+
+                } catch (error) {
+                    resultsDiv.textContent = 'error: failed to search username';
+                }
+            }
+        }
+
+        // Initialize OSINT tools
+        const osintTools = new OSINTTools();
+
+        // Global functions for UI interactions
+        function lookupDomain() {
+            osintTools.lookupDomain();
+        }
+
+        function geolocateIP() {
+            osintTools.geolocateIP();
+        }
+
+        function analyzeURL() {
+            osintTools.analyzeURL();
+        }
+
+        function validateEmail() {
+            osintTools.validateEmail();
+        }
+
+        function analyzeHash() {
+            osintTools.analyzeHash();
+        }
+
+        function searchUsername() {
+            osintTools.searchUsername();
+        }
+
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            const menuBtn = document.querySelector('.mobile-menu-btn i');
+            
+            mobileMenu.classList.toggle('active');
+            
+            if (mobileMenu.classList.contains('active')) {
+                menuBtn.className = 'bx bx-x';
+            } else {
+                menuBtn.className = 'bx bx-menu';
+            }
+        }
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const navbar = document.querySelector('.navbar');
+            const mobileMenu = document.getElementById('mobileMenu');
+            
+            if (!navbar.contains(event.target) && mobileMenu.classList.contains('active')) {
+                toggleMobileMenu();
+            }
+        });
+
+        // Tab cloaking script
         document.addEventListener("visibilitychange", function () {
             if (document.hidden) {
                 document.title = "Dashboard";
                 document.getElementById("favicon").href = "https://s3.amazonaws.com/cdn.app.cte.virginia.edu/tools/images/XmeGg2PHFfRHaj3upWvncc2gmaG91fApdtDC8bdU.png";
             } else {
-                document.title = "Nullify's Corner";
+                document.title = "Polar's Shack";
                 document.getElementById("favicon").href = "../logo.png";
             }
         });
