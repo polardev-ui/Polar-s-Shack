@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nullify's Corner</title>
+    <link id="favicon" rel="icon" href="../logo.png" type="image/png">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9156548662984796"
+     crossorigin="anonymous"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #888;
+            overflow: hidden;
+        }
+
+        .game-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #2a2a2a;
+        }
+
+        .game-header {
+            background: #333;
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid #444;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .game-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .game-title {
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .game-controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .control-btn {
+            background: #444;
+            border: 1px solid #555;
+            color: #888;
+            padding: 0.5rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+            font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .control-btn:hover {
+            background: #555;
+            color: #00ff00;
+            border-color: #00ff00;
+        }
+
+        .control-btn.danger:hover {
+            color: #ff6666;
+            border-color: #ff6666;
+        }
+
+        .control-btn i {
+            font-size: 0.9rem;
+        }
+
+        .game-frame-container {
+            flex: 1;
+            position: relative;
+            background: #1a1a1a;
+        }
+
+        .game-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #fff;
+        }
+
+        .loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #2a2a2a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #00ff00;
+            z-index: 100;
+        }
+
+        .loading-screen.hidden {
+            display: none;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #333;
+            border-top: 3px solid #00ff00;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        .loading-text {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .loading-game {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .report-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .report-modal.active {
+            display: flex;
+        }
+
+        .report-content {
+            background: #2a2a2a;
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid #333;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .report-content h3 {
+            color: #fff;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .report-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .form-group select,
+        .form-group textarea {
+            background: #333;
+            border: 1px solid #444;
+            color: #888;
+            padding: 0.8rem;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #00ff00;
+            box-shadow: 0 0 8px rgba(0, 255, 0, 0.2);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        .form-btn {
+            background: #333;
+            color: #888;
+            border: 1px solid #444;
+            padding: 0.6rem 1.2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-btn.primary {
+            background: #00ff00;
+            color: #1a1a1a;
+            border-color: #00ff00;
+        }
+
+        .form-btn:hover {
+            background: #444;
+            color: #00ff00;
+            border-color: #00ff00;
+        }
+
+        .form-btn.primary:hover {
+            background: #00cc00;
+        }
+
+        .share-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .share-modal.active {
+            display: flex;
+        }
+
+        .share-content {
+            background: #2a2a2a;
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid #333;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .share-content h3 {
+            color: #fff;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .share-url {
+            background: #333;
+            border: 1px solid #444;
+            color: #888;
+            padding: 0.8rem;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            width: 100%;
+            margin-bottom: 1rem;
+            outline: none;
+        }
+
+        .share-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .share-btn {
+            flex: 1;
+            background: #333;
+            color: #888;
+            border: 1px solid #444;
+            padding: 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+        }
+
+        .share-btn:hover {
+            background: #444;
+            color: #00ff00;
+            border-color: #00ff00;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .game-header {
+                padding: 0.5rem;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .game-info {
+                justify-content: center;
+            }
+
+            .game-controls {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .control-btn {
+                padding: 0.4rem 0.6rem;
+                font-size: 0.7rem;
+            }
+
+            .report-content,
+            .share-content {
+                padding: 1rem;
+                margin: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <div class="game-info">
+                <div class="game-title" id="gameTitle">Loading Game...</div>
+            </div>
+            <div class="game-controls">
+                <button class="control-btn" onclick="toggleFullscreen()" title="Fullscreen">
+                    <i class='bx bx-fullscreen'></i>
+                    <span>fullscreen</span>
+                </button>
+                <button class="control-btn" onclick="shareGame()" title="Share">
+                    <i class='bx bx-share'></i>
+                    <span>share</span>
+                </button>
+                <button class="control-btn danger" onclick="reportGame()" title="Report">
+                    <i class='bx bx-flag'></i>
+                    <span>report</span>
+                </button>
+                <button class="control-btn" onclick="goBack()" title="Back to Games">
+                    <i class='bx bx-arrow-back'></i>
+                    <span>back</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="game-frame-container">
+            <div class="loading-screen" id="loadingScreen">
+                <div class="spinner"></div>
+                <div class="loading-text">loading game...</div>
+                <div class="loading-game" id="loadingGameName"></div>
+            </div>
+            <iframe id="gameFrame" class="game-frame" src="about:blank"></iframe>
+        </div>
+    </div>
+
+    <!-- Report Modal -->
+    <div class="report-modal" id="reportModal">
+        <div class="report-content">
+            <h3>report game</h3>
+            <form class="report-form" id="reportForm">
+                <div class="form-group">
+                    <label for="reportReason">reason for report:</label>
+                    <select id="reportReason" required>
+                        <option value="">select a reason...</option>
+                        <option value="inappropriate_content">inappropriate content</option>
+                        <option value="broken_game">game not working</option>
+                        <option value="malware_virus">suspected malware/virus</option>
+                        <option value="copyright">copyright violation</option>
+                        <option value="spam">spam or misleading</option>
+                        <option value="other">other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="reportDescription">additional details:</label>
+                    <textarea id="reportDescription" placeholder="describe the issue in detail..." maxlength="500"></textarea>
+                </div>
+                <div class="form-buttons">
+                    <button type="button" class="form-btn" onclick="closeReportModal()">cancel</button>
+                    <button type="submit" class="form-btn primary">submit report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div class="share-modal" id="shareModal">
+        <div class="share-content">
+            <h3>share game</h3>
+            <input type="text" class="share-url" id="shareUrl" readonly>
+            <div class="share-buttons">
+                <button class="share-btn" onclick="copyToClipboard()">
+                    <i class='bx bx-copy'></i>
+                    copy
+                </button>
+                <button class="share-btn" onclick="shareToTwitter()">
+                    <i class='bx bxl-twitter'></i>
+                    twitter
+                </button>
+                <button class="share-btn" onclick="shareToDiscord()">
+                    <i class='bx bxl-discord'></i>
+                    discord
+                </button>
+            </div>
+            <div class="form-buttons">
+                <button class="form-btn" onclick="closeShareModal()">close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBqJJQqJQqJQqJQqJQqJQqJQqJQqJQqJQq",
+            authDomain: "polars-shack.firebaseapp.com",
+            projectId: "polars-shack",
+            storageBucket: "polars-shack.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdefghijklmnopqr"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        class GamePlayer {
+            constructor() {
+                this.currentGame = null;
+                this.gameUrl = null;
+                this.gameName = null;
+                this.init();
+            }
+
+            init() {
+                this.loadGameFromUrl();
+                this.setupEventListeners();
+            }
+
+            loadGameFromUrl() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const gameParam = urlParams.get('game');
+                const urlParam = urlParams.get('url');
+                const nameParam = urlParams.get('name');
+
+                if (gameParam && urlParam && nameParam) {
+                    this.currentGame = decodeURIComponent(gameParam);
+                    this.gameUrl = decodeURIComponent(urlParam);
+                    this.gameName = decodeURIComponent(nameParam);
+                    
+                    this.loadGame();
+                } else {
+                    // Redirect back to games if no valid parameters
+                    window.location.href = 'games.html';
+                }
+            }
+
+            loadGame() {
+                const gameTitle = document.getElementById('gameTitle');
+                const loadingGameName = document.getElementById('loadingGameName');
+                const gameFrame = document.getElementById('gameFrame');
+                const loadingScreen = document.getElementById('loadingScreen');
+
+                gameTitle.textContent = this.gameName;
+                loadingGameName.textContent = this.gameName;
+
+                // Show loading screen
+                loadingScreen.classList.remove('hidden');
+
+                // Load the game
+                gameFrame.src = this.gameUrl;
+
+                // Hide loading screen after game loads
+                gameFrame.onload = () => {
+                    setTimeout(() => {
+                        loadingScreen.classList.add('hidden');
+                    }, 1000);
+                };
+
+                // Handle load errors
+                gameFrame.onerror = () => {
+                    loadingScreen.innerHTML = `
+                        <div style="text-align: center;">
+                            <i class='bx bx-error' style="font-size: 3rem; color: #ff6666; margin-bottom: 1rem;"></i>
+                            <div style="color: #ff6666; font-size: 1.1rem; margin-bottom: 0.5rem;">failed to load game</div>
+                            <div style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;">the game server may be unavailable</div>
+                            <button onclick="window.location.reload()" style="background: #333; color: #00ff00; border: 1px solid #444; padding: 0.6rem 1.2rem; border-radius: 4px; cursor: pointer; font-family: 'JetBrains Mono', monospace;">retry</button>
+                        </div>
+                    `;
+                };
+            }
+
+            setupEventListeners() {
+                // Handle fullscreen changes
+                document.addEventListener('fullscreenchange', () => {
+                    const fullscreenBtn = document.querySelector('.control-btn');
+                    const icon = fullscreenBtn.querySelector('i');
+                    const text = fullscreenBtn.querySelector('span');
+                    
+                    if (document.fullscreenElement) {
+                        icon.className = 'bx bx-exit-fullscreen';
+                        text.textContent = 'exit fullscreen';
+                    } else {
+                        icon.className = 'bx bx-fullscreen';
+                        text.textContent = 'fullscreen';
+                    }
+                });
+
+                // Handle escape key to exit fullscreen
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && document.fullscreenElement) {
+                        document.exitFullscreen();
+                    }
+                });
+            }
+
+            async submitReport(reason, description) {
+                try {
+                    const reportData = {
+                        game: this.currentGame,
+                        gameName: this.gameName,
+                        gameUrl: this.gameUrl,
+                        reason: reason,
+                        description: description,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        userAgent: navigator.userAgent,
+                        url: window.location.href,
+                        status: 'pending'
+                    };
+
+                    await db.collection('game_reports').add(reportData);
+                    
+                    alert('report submitted successfully. our team will review it shortly.');
+                    this.closeReportModal();
+                } catch (error) {
+                    console.error('Error submitting report:', error);
+                    alert('failed to submit report. please try again later.');
+                }
+            }
+
+            toggleFullscreen() {
+                const container = document.querySelector('.game-container');
+                
+                if (!document.fullscreenElement) {
+                    container.requestFullscreen().catch(err => {
+                        console.error('Error attempting to enable fullscreen:', err);
+                    });
+                } else {
+                    document.exitFullscreen();
+                }
+            }
+
+            shareGame() {
+                const shareUrl = document.getElementById('shareUrl');
+                const shareModal = document.getElementById('shareModal');
+                
+                shareUrl.value = window.location.href;
+                shareModal.classList.add('active');
+            }
+
+            reportGame() {
+                document.getElementById('reportModal').classList.add('active');
+            }
+
+            closeReportModal() {
+                document.getElementById('reportModal').classList.remove('active');
+                document.getElementById('reportForm').reset();
+            }
+
+            closeShareModal() {
+                document.getElementById('shareModal').classList.remove('active');
+            }
+
+            copyToClipboard() {
+                const shareUrl = document.getElementById('shareUrl');
+                shareUrl.select();
+                shareUrl.setSelectionRange(0, 99999);
+                
+                try {
+                    document.execCommand('copy');
+                    alert('link copied to clipboard!');
+                } catch (err) {
+                    console.error('Failed to copy:', err);
+                    alert('failed to copy link. please copy manually.');
+                }
+            }
+
+            shareToTwitter() {
+                const text = `Check out this awesome game: ${this.gameName}`;
+                const url = encodeURIComponent(window.location.href);
+                const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${url}`;
+                window.open(twitterUrl, '_blank');
+            }
+
+            shareToDiscord() {
+                // Copy to clipboard for Discord sharing
+                this.copyToClipboard();
+                alert('link copied! paste it in your discord chat.');
+            }
+
+            goBack() {
+                window.location.href = 'games.html';
+            }
+        }
+
+        // Initialize game player
+        const gamePlayer = new GamePlayer();
+
+        // Global functions for UI interactions
+        function toggleFullscreen() {
+            gamePlayer.toggleFullscreen();
+        }
+
+        function shareGame() {
+            gamePlayer.shareGame();
+        }
+
+        function reportGame() {
+            gamePlayer.reportGame();
+        }
+
+        function closeReportModal() {
+            gamePlayer.closeReportModal();
+        }
+
+        function closeShareModal() {
+            gamePlayer.closeShareModal();
+        }
+
+        function copyToClipboard() {
+            gamePlayer.copyToClipboard();
+        }
+
+        function shareToTwitter() {
+            gamePlayer.shareToTwitter();
+        }
+
+        function shareToDiscord() {
+            gamePlayer.shareToDiscord();
+        }
+
+        function goBack() {
+            gamePlayer.goBack();
+        }
+
+        // Handle report form submission
+        document.getElementById('reportForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const reason = document.getElementById('reportReason').value;
+            const description = document.getElementById('reportDescription').value;
+            
+            if (!reason) {
+                alert('please select a reason for the report.');
+                return;
+            }
+            
+            await gamePlayer.submitReport(reason, description);
+        });
+
+        // Close modals when clicking outside
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('report-modal')) {
+                gamePlayer.closeReportModal();
+            }
+            if (e.target.classList.contains('share-modal')) {
+                gamePlayer.closeShareModal();
+            }
+        });
+
+        // Tab cloaking
+        document.addEventListener("visibilitychange", function () {
+            if (document.hidden) {
+                document.title = "Dashboard";
+                document.getElementById("favicon").href = "https://s3.amazonaws.com/cdn.app.cte.virginia.edu/tools/images/XmeGg2PHFfRHaj3upWvncc2gmaG91fApdtDC8bdU.png";
+            } else {
+                document.title = "Nullify's Corner";
+                document.getElementById("favicon").href = "../logo.png";
+            }
+        });
+    </script>
+</body>
+</html>

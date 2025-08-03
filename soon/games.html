@@ -7,6 +7,8 @@
     <link id="favicon" rel="icon" href="../logo.png" type="image/png">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9156548662984796"
+     crossorigin="anonymous"></script>
     <style>
         * {
             margin: 0;
@@ -75,6 +77,48 @@
             color: #00ff00;
         }
 
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .mobile-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #1a1a1a;
+            border-bottom: 1px solid #333;
+            padding: 1rem 2rem;
+        }
+
+        .mobile-menu.active {
+            display: block;
+        }
+
+        .mobile-menu a {
+            display: block;
+            color: #888;
+            text-decoration: none;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #333;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu a:hover, .mobile-menu a.active {
+            color: #00ff00;
+        }
+
+        .mobile-menu a:last-child {
+            border-bottom: none;
+        }
+
         .main-content {
             margin-top: 80px;
             padding: 2rem;
@@ -88,14 +132,22 @@
         }
 
         .page-header h1 {
-            font-size: 2.5rem;
+            font-size: clamp(2rem, 6vw, 2.5rem);
             font-weight: 400;
             margin-bottom: 1rem;
             color: #fff;
+            position: relative;
+        }
+
+        .page-header h1::after {
+            content: '_';
+            color: #00ff00;
+            animation: blink 1s infinite;
+            margin-left: 2px;
         }
 
         .page-header p {
-            font-size: 1rem;
+            font-size: clamp(0.9rem, 2.5vw, 1rem);
             color: #666;
             max-width: 600px;
         }
@@ -126,7 +178,7 @@
 
         .games-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 2rem;
             margin-bottom: 3rem;
         }
@@ -143,6 +195,7 @@
         .game-card:hover {
             border-color: #00ff00;
             box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
+            transform: translateY(-2px);
         }
 
         .game-image {
@@ -152,6 +205,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 3rem;
+            color: #666;
             position: relative;
             overflow: hidden;
         }
@@ -166,31 +221,35 @@
             padding: 1.5rem;
         }
 
-        .game-info h3 {
+        .game-name {
             font-size: 1.1rem;
             margin-bottom: 0.5rem;
             color: #fff;
+            font-weight: 500;
         }
 
-        .game-info p {
+        .game-description {
             color: #666;
             font-size: 0.8rem;
             line-height: 1.4;
+            margin-bottom: 1rem;
         }
 
         .play-btn {
             background: #333;
             color: #00ff00;
             border: 1px solid #444;
-            padding: 0.8rem 1.5rem;
+            padding: 0.6rem 1.2rem;
             border-radius: 4px;
             font-size: 0.8rem;
-            font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-top: 1rem;
             width: 100%;
             font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
         .play-btn:hover {
@@ -198,19 +257,49 @@
             border-color: #00ff00;
         }
 
+        .no-results {
+            text-align: center;
+            color: #666;
+            font-size: 1rem;
+            margin: 3rem 0;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
         @media (max-width: 768px) {
             .nav-links {
                 display: none;
             }
-            .page-header h1 {
-                font-size: 2rem;
+            
+            .mobile-menu-btn {
+                display: block;
             }
+
             .main-content {
                 padding: 1rem;
+                margin-top: 70px;
             }
+
             .games-grid {
-                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
                 gap: 1rem;
+            }
+
+            .game-info {
+                padding: 1rem;
+            }
+
+            .search-bar {
+                margin-bottom: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .games-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
             }
         }
     </style>
@@ -228,15 +317,28 @@
                 <li><a href="csint.html">csint</a></li>
                 <li><a href="tools.html">tools</a></li>
                 <li><a href="games.html" class="active">games</a></li>
+                <li><a href="apps.html">apps</a></li>
                 <li><a href="proxy.html">proxy</a></li>
             </ul>
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+                <i class='bx bx-menu'></i>
+            </button>
+        </div>
+        <div class="mobile-menu" id="mobileMenu">
+            <a href="index.html">home</a>
+            <a href="osint.html">osint</a>
+            <a href="csint.html">csint</a>
+            <a href="tools.html">tools</a>
+            <a href="games.html" class="active">games</a>
+            <a href="apps.html">apps</a>
+            <a href="proxy.html">proxy</a>
         </div>
     </nav>
 
     <main class="main-content">
         <section class="page-header">
             <h1>unblocked games</h1>
-            <p>access to school games and entertainment without barriers. play your favorite games anytime, anywhere.</p>
+            <p>access to school games and entertainment without barriers. curated collection of popular games.</p>
         </section>
 
         <div class="search-bar">
@@ -246,10 +348,14 @@
         <section class="games-grid" id="gamesGrid">
             <!-- Games will be populated by JavaScript -->
         </section>
+
+        <div class="no-results" id="noResults" style="display: none;">
+            no games found matching your search.
+        </div>
     </main>
 
     <script>
-            const games = [
+                    const games = [
       { name: "1v1.lol", url: "https://storage.googleapis.com/test-41376.appspot.com/1.html", icon: "https://th.bing.com/th/id/R.23c1cb7d41a5475776fc3186ead79f20?rik=XpxnUj55%2bqpiUA&pid=ImgRaw&r=0" },
       { name: "Request a Game", url: "https://forms.gle/ZE1q6vJyXwSsQ4EQ9", icon: "https://cdn-icons-png.flaticon.com/512/2003/2003257.png" },
       { name: "Basket Random", url: "https://ubg-reborn-eosin.vercel.app/games/basket-random/index.html", icon: "https://ubg-reborn-eosin.vercel.app/games/basket-random/splash.jpeg/" },
@@ -377,15 +483,16 @@
 
         function createGameCard(game) {
             return `
-                <div class="game-card" onclick="playGame('${game.url}')">
+                <div class="game-card" onclick="playGame('${encodeURIComponent(game.name)}', '${encodeURIComponent(game.url)}', '${encodeURIComponent(game.name)}')">
                     <div class="game-image">
-                        <img src="${game.icon}" alt="${game.name}" onerror="this.style.display='none';">
+                        <i class='bx bx-game'></i>
                     </div>
                     <div class="game-info">
-                        <h3>${game.name}</h3>
-                        <p>click to play this awesome game!</p>
+                        <div class="game-name">${game.name}</div>
+                        <div class="game-description">${game.description}</div>
                         <button class="play-btn">
-                            > play_now
+                            <i class='bx bx-play'></i>
+                            play now
                         </button>
                     </div>
                 </div>
@@ -394,20 +501,53 @@
 
         function renderGames(gamesToRender = games) {
             const gamesGrid = document.getElementById('gamesGrid');
-            gamesGrid.innerHTML = gamesToRender.map(createGameCard).join('');
+            const noResults = document.getElementById('noResults');
+            
+            if (gamesToRender.length === 0) {
+                gamesGrid.innerHTML = '';
+                noResults.style.display = 'block';
+            } else {
+                gamesGrid.innerHTML = gamesToRender.map(createGameCard).join('');
+                noResults.style.display = 'none';
+            }
         }
 
-        function playGame(url) {
-            window.open(url, '_blank');
+        function playGame(gameName, gameUrl, displayName) {
+            const playUrl = `play.html?game=${gameName}&url=${gameUrl}&name=${displayName}`;
+            window.open(playUrl, '_blank');
         }
 
         function searchGames() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const filteredGames = games.filter(game => 
-                game.name.toLowerCase().includes(searchTerm)
+                game.name.toLowerCase().includes(searchTerm) ||
+                game.description.toLowerCase().includes(searchTerm)
             );
             renderGames(filteredGames);
         }
+
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            const menuBtn = document.querySelector('.mobile-menu-btn i');
+            
+            mobileMenu.classList.toggle('active');
+            
+            if (mobileMenu.classList.contains('active')) {
+                menuBtn.className = 'bx bx-x';
+            } else {
+                menuBtn.className = 'bx bx-menu';
+            }
+        }
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const navbar = document.querySelector('.navbar');
+            const mobileMenu = document.getElementById('mobileMenu');
+            
+            if (!navbar.contains(event.target) && mobileMenu.classList.contains('active')) {
+                toggleMobileMenu();
+            }
+        });
 
         // Initialize
         renderGames();
