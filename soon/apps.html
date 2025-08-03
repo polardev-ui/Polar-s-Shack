@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nullify's Corner</title>
+    <link id="favicon" rel="icon" href="../logo.png" type="image/png">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #888;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: #1a1a1a;
+            padding: 1rem 2rem;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            border-bottom: 1px solid #333;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo-nav {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-nav img {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+        }
+
+        .logo-nav span {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #888;
+            text-decoration: none;
+            padding: 0.5rem 0;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: #00ff00;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .mobile-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #1a1a1a;
+            border-bottom: 1px solid #333;
+            padding: 1rem 2rem;
+        }
+
+        .mobile-menu.active {
+            display: block;
+        }
+
+        .mobile-menu a {
+            display: block;
+            color: #888;
+            text-decoration: none;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #333;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu a:hover, .mobile-menu a.active {
+            color: #00ff00;
+        }
+
+        .mobile-menu a:last-child {
+            border-bottom: none;
+        }
+
+        .main-content {
+            margin-top: 80px;
+            padding: 2rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .page-header {
+            margin-bottom: 3rem;
+        }
+
+        .page-header h1 {
+            font-size: clamp(2rem, 6vw, 2.5rem);
+            font-weight: 400;
+            margin-bottom: 1rem;
+            color: #fff;
+            position: relative;
+        }
+
+        .page-header h1::after {
+            content: '_';
+            color: #00ff00;
+            animation: blink 1s infinite;
+            margin-left: 2px;
+        }
+
+        .page-header p {
+            font-size: clamp(0.9rem, 2.5vw, 1rem);
+            color: #666;
+            max-width: 600px;
+        }
+
+        .search-bar {
+            max-width: 500px;
+            margin: 0 auto 3rem;
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 1rem;
+            background: #2a2a2a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #888;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .search-bar input:focus {
+            border-color: #00ff00;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+        }
+
+        .app-categories {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .category-btn {
+            background: #333;
+            color: #888;
+            border: 1px solid #444;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+        }
+
+        .category-btn:hover, .category-btn.active {
+            background: #00ff00;
+            color: #1a1a1a;
+            border-color: #00ff00;
+        }
+
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .app-card {
+            background: #2a2a2a;
+            border-radius: 8px;
+            border: 1px solid #333;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .app-card:hover {
+            border-color: #00ff00;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .app-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1rem;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .app-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .app-icon i {
+            font-size: 2rem;
+            color: #666;
+        }
+
+        .app-name {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .app-description {
+            color: #666;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            margin-bottom: 1rem;
+        }
+
+        .app-category {
+            display: inline-block;
+            background: #333;
+            color: #00ff00;
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .launch-btn {
+            background: #333;
+            color: #00ff00;
+            border: 1px solid #444;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .launch-btn:hover {
+            background: #444;
+            border-color: #00ff00;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .main-content {
+                padding: 1rem;
+                margin-top: 70px;
+            }
+
+            .apps-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 1rem;
+            }
+
+            .app-card {
+                padding: 1rem;
+            }
+
+            .app-icon {
+                width: 48px;
+                height: 48px;
+            }
+
+            .search-bar {
+                margin-bottom: 2rem;
+            }
+
+            .app-categories {
+                gap: 0.5rem;
+            }
+
+            .category-btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.7rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .apps-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
+
+            .app-categories {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .category-btn {
+                width: 100%;
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo-nav">
+                <img src="../logo.png" alt="Logo">
+                <span>polar's.shack</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">home</a></li>
+                <li><a href="osint.html">osint</a></li>
+                <li><a href="csint.html">csint</a></li>
+                <li><a href="tools.html">tools</a></li>
+                <li><a href="games.html">games</a></li>
+                <li><a href="apps.html" class="active">apps</a></li>
+                <li><a href="proxy.html">proxy</a></li>
+            </ul>
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+                <i class='bx bx-menu'></i>
+            </button>
+        </div>
+        <div class="mobile-menu" id="mobileMenu">
+            <a href="index.html">home</a>
+            <a href="osint.html">osint</a>
+            <a href="csint.html">csint</a>
+            <a href="tools.html">tools</a>
+            <a href="games.html">games</a>
+            <a href="apps.html" class="active">apps</a>
+            <a href="proxy.html">proxy</a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <section class="page-header">
+            <h1>web applications</h1>
+            <p>popular web apps and services accessible through our secure proxy system. work, productivity, and entertainment tools.</p>
+        </section>
+
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="search applications...">
+        </div>
+
+        <div class="app-categories">
+            <button class="category-btn active" onclick="filterApps('all')">all</button>
+            <button class="category-btn" onclick="filterApps('productivity')">productivity</button>
+            <button class="category-btn" onclick="filterApps('social')">social</button>
+            <button class="category-btn" onclick="filterApps('entertainment')">entertainment</button>
+            <button class="category-btn" onclick="filterApps('education')">education</button>
+            <button class="category-btn" onclick="filterApps('tools')">tools</button>
+        </div>
+
+        <section class="apps-grid" id="appsGrid">
+            <!-- Apps will be populated by JavaScript -->
+        </section>
+    </main>
+
+    <script>
+        const apps = [
+            {
+                name: "Google Drive",
+                url: "https://drive.google.com",
+                icon: "https://ssl.gstatic.com/docs/doclist/images/drive_2022q3_32dp.png",
+                category: "productivity",
+                description: "cloud storage and file sharing platform"
+            },
+            {
+                name: "Gmail",
+                url: "https://mail.google.com",
+                icon: "https://ssl.gstatic.com/ui/v1/icons/mail/rfr/gmail.ico",
+                category: "productivity",
+                description: "email service and communication platform"
+            },
+            {
+                name: "YouTube",
+                url: "https://youtube.com",
+                icon: "https://www.youtube.com/s/desktop/f506bd45/img/favicon_32x32.png",
+                category: "entertainment",
+                description: "video sharing and streaming platform"
+            },
+            {
+                name: "Discord",
+                url: "https://discord.com/app",
+                icon: "https://discord.com/assets/f9bb9c4af2b9c32a2c5ee0014661546d.png",
+                category: "social",
+                description: "voice, video and text communication service"
+            },
+            {
+                name: "Spotify",
+                url: "https://open.spotify.com",
+                icon: "https://open.spotifycdn.com/cdn/images/favicon32.b64ecc03.png",
+                category: "entertainment",
+                description: "music streaming and podcast platform"
+            },
+            {
+                name: "Netflix",
+                url: "https://netflix.com",
+                icon: "https://assets.nflxext.com/us/ffe/siteui/common/icons/nficon2016.png",
+                category: "entertainment",
+                description: "streaming service for movies and tv shows"
+            },
+            {
+                name: "GitHub",
+                url: "https://github.com",
+                icon: "https://github.githubassets.com/favicons/favicon.png",
+                category: "productivity",
+                description: "code hosting and version control platform"
+            },
+            {
+                name: "Twitch",
+                url: "https://twitch.tv",
+                icon: "https://static.twitchcdn.net/assets/favicon-32-e29e246c157142c94346.png",
+                category: "entertainment",
+                description: "live streaming platform for gaming"
+            },
+            {
+                name: "Reddit",
+                url: "https://reddit.com",
+                icon: "https://www.redditstatic.com/desktop2x/img/favicon/favicon-32x32.png",
+                category: "social",
+                description: "social news aggregation and discussion"
+            },
+            {
+                name: "Twitter",
+                url: "https://twitter.com",
+                icon: "https://abs.twimg.com/favicons/twitter.2.ico",
+                category: "social",
+                description: "social networking and microblogging service"
+            },
+            {
+                name: "Instagram",
+                url: "https://instagram.com",
+                icon: "https://static.cdninstagram.com/rsrc.php/v3/yt/r/30PrGfR3xhI.png",
+                category: "social",
+                description: "photo and video sharing social network"
+            },
+            {
+                name: "TikTok",
+                url: "https://tiktok.com",
+                icon: "https://sf16-website-login.neutral.ttwstatic.com/obj/tiktok_web_login_static/tiktok/webapp/main/webapp-desktop/8152caf0c8e8bc67ae0d.png",
+                category: "entertainment",
+                description: "short-form video hosting service"
+            },
+            {
+                name: "Khan Academy",
+                url: "https://khanacademy.org",
+                icon: "https://cdn.kastatic.org/images/favicon.ico",
+                category: "education",
+                description: "free online courses and educational content"
+            },
+            {
+                name: "Coursera",
+                url: "https://coursera.org",
+                icon: "https://d3njjcbhbojbot.cloudfront.net/web/images/favicons/favicon-32x32.png",
+                category: "education",
+                description: "online learning platform with university courses"
+            },
+            {
+                name: "Canva",
+                url: "https://canva.com",
+                icon: "https://static.canva.com/web/images/favicon-1.ico",
+                category: "productivity",
+                description: "graphic design and visual content creation"
+            },
+            {
+                name: "Figma",
+                url: "https://figma.com",
+                icon: "https://static.figma.com/app/icon/1/favicon.png",
+                category: "productivity",
+                description: "collaborative interface design tool"
+            },
+            {
+                name: "Notion",
+                url: "https://notion.so",
+                icon: "https://www.notion.so/images/favicon.ico",
+                category: "productivity",
+                description: "all-in-one workspace for notes and collaboration"
+            },
+            {
+                name: "Trello",
+                url: "https://trello.com",
+                icon: "https://a.trellocdn.com/prgb/dist/images/favicon.ico",
+                category: "productivity",
+                description: "project management and organization tool"
+            },
+            {
+                name: "Slack",
+                url: "https://slack.com",
+                icon: "https://a.slack-edge.com/80588/marketing/img/meta/favicon-32.png",
+                category: "productivity",
+                description: "business communication and collaboration platform"
+            },
+            {
+                name: "Zoom",
+                url: "https://zoom.us",
+                icon: "https://st1.zoom.us/zoom.ico",
+                category: "productivity",
+                description: "video conferencing and online meetings"
+            },
+            {
+                name: "Google Docs",
+                url: "https://docs.google.com",
+                icon: "https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico",
+                category: "productivity",
+                description: "online document editing and collaboration"
+            },
+            {
+                name: "Google Sheets",
+                url: "https://sheets.google.com",
+                icon: "https://ssl.gstatic.com/docs/spreadsheets/favicon3.ico",
+                category: "productivity",
+                description: "online spreadsheet application"
+            },
+            {
+                name: "Replit",
+                url: "https://replit.com",
+                icon: "https://replit.com/public/images/favicon.ico",
+                category: "tools",
+                description: "online code editor and development environment"
+            },
+            {
+                name: "CodePen",
+                url: "https://codepen.io",
+                icon: "https://cpwebassets.codepen.io/assets/favicon/favicon-aec34940fbc1a6e787974dcd360f2c6b63348d4b1f4e06c77743096d55480f33.ico",
+                category: "tools",
+                description: "online code editor for web development"
+            }
+        ];
+
+        let currentCategory = 'all';
+        let filteredApps = [...apps];
+
+        function createAppCard(app) {
+            return `
+                <div class="app-card" onclick="launchApp('${app.url}', '${app.name}')">
+                    <div class="app-icon">
+                        <img src="${app.icon}" alt="${app.name}" onerror="this.parentElement.innerHTML='<i class=\\'bx bx-cube\\'></i>';">
+                    </div>
+                    <div class="app-category">${app.category}</div>
+                    <div class="app-name">${app.name}</div>
+                    <div class="app-description">${app.description}</div>
+                    <button class="launch-btn">
+                        > launch_app
+                    </button>
+                </div>
+            `;
+        }
+
+        function renderApps(appsToRender = filteredApps) {
+            const appsGrid = document.getElementById('appsGrid');
+            appsGrid.innerHTML = appsToRender.map(createAppCard).join('');
+        }
+
+        function launchApp(url, name) {
+            // Create proxy URL to bypass restrictions
+            const proxyUrl = `proxy.html?url=${encodeURIComponent(url)}&app=${encodeURIComponent(name)}`;
+            window.open(proxyUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+        }
+
+        function filterApps(category) {
+            currentCategory = category;
+            
+            // Update active button
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Filter apps
+            if (category === 'all') {
+                filteredApps = [...apps];
+            } else {
+                filteredApps = apps.filter(app => app.category === category);
+            }
+            
+            renderApps();
+        }
+
+        function searchApps() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            let appsToShow = currentCategory === 'all' ? apps : apps.filter(app => app.category === currentCategory);
+            
+            if (searchTerm) {
+                appsToShow = appsToShow.filter(app => 
+                    app.name.toLowerCase().includes(searchTerm) ||
+                    app.description.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            renderApps(appsToShow);
+        }
+
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            const menuBtn = document.querySelector('.mobile-menu-btn i');
+            
+            mobileMenu.classList.toggle('active');
+            
+            if (mobileMenu.classList.contains('active')) {
+                menuBtn.className = 'bx bx-x';
+            } else {
+                menuBtn.className = 'bx bx-menu';
+            }
+        }
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const navbar = document.querySelector('.navbar');
+            const mobileMenu = document.getElementById('mobileMenu');
+            
+            if (!navbar.contains(event.target) && mobileMenu.classList.contains('active')) {
+                toggleMobileMenu();
+            }
+        });
+
+        // Initialize
+        renderApps();
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', searchApps);
+
+        // Tab cloaking script
+        document.addEventListener("visibilitychange", function () {
+            if (document.hidden) {
+                document.title = "Dashboard";
+                document.getElementById("favicon").href = "https://s3.amazonaws.com/cdn.app.cte.virginia.edu/tools/images/XmeGg2PHFfRHaj3upWvncc2gmaG91fApdtDC8bdU.png";
+            } else {
+                document.title = "Nullify's Corner";
+                document.getElementById("favicon").href = "../logo.png";
+            }
+        });
+    </script>
+</body>
+</html>
