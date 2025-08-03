@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nullify's Corner</title>
+    <link id="favicon" rel="icon" href="logo.png" type="image/png">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #888;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .settings-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding: 2rem;
+            border: 1px solid #333;
+        }
+
+        .settings-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .settings-header h1 {
+            font-size: 2.5rem;
+            font-weight: 400;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .settings-header p {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #00ff00;
+            text-decoration: none;
+            margin-bottom: 2rem;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            border: 1px solid #333;
+            background: #333;
+        }
+
+        .back-btn:hover {
+            background: #444;
+            border-color: #00ff00;
+        }
+
+        .setting-group {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: #333;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+
+        .setting-group h3 {
+            color: #fff;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #444;
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-info {
+            flex: 1;
+        }
+
+        .setting-info h4 {
+            color: #fff;
+            margin-bottom: 0.3rem;
+            font-size: 1rem;
+        }
+
+        .setting-info p {
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background: #444;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #555;
+        }
+
+        .toggle-switch.active {
+            background: #00ff00;
+            border-color: #00ff00;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 18px;
+            height: 18px;
+            background: #fff;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(24px);
+        }
+
+        .input-field {
+            padding: 0.8rem;
+            background: #444;
+            border: 1px solid #555;
+            border-radius: 4px;
+            color: #888;
+            font-size: 0.8rem;
+            outline: none;
+            transition: all 0.3s ease;
+            width: 180px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .input-field:focus {
+            border-color: #00ff00;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+        }
+
+        .select-field {
+            padding: 0.8rem;
+            background: #444;
+            border: 1px solid #555;
+            border-radius: 4px;
+            color: #888;
+            font-size: 0.8rem;
+            outline: none;
+            cursor: pointer;
+            width: 180px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .save-btn {
+            background: #333;
+            color: #00ff00;
+            border: 1px solid #444;
+            padding: 1rem 2rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: block;
+            margin: 2rem auto 0;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .save-btn:hover {
+            background: #444;
+            border-color: #00ff00;
+        }
+
+        .danger-zone {
+            border-color: #663333;
+            background: #3a1a1a;
+        }
+
+        .danger-btn {
+            background: #663333;
+            color: #ff6666;
+            border: 1px solid #663333;
+            padding: 0.8rem 1.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .danger-btn:hover {
+            background: #773333;
+            border-color: #ff6666;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            .settings-container {
+                padding: 1.5rem;
+            }
+            .setting-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            .input-field, .select-field {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="settings-container">
+        <a href="soon/" class="back-btn">
+            < back_to_site
+        </a>
+
+        <div class="settings-header">
+            <h1>settings</h1>
+            <p>customize your polar's shack experience</p>
+        </div>
+
+        <div class="setting-group">
+            <h3>appearance</h3>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>dark mode</h4>
+                    <p>toggle between light and dark themes</p>
+                </div>
+                <div class="toggle-switch active" onclick="toggleSetting(this, 'darkMode')">
+                    <div class="toggle-slider"></div>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>animations</h4>
+                    <p>enable or disable page animations</p>
+                </div>
+                <div class="toggle-switch active" onclick="toggleSetting(this, 'animations')">
+                    <div class="toggle-slider"></div>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>theme color</h4>
+                    <p>choose your preferred accent color</p>
+                </div>
+                <select class="select-field" id="themeColor" onchange="saveSettings()">
+                    <option value="green">green</option>
+                    <option value="blue">blue</option>
+                    <option value="red">red</option>
+                    <option value="yellow">yellow</option>
+                    <option value="purple">purple</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="setting-group">
+            <h3>privacy & security</h3>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>tab cloaking</h4>
+                    <p>hide the site when switching tabs</p>
+                </div>
+                <div class="toggle-switch active" onclick="toggleSetting(this, 'tabCloaking')">
+                    <div class="toggle-slider"></div>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>panic key</h4>
+                    <p>key combination to quickly hide the site</p>
+                </div>
+                <input type="text" class="input-field" id="panicKey" value="ctrl+shift+x" onchange="saveSettings()">
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>auto-clear history</h4>
+                    <p>automatically clear browsing history</p>
+                </div>
+                <div class="toggle-switch" onclick="toggleSetting(this, 'autoClearHistory')">
+                    <div class="toggle-slider"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="setting-group">
+            <h3>general</h3>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>default page</h4>
+                    <p>choose which page to load by default</p>
+                </div>
+                <select class="select-field" id="defaultPage" onchange="saveSettings()">
+                    <option value="home">home</option>
+                    <option value="games">games</option>
+                    <option value="proxy">proxy</option>
+                    <option value="tools">tools</option>
+                </select>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>show notifications</h4>
+                    <p>display update and feature notifications</p>
+                </div>
+                <div class="toggle-switch active" onclick="toggleSetting(this, 'notifications')">
+                    <div class="toggle-slider"></div>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>auto-save settings</h4>
+                    <p>automatically save changes to settings</p>
+                </div>
+                <div class="toggle-switch active" onclick="toggleSetting(this, 'autoSave')">
+                    <div class="toggle-slider"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="setting-group danger-zone">
+            <h3>danger zone</h3>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>reset all settings</h4>
+                    <p>reset all settings to their default values</p>
+                </div>
+                <button class="danger-btn" onclick="resetSettings()">reset</button>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>clear all data</h4>
+                    <p>clear all stored data and cache</p>
+                </div>
+                <button class="danger-btn" onclick="clearAllData()">clear_data</button>
+            </div>
+        </div>
+
+        <button class="save-btn" onclick="saveSettings()">
+            > save_settings
+        </button>
+    </div>
+
+    <script>
+        // Load settings on page load
+        window.addEventListener('load', loadSettings);
+
+        function toggleSetting(element, settingName) {
+            element.classList.toggle('active');
+            if (getSettings().autoSave) {
+                saveSettings();
+            }
+        }
+
+        function getSettings() {
+            const defaultSettings = {
+                darkMode: true,
+                animations: true,
+                themeColor: 'green',
+                tabCloaking: true,
+                panicKey: 'ctrl+shift+x',
+                autoClearHistory: false,
+                defaultPage: 'home',
+                notifications: true,
+                autoSave: true
+            };
+
+            const saved = localStorage.getItem('polarShackSettings');
+            return saved ? { ...defaultSettings, ...JSON.parse(saved) } : defaultSettings;
+        }
+
+        function saveSettings() {
+            const settings = {
+                darkMode: document.querySelector('[onclick*="darkMode"]').classList.contains('active'),
+                animations: document.querySelector('[onclick*="animations"]').classList.contains('active'),
+                themeColor: document.getElementById('themeColor').value,
+                tabCloaking: document.querySelector('[onclick*="tabCloaking"]').classList.contains('active'),
+                panicKey: document.getElementById('panicKey').value,
+                autoClearHistory: document.querySelector('[onclick*="autoClearHistory"]').classList.contains('active'),
+                defaultPage: document.getElementById('defaultPage').value,
+                notifications: document.querySelector('[onclick*="notifications"]').classList.contains('active'),
+                autoSave: document.querySelector('[onclick*="autoSave"]').classList.contains('active')
+            };
+
+            localStorage.setItem('polarShackSettings', JSON.stringify(settings));
+            
+            // Show save confirmation
+            const btn = document.querySelector('.save-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '> saved!';
+            btn.style.background = '#003a00';
+            btn.style.borderColor = '#00ff00';
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.background = '#333';
+                btn.style.borderColor = '#444';
+            }, 2000);
+
+            applySettings(settings);
+        }
+
+        function loadSettings() {
+            const settings = getSettings();
+            
+            // Apply toggle states
+            document.querySelector('[onclick*="darkMode"]').classList.toggle('active', settings.darkMode);
+            document.querySelector('[onclick*="animations"]').classList.toggle('active', settings.animations);
+            document.querySelector('[onclick*="tabCloaking"]').classList.toggle('active', settings.tabCloaking);
+            document.querySelector('[onclick*="autoClearHistory"]').classList.toggle('active', settings.autoClearHistory);
+            document.querySelector('[onclick*="notifications"]').classList.toggle('active', settings.notifications);
+            document.querySelector('[onclick*="autoSave"]').classList.toggle('active', settings.autoSave);
+            
+            // Apply input values
+            document.getElementById('themeColor').value = settings.themeColor;
+            document.getElementById('panicKey').value = settings.panicKey;
+            document.getElementById('defaultPage').value = settings.defaultPage;
+
+            applySettings(settings);
+        }
+
+        function applySettings(settings) {
+            // Apply theme color
+            const root = document.documentElement;
+            switch(settings.themeColor) {
+                case 'blue':
+                    root.style.setProperty('--accent-color', '#0066ff');
+                    break;
+                case 'red':
+                    root.style.setProperty('--accent-color', '#ff6666');
+                    break;
+                case 'yellow':
+                    root.style.setProperty('--accent-color', '#ffff00');
+                    break;
+                case 'purple':
+                    root.style.setProperty('--accent-color', '#9966ff');
+                    break;
+                default:
+                    root.style.setProperty('--accent-color', '#00ff00');
+            }
+
+            // Apply panic key
+            if (settings.panicKey) {
+                setupPanicKey(settings.panicKey);
+            }
+        }
+
+        function setupPanicKey(keyCombo) {
+            document.addEventListener('keydown', function(e) {
+                const keys = keyCombo.toLowerCase().split('+');
+                let match = true;
+                
+                if (keys.includes('ctrl') && !e.ctrlKey) match = false;
+                if (keys.includes('shift') && !e.shiftKey) match = false;
+                if (keys.includes('alt') && !e.altKey) match = false;
+                
+                const lastKey = keys[keys.length - 1];
+                if (e.key.toLowerCase() !== lastKey) match = false;
+                
+                if (match) {
+                    window.location.href = 'https://classroom.google.com';
+                }
+            });
+        }
+
+        function resetSettings() {
+            if (confirm('are you sure you want to reset all settings to default?')) {
+                localStorage.removeItem('polarShackSettings');
+                location.reload();
+            }
+        }
+
+        function clearAllData() {
+            if (confirm('are you sure you want to clear all data? this cannot be undone.')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                location.reload();
+            }
+        }
+
+        // Tab cloaking script
+        document.addEventListener("visibilitychange", function () {
+            if (document.hidden) {
+                document.title = "Dashboard";
+                document.getElementById("favicon").href = "https://s3.amazonaws.com/cdn.app.cte.virginia.edu/tools/images/XmeGg2PHFfRHaj3upWvncc2gmaG91fApdtDC8bdU.png";
+            } else {
+                document.title = "Nullify's Corner";
+                document.getElementById("favicon").href = "logo.png";
+            }
+        });
+    </script>
+</body>
+</html>

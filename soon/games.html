@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nullify's Corner</title>
+    <link id="favicon" rel="icon" href="../logo.png" type="image/png">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #888;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: #1a1a1a;
+            padding: 1rem 2rem;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            border-bottom: 1px solid #333;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo-nav {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-nav img {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+        }
+
+        .logo-nav span {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #888;
+            text-decoration: none;
+            padding: 0.5rem 0;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: #00ff00;
+        }
+
+        .main-content {
+            margin-top: 80px;
+            padding: 2rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .page-header {
+            margin-bottom: 3rem;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            font-weight: 400;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .page-header p {
+            font-size: 1rem;
+            color: #666;
+            max-width: 600px;
+        }
+
+        .search-bar {
+            max-width: 500px;
+            margin: 0 auto 3rem;
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 1rem;
+            background: #2a2a2a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #888;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .search-bar input:focus {
+            border-color: #00ff00;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .game-card {
+            background: #2a2a2a;
+            border-radius: 8px;
+            border: 1px solid #333;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .game-card:hover {
+            border-color: #00ff00;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
+        }
+
+        .game-image {
+            width: 100%;
+            height: 150px;
+            background: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .game-info {
+            padding: 1.5rem;
+        }
+
+        .game-info h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: #fff;
+        }
+
+        .game-info p {
+            color: #666;
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+
+        .play-btn {
+            background: #333;
+            color: #00ff00;
+            border: 1px solid #444;
+            padding: 0.8rem 1.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+            width: 100%;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .play-btn:hover {
+            background: #444;
+            border-color: #00ff00;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            .page-header h1 {
+                font-size: 2rem;
+            }
+            .main-content {
+                padding: 1rem;
+            }
+            .games-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo-nav">
+                <img src="../logo.png" alt="Logo">
+                <span>polar's.shack</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">home</a></li>
+                <li><a href="osint.html">osint</a></li>
+                <li><a href="csint.html">csint</a></li>
+                <li><a href="tools.html">tools</a></li>
+                <li><a href="games.html" class="active">games</a></li>
+                <li><a href="proxy.html">proxy</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <section class="page-header">
+            <h1>unblocked games</h1>
+            <p>access to school games and entertainment without barriers. play your favorite games anytime, anywhere.</p>
+        </section>
+
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="search games...">
+        </div>
+
+        <section class="games-grid" id="gamesGrid">
+            <!-- Games will be populated by JavaScript -->
+        </section>
+    </main>
+
+    <script>
+        const games = [
+            { name: "1v1.lol", url: "https://storage.googleapis.com/test-41376.appspot.com/1.html", icon: "https://th.bing.com/th/id/R.23c1cb7d41a5475776fc3186ead79f20?rik=XpxnUj55%2bqpiUA&pid=ImgRaw&r=0" },
+            { name: "request a game", url: "https://forms.gle/ZE1q6vJyXwSsQ4EQ9", icon: "https://cdn-icons-png.flaticon.com/512/2003/2003257.png" },
+            { name: "basket random", url: "https://algebra-1.vercel.app/games/basket-random/index.html", icon: "https://algebra-1.vercel.app/games/basket-random/splash.jpeg/" },
+            { name: "bitlife", url: "https://algebra-1.vercel.app/games/bitlife/index.html", icon: "https://algebra-1.vercel.app/games/bitlife/splash.png/" },
+            { name: "cluster rush", url: "https://algebra-1.vercel.app/games/cluster-rush/index.html", icon: "https://algebra-1.vercel.app/games/cluster-rush/icon.jpg/" },
+            { name: "tunnel rush", url: "https://algebra-1.vercel.app/games/tunnel-rush/index.html", icon: "https://algebra-1.vercel.app/games/tunnel-rush/img/tunnel.jpg/" },
+            { name: "slope", url: "https://algebra-1.vercel.app/games/slope/index.html", icon: "https://algebra-1.vercel.app/games/slope/slope4.jpeg/" },
+            { name: "drive mad", url: "https://algebra-1.vercel.app/games/drive-mad/index.html", icon: "https://algebra-1.vercel.app/games/drive-mad/logo.jpg/" },
+            { name: "madalin stunt cars 3", url: "https://algebra-1.vercel.app/games/madalin-stunt-cars-3/index.html", icon: "https://algebra-1.vercel.app/games/madalin-stunt-cars-3/img/index.jpg/" },
+            { name: "minecraft", url: "https://algebra-1.vercel.app/games/eaglerjp/index.html", icon: "https://algebra-1.vercel.app/games/eaglerjp/favicon.ico/" },
+            { name: "gunspin", url: "https://gms.masplenedigitalworld.com/misc/gunspin", icon: "https://algebra-1.vercel.app/help.png/" },
+            { name: "tetris", url: "https://algebra-1.vercel.app/games/twitch-tetris/index.html", icon: "https://algebra-1.vercel.app/games/twitch-tetris/logo.png/" },
+            { name: "rooftop snipers", url: "https://algebra-1.vercel.app/games/rooftop-snipers/index.html", icon: "https://algebra-1.vercel.app/games/rooftop-snipers/img/thumb.png/" },
+            { name: "getaway shootout", url: "https://algebra-1.vercel.app/games/getaway-shootout/index.html", icon: "https://algebra-1.vercel.app/games/getaway-shootout/img/index.jpg" },
+            { name: "drift boss", url: "https://algebra-1.vercel.app/games/drift-boss/index.html", icon: "https://algebra-1.vercel.app/help.png/" },
+            { name: "karlsont", url: "https://gms.masplenedigitalworld.com/misc/karlsont", icon: "https://algebra-1.vercel.app/help.png/" },
+            { name: "motox3m", url: "https://algebra-1.vercel.app/games/motox3m/index.html", icon: "https://algebra-1.vercel.app/games/motox3m/splash.jpg/" },
+            { name: "ngon", url: "https://algebra-1.vercel.app/games/n-gon/index.
+            { name: "ngon", url: "https://algebra-1.vercel.app/games/n-gon/index.html", icon: "https://algebra-1.vercel.app/games/n-gon/favicon.ico/" },
+            { name: "a dance of fire & ice", url: "https://algebra-1.vercel.app/games/a-dance-of-fire-and-ice/index.html/", icon: "https://algebra-1.vercel.app/games/a-dance-of-fire-and-ice/splash.png/" },
+            { name: "cod zombies", url: "https://node-unblock.vercel.app/proxy/https://nzp.gay", icon: "https://algebra-1.vercel.app/games/cod-zombies.png/" },
+            { name: "shell shockers", url: "https://algebra-1.vercel.app/games/shellshockers/index.html", icon: "https://algebra-1.vercel.app/games/shellshockers/img/favicon.png" },
+            { name: "roblox", url: "https://algebra-1.vercel.app/error/roblox/index.html", icon: "https://algebra-1.vercel.app/error/roblox/UPDATED.png" }
+        ];
+
+        function createGameCard(game) {
+            return `
+                <div class="game-card" onclick="playGame('${game.url}')">
+                    <div class="game-image">
+                        <img src="${game.icon}" alt="${game.name}" onerror="this.style.display='none';">
+                    </div>
+                    <div class="game-info">
+                        <h3>${game.name}</h3>
+                        <p>click to play this awesome game!</p>
+                        <button class="play-btn">
+                            > play_now
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderGames(gamesToRender = games) {
+            const gamesGrid = document.getElementById('gamesGrid');
+            gamesGrid.innerHTML = gamesToRender.map(createGameCard).join('');
+        }
+
+        function playGame(url) {
+            window.open(url, '_blank');
+        }
+
+        function searchGames() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filteredGames = games.filter(game => 
+                game.name.toLowerCase().includes(searchTerm)
+            );
+            renderGames(filteredGames);
+        }
+
+        // Initialize
+        renderGames();
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', searchGames);
+
+        // Tab cloaking script
+        document.addEventListener("visibilitychange", function () {
+            if (document.hidden) {
+                document.title = "Dashboard";
+                document.getElementById("favicon").href = "https://s3.amazonaws.com/cdn.app.cte.virginia.edu/tools/images/XmeGg2PHFfRHaj3upWvncc2gmaG91fApdtDC8bdU.png";
+            } else {
+                document.title = "Nullify's Corner";
+                document.getElementById("favicon").href = "../logo.png";
+            }
+        });
+    </script>
+</body>
+</html>

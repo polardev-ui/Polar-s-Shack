@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nullify's Corner</title>
+    <link id="favicon" rel="icon" href="../logo.png" type="image/png">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #888;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: #1a1a1a;
+            padding: 1rem 2rem;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            border-bottom: 1px solid #333;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo-nav {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-nav img {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+        }
+
+        .logo-nav span {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #888;
+            text-decoration: none;
+            padding: 0.5rem 0;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: #00ff00;
+        }
+
+        .main-content {
+            margin-top: 80px;
+            padding: 2rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .page-header {
+            margin-bottom: 3rem;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            font-weight: 400;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .page-header p {
+            font-size: 1rem;
+            color: #666;
+            max-width: 600px;
+        }
+
+        .proxy-container {
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding: 2rem;
+            border: 1px solid #333;
+            margin-bottom: 3rem;
+        }
+
+        .url-input-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .url-input {
+            flex: 1;
+            padding: 1rem;
+            background: #333;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #888;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .url-input:focus {
+            border-color: #00ff00;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+        }
+
+        .go-btn {
+            padding: 1rem 2rem;
+            background: #333;
+            color: #00ff00;
+            border: 1px solid #444;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .go-btn:hover {
+            background: #444;
+            border-color: #00ff00;
+        }
+
+        .proxy-frame {
+            width: 100%;
+            height: 70vh;
+            border: 1px solid #333;
+            border-radius: 4px;
+            background: #fff;
+        }
+
+        .proxy-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .proxy-card {
+            background: #2a2a2a;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #333;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .proxy-card:hover {
+            border-color: #00ff00;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
+        }
+
+        .proxy-card h3 {
+            color: #fff;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .proxy-card p {
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-online {
+            background: #00ff00;
+        }
+
+        .status-offline {
+            background: #ff6666;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            .page-header h1 {
+                font-size: 2rem;
+            }
+            .main-content {
+                padding: 1rem;
+            }
+            .url-input-container {
+                flex-direction: column;
+            }
+            .proxy-frame {
+                height: 50vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo-nav">
+                <img src="../logo.png" alt="Logo">
+                <span>polar's.shack</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">home</a></li>
+                <li><a href="osint.html">osint</a></li>
+                <li><a href="csint.html">csint</a></li>
+                <li><a href="tools.html">tools</a></li>
+                <li><a href="games.html">games</a></li>
+                <li><a href="proxy.html" class="active">proxy</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <section class="page-header">
+            <h1>web proxy</h1>
+            <p>unblocked web access through working proxies. bypass restrictions and access any website securely.</p>
+        </section>
+
+        <div class="proxy-container">
+            <div class="url-input-container">
+                <input type="url" class="url-input" id="urlInput" placeholder="enter website url (e.g., https://google.com)">
+                <button class="go-btn" onclick="loadProxy()">
+                    > go
+                </button>
+            </div>
+            <iframe id="proxyFrame" class="proxy-frame" src="about:blank"></iframe>
+        </div>
+
+        <section class="proxy-options">
+            <div class="proxy-card" onclick="useProxy('https://www.croxyproxy.com/')">
+                <h3><span class="status-indicator status-online"></span>croxyproxy</h3>
+                <p>free web proxy with ssl support and high-speed browsing</p>
+            </div>
+
+            <div class="proxy-card" onclick="useProxy('https://www.proxysite.com/')">
+                <h3><span class="status-indicator status-online"></span>proxysite</h3>
+                <p>anonymous web proxy for secure and private browsing</p>
+            </div>
+
+            <div class="proxy-card" onclick="useProxy('https://hide.me/en/proxy')">
+                <h3><span class="status-indicator status-online"></span>hide.me</h3>
+                <p>fast and secure web proxy with no logs policy</p>
+            </div>
+
+            <div class="proxy-card" onclick="useProxy('https://www.filterbypass.me/')">
+                <h3><span class="status-indicator status-online"></span>filterbypass</h3>
+                <p>bypass internet filters and access blocked websites</p>
+            </div>
+
+            <div class="proxy-card" onclick="useProxy('https://www.kproxy.com/')">
+                <h3><span class="status-indicator status-online"></span>kproxy</h3>
+                <p>free anonymous web proxy with multiple server locations</p>
+            </div>
+
+            <div class="proxy-card" onclick="useProxy('https://plainproxies.com/')">
+                <h3><span class="status-indicator status-online"></span>plainproxies</h3>
+                <p>simple and fast web proxy for everyday browsing</p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        function loadProxy() {
+            const url = document.getElementById('urlInput').value;
+            if (!url) {
+                alert('please enter a url');
+                return;
+            }
+            
+            let targetUrl = url;
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                targetUrl = 'https://' + url;
+            }
+            
+            // Use CroxyProxy as default
+            const proxyUrl = `https://www.croxyproxy.com/go.php?u=${encodeURIComponent(targetUrl)}&b=1`;
+            document.getElementById('proxyFrame').src = proxyUrl;
+        }
+
+        function useProxy(proxyService) {
+            const url = document.getElementById('urlInput').value;
+            if (url) {
+                let targetUrl = url;
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    targetUrl = 'https://' + url;
+                }
+                
+                let proxyUrl;
+                switch(proxyService) {
+                    case 'https://www.croxyproxy.com/':
+                        proxyUrl = `${proxyService}go.php?u=${encodeURIComponent(targetUrl)}&b=1`;
+                        break;
+                    case 'https://www.proxysite.com/':
+                        proxyUrl = `${proxyService}`;
+                        break;
+                    case 'https://hide.me/en/proxy':
+                        proxyUrl = `${proxyService}`;
+                        break;
+                    default:
+                        proxyUrl = proxyService;
+                }
+                
+                document.getElementById('proxyFrame').src = proxyUrl;
+            } else {
+                document.getElementById('proxyFrame').src = proxyService;
+            }
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                loadProxy();
+            }
+        });
+
+        // Tab cloaking script
+        document.addEventListener("visibilitychange", function () {
+            if (document.hidden) {
+                document.title = "Dashboard";
+                document.getElementById("favicon").href = "https://s3.amazonaws.com/cdn.app.cte.virginia.edu/tools/images/XmeGg2PHFfRHaj3upWvncc2gmaG91fApdtDC8bdU.png";
+            } else {
+                document.title = "Nullify's Corner";
+                document.getElementById("favicon").href = "../logo.png";
+            }
+        });
+    </script>
+</body>
+</html>

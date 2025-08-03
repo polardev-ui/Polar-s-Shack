@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nullify's Corner</title>
+    <link id="favicon" rel="icon" href="../logo.png" type="image/png">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #888;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: #1a1a1a;
+            padding: 1rem 2rem;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            border-bottom: 1px solid #333;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo-nav {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-nav img {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+        }
+
+        .logo-nav span {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #888;
+            text-decoration: none;
+            padding: 0.5rem 0;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: #00ff00;
+        }
+
+        .main-content {
+            margin-top: 80px;
+            padding: 2rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .page-header {
+            margin-bottom: 3rem;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            font-weight: 400;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .page-header p {
+            font-size: 1rem;
+            color: #666;
+            max-width: 600px;
+        }
+
+        .warning-banner {
+            background: #3a1a1a;
+            border: 1px solid #663333;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .warning-banner h3 {
+            color: #ff6666;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .warning-banner p {
+            color: #cc6666;
+            font-size: 0.9rem;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .tool-card {
+            background: #2a2a2a;
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid #333;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .tool-card:hover {
+            border-color: #00ff00;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
+        }
+
+        .tool-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .tool-card p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .tool-card .status {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status.coming-soon {
+            background: #3a3a00;
+            color: #ffff00;
+        }
+
+        .status.available {
+            background: #003a00;
+            color: #00ff00;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            .page-header h1 {
+                font-size: 2rem;
+            }
+            .main-content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo-nav">
+                <img src="../logo.png" alt="Logo">
+                <span>polar's.shack</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">home</a></li>
+                <li><a href="osint.html">osint</a></li>
+                <li><a href="csint.html" class="active">csint</a></li>
+                <li><a href="tools.html">tools</a></li>
+                <li><a href="games.html">games</a></li>
+                <li><a href="proxy.html">proxy</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <section class="page-header">
+            <h1>csint tools</h1>
+            <p>cyber source intelligence tools for digital forensics, security analysis, and penetration testing.</p>
+        </section>
+
+        <div class="warning-banner">
+            <h3>educational use only</h3>
+            <p>these tools are provided for educational and authorized testing purposes only. always ensure you have proper authorization before using any security tools.</p>
+        </div>
+
+        <section class="tools-grid">
+            <div class="tool-card" onclick="window.open('https://www.kali.org/', '_blank')">
+                <h3>kali linux tools</h3>
+                <p>access to popular kali linux penetration testing tools and utilities for security assessment.</p>
+                <span class="status available">available</span>
+            </div>
+
+            <div class="tool-card" onclick="window.open('https://nmap.org/', '_blank')">
+                <h3>network scanner</h3>
+                <p>network discovery and security auditing tool for mapping networks and identifying open ports.</p>
+                <span class="status available">available</span>
+            </div>
+
+            <div class="tool-card" onclick="window.open('https://www.wireshark.org/', '_blank')">
+                <h3>packet analyzer</h3>
+                <p>network protocol analyzer for troubleshooting, analysis, and security auditing.</p>
+                <span class="status available">available</span>
+            </div>
+
+            <div class="tool-card">
+                <h3>password cracking</h3>
+                <p>advanced password cracking tools including dictionary attacks and brute force methods.</p>
+                <span class="status coming-soon">coming soon</span>
+            </div>
+
+            <div class="tool-card">
+                <h3>wifi security tools</h3>
+                <p>wireless network security testing tools for wpa/wep analysis and penetration testing.</p>
+                <span class="status coming-soon">coming soon</span>
+            </div>
+
+            <div class="tool-card">
+                <h3>vulnerability scanner</h3>
+                <p>automated vulnerability scanning tools for identifying security weaknesses in systems.</p>
+                <span class="status coming-soon">coming soon</span>
+            </div>
+
+            <div class="tool-card">
+                <h3>payload generator</h3>
+                <p>generate custom payloads for penetration testing and security research purposes.</p>
+                <span class="status coming-soon">coming soon</span>
+            </div>
+
+            <div class="tool-card">
+                <h3>reverse shell tools</h3>
+                <p>tools for creating and managing reverse shells for authorized penetration testing.</p>
+                <span class="status coming-soon">coming soon</span>
+            </div>
+
+            <div class="tool-card">
+                <h3>digital forensics</h3>
+                <p>digital forensics tools for analyzing digital evidence and recovering deleted data.</p>
+                <span class="status coming-soon">coming soon</span>
+            </div>
+
+            <div class="tool-card">
+                <h3>encryption tools</h3>
+                <p>advanced encryption and decryption tools for securing and analyzing encrypted data.</p>
+                <span class="status coming-soon">coming soon</span>
+            </div>
+
+            <div class="tool-card">
+                <h3>steganography</h3>
+                <p>tools for hiding and extracting hidden data from images, audio, and other media files.</p>
+                <span class="status coming-soon">coming soon</span>
+            </div>
+
+            <div class="tool-card">
+                <h3>mobile security</h3>
+                <p>mobile device security testing tools for android and ios penetration testing.</p>
+                <span class="status coming-soon">coming soon</span>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener("visibilitychange", function () {
+            if (document.hidden) {
+                document.title = "Dashboard";
+                document.getElementById("favicon").href = "https://s3.amazonaws.com/cdn.app.cte.virginia.edu/tools/images/XmeGg2PHFfRHaj3upWvncc2gmaG91fApdtDC8bdU.png";
+            } else {
+                document.title = "Nullify's Corner";
+                document.getElementById("favicon").href = "../logo.png";
+            }
+        });
+    </script>
+</body>
+</html>
