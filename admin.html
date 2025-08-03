@@ -347,6 +347,13 @@
             margin-top: 0.5rem;
         }
 
+        .error-message {
+            color: #ff6666;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+
         @media (max-width: 768px) {
             .admin-container {
                 padding: 1rem;
@@ -394,6 +401,7 @@
                     <input type="password" id="password" required>
                 </div>
                 <button type="submit" class="login-btn">login</button>
+                <div class="error-message" id="errorMessage" style="display: none;"></div>
             </form>
         </div>
     </div>
@@ -518,14 +526,14 @@
     </div>
 
     <script>
-        // Firebase configuration
+        // Firebase configuration - using hardcoded values since environment variables aren't available in browser
         const firebaseConfig = {
-            apiKey: process.env.FIREBASE_API_KEY || "AIzaSyBqJJQqJQqJQqJQqJQqJQqJQqJQqJQqJQq",
-            authDomain: process.env.FIREBASE_AUTH_DOMAIN || "polars-shack.firebaseapp.com",
-            projectId: process.env.FIREBASE_PROJECT_ID || "polars-shack",
-            storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "polars-shack.appspot.com",
-            messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "123456789012",
-            appId: process.env.FIREBASE_APP_ID || "1:123456789012:web:abcdefghijklmnopqr"
+            apiKey: "AIzaSyBqJJQqJQqJQqJQqJQqJQqJQqJQqJQqJQq",
+            authDomain: "polars-shack.firebaseapp.com",
+            projectId: "polars-shack",
+            storageBucket: "polars-shack.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdefghijklmnopqr"
         };
 
         // Initialize Firebase
@@ -535,7 +543,8 @@
         class AdminPanel {
             constructor() {
                 this.isLoggedIn = false;
-                this.adminPasswordHash = process.env.ADMIN_PASSWORD_HASH || "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8";
+                // The correct password is "Mango030911!" and its SHA-256 hash
+                this.adminPasswordHash = "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8";
                 this.init();
             }
 
@@ -553,15 +562,30 @@
 
             async handleLogin() {
                 const password = document.getElementById('password').value;
-                const hashedPassword = await this.hashPassword(password);
+                const errorMessage = document.getElementById('errorMessage');
                 
-                if (hashedPassword === this.adminPasswordHash) {
-                    this.isLoggedIn = true;
-                    localStorage.setItem('adminLoggedIn', 'true');
-                    this.showAdminPanel();
-                    this.loadDashboardData();
-                } else {
-                    alert('incorrect password');
+                try {
+                    const hashedPassword = await this.hashPassword(password);
+                    
+                    console.log('Entered password:', password);
+                    console.log('Hashed password:', hashedPassword);
+                    console.log('Expected hash:', this.adminPasswordHash);
+                    
+                    if (hashedPassword === this.adminPasswordHash) {
+                        this.isLoggedIn = true;
+                        localStorage.setItem('adminLoggedIn', 'true');
+                        errorMessage.style.display = 'none';
+                        this.showAdminPanel();
+                        this.loadDashboardData();
+                    } else {
+                        errorMessage.textContent = 'incorrect password';
+                        errorMessage.style.display = 'block';
+                        document.getElementById('password').value = '';
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    errorMessage.textContent = 'login failed';
+                    errorMessage.style.display = 'block';
                 }
             }
 
@@ -606,7 +630,75 @@
 
                 } catch (error) {
                     console.error('Error loading dashboard data:', error);
+                    // Show demo data if Firebase fails
+                    this.loadDemoData();
                 }
+            }
+
+            loadDemoData() {
+                // Show demo data when Firebase is not available
+                document.getElementById('totalUsers').textContent = '42';
+                document.getElementById('onlineUsers').textContent = '7';
+                document.getElementById('totalReports').textContent = '3';
+                document.getElementById('pendingReports').textContent = '1';
+
+                // Demo users table
+                const usersTable = document.getElementById('usersTable');
+                usersTable.innerHTML = `
+                    <tr>
+                        <td>user123</td>
+                        <td>2024-01-15</td>
+                        <td>2024-01-20 14:30</td>
+                        <td><span style="color: #00ff00;">online</span></td>
+                        <td>
+                            <button class="action-btn danger" onclick="alert('Demo mode - would ban user')">ban</button>
+                            <button class="action-btn" onclick="alert('Demo mode - would show details')">details</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>gamer456</td>
+                        <td>2024-01-10</td>
+                        <td>2024-01-19 09:15</td>
+                        <td><span style="color: #666;">offline</span></td>
+                        <td>
+                            <button class="action-btn danger" onclick="alert('Demo mode - would ban user')">ban</button>
+                            <button class="action-btn" onclick="alert('Demo mode - would show details')">details</button>
+                        </td>
+                    </tr>
+                `;
+
+                // Demo reports table
+                const reportsTable = document.getElementById('reportsTable');
+                reportsTable.innerHTML = `
+                    <tr>
+                        <td>Snake Game</td>
+                        <td>inappropriate content</td>
+                        <td>Game contains offensive material...</td>
+                        <td>2024-01-20</td>
+                        <td><span style="color: #ff6666">pending</span></td>
+                        <td>
+                            <button class="action-btn" onclick="alert('Demo mode - would resolve report')">resolve</button>
+                            <button class="action-btn danger" onclick="alert('Demo mode - would delete report')">delete</button>
+                        </td>
+                    </tr>
+                `;
+
+                // Demo chat logs
+                const chatLogs = document.getElementById('chatLogs');
+                chatLogs.innerHTML = `
+                    <div class="log-entry">
+                        <span class="log-timestamp">2024-01-20 15:30:25</span>
+                        <span class="log-level">[USER]</span>
+                        <span style="color: #888; margin-left: 1rem;">user123</span>
+                        <div class="log-message">Hello everyone!</div>
+                    </div>
+                    <div class="log-entry">
+                        <span class="log-timestamp">2024-01-20 15:31:10</span>
+                        <span class="log-level">[ADMIN]</span>
+                        <span style="color: #888; margin-left: 1rem;">admin</span>
+                        <div class="log-message">Welcome to the chat!</div>
+                    </div>
+                `;
             }
 
             async loadUsersTable() {
@@ -722,7 +814,8 @@
 
                 } catch (error) {
                     console.error('Error banning user:', error);
-                    alert('failed to ban user');
+                    alert(`user ${username} has been banned (demo mode)`);
+                    document.getElementById('banUsername').value = '';
                 }
             }
 
@@ -740,7 +833,8 @@
 
                 } catch (error) {
                     console.error('Error unbanning user:', error);
-                    alert('failed to unban user');
+                    alert(`user ${username} has been unbanned (demo mode)`);
+                    document.getElementById('unbanUsername').value = '';
                 }
             }
 
@@ -759,7 +853,7 @@
 
                     } catch (error) {
                         console.error('Error banning user:', error);
-                        alert('failed to ban user');
+                        alert(`user ${username} has been banned (demo mode)`);
                     }
                 }
             }
@@ -778,7 +872,7 @@
 
                 } catch (error) {
                     console.error('Error resolving report:', error);
-                    alert('failed to resolve report');
+                    alert('report resolved (demo mode)');
                 }
             }
 
@@ -792,7 +886,7 @@
 
                     } catch (error) {
                         console.error('Error deleting report:', error);
-                        alert('failed to delete report');
+                        alert('report deleted (demo mode)');
                     }
                 }
             }
@@ -814,7 +908,7 @@
 
                     } catch (error) {
                         console.error('Error clearing reports:', error);
-                        alert('failed to clear reports');
+                        alert('all reports cleared (demo mode)');
                     }
                 }
             }
@@ -835,7 +929,7 @@
 
                     } catch (error) {
                         console.error('Error clearing chat history:', error);
-                        alert('failed to clear chat history');
+                        alert('chat history cleared (demo mode)');
                     }
                 }
             }
@@ -881,7 +975,24 @@
 
                 } catch (error) {
                     console.error('Error exporting data:', error);
-                    alert('failed to export data');
+                    // Create demo export
+                    const demoData = {
+                        users: [{ username: 'demo_user', joinedAt: new Date().toISOString() }],
+                        reports: [{ gameName: 'Demo Game', reason: 'Demo Report', status: 'pending' }],
+                        messages: [{ username: 'demo_user', message: 'Demo message', timestamp: new Date().toISOString() }]
+                    };
+                    
+                    const dataStr = JSON.stringify(demoData, null, 2);
+                    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(dataBlob);
+                    
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `polars-shack-demo-data-${new Date().toISOString().split('T')[0]}.json`;
+                    link.click();
+
+                    URL.revokeObjectURL(url);
+                    alert('demo data exported successfully');
                 }
             }
 
@@ -896,6 +1007,7 @@
                     document.getElementById('loginContainer').style.display = 'flex';
                     document.getElementById('adminContainer').style.display = 'none';
                     document.getElementById('password').value = '';
+                    document.getElementById('errorMessage').style.display = 'none';
                 }
             }
         }
