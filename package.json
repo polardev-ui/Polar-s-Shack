@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "scripts": {
       "build": "node build.js",
-      "deploy": "FIREBASE_API_KEY=AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs FIREBASE_AUTH_DOMAIN=polars-shack.firebaseapp.com FIREBASE_PROJECT_ID=polars-shack FIREBASE_STORAGE_BUCKET=polars-shack.firebasestorage.app FIREBASE_MESSAGING_SENDER_ID=205388124682 FIREBASE_APP_ID=1:205388124682:web:2b0b1605517e0c6c53c5f3 ADMIN_PASSWORD_HASH=5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8 GOOGLE_ADSENSE_PUBLISHER_ID=pub-9156548662984796 GOOGLE_ADSENSE_HEADER_SLOT=your_header_ad_slot_id GOOGLE_ADSENSE_SIDEBAR_SLOT=your_sidebar_ad_slot_id GOOGLE_ADSENSE_FOOTER_SLOT=your_footer_ad_slot_id npm run build && firebase deploy"
+      "deploy": "npm run build && firebase deploy"
     }
   }
   
