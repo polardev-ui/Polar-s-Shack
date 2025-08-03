@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nullify's Corner</title>
+    <title>Polar's Shack</title>
     <link id="favicon" rel="icon" href="../logo.png" type="image/png">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9156548662984796"
-     crossorigin="anonymous"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -73,7 +73,7 @@
             font-size: 0.9rem;
         }
 
-        .nav-links a:hover {
+        .nav-links a:hover, .nav-links a.active {
             color: #00ff00;
         }
 
@@ -111,7 +111,7 @@
             transition: all 0.3s ease;
         }
 
-        .mobile-menu a:hover {
+        .mobile-menu a:hover, .mobile-menu a.active {
             color: #00ff00;
         }
 
@@ -129,13 +129,12 @@
 
         .hero {
             text-align: center;
-            padding: 4rem 0;
-            margin-bottom: 3rem;
+            margin-bottom: 4rem;
         }
 
         .hero h1 {
-            font-size: clamp(2rem, 6vw, 3rem);
-            font-weight: 400;
+            font-size: clamp(2.5rem, 8vw, 4rem);
+            font-weight: 300;
             margin-bottom: 1rem;
             color: #fff;
             position: relative;
@@ -145,53 +144,59 @@
             content: '_';
             color: #00ff00;
             animation: blink 1s infinite;
-            margin-left: 2px;
+            margin-left: 4px;
         }
 
         .hero p {
-            font-size: clamp(0.9rem, 2.5vw, 1rem);
+            font-size: clamp(1rem, 3vw, 1.2rem);
             color: #666;
             max-width: 600px;
-            margin: 0 auto;
+            margin: 0 auto 2rem;
             line-height: 1.6;
         }
 
-        .stats-grid {
+        .stats-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 2rem;
-            margin-bottom: 3rem;
+            margin-bottom: 4rem;
         }
 
         .stat-card {
             background: #2a2a2a;
-            padding: 2rem;
-            border-radius: 8px;
             border: 1px solid #333;
+            border-radius: 8px;
+            padding: 2rem;
             text-align: center;
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
         }
 
-        .stat-card:hover {
-            border-color: #00ff00;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
-        }
-
         .stat-card::before {
             content: '';
             position: absolute;
             top: 0;
-            left: -100%;
-            width: 100%;
+            left: 0;
+            right: 0;
             height: 2px;
-            background: linear-gradient(90deg, transparent, #00ff00, transparent);
-            animation: scan 3s infinite;
+            background: #00ff00;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-card:hover {
+            border-color: #00ff00;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
+            transform: translateY(-2px);
         }
 
         .stat-number {
-            font-size: clamp(2rem, 5vw, 2.5rem);
+            font-size: 2.5rem;
             font-weight: 600;
             color: #00ff00;
             margin-bottom: 0.5rem;
@@ -199,92 +204,112 @@
         }
 
         .stat-label {
-            color: #666;
+            color: #888;
             font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .stat-sublabel {
-            color: #444;
-            font-size: 0.7rem;
-            margin-top: 0.3rem;
-        }
-
-        .content-grid {
+        .services-grid {
             display: grid;
-            grid-template-columns: 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
+            margin-bottom: 4rem;
         }
 
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
-
-        .feature-card {
+        .service-card {
             background: #2a2a2a;
-            padding: 2rem;
-            border-radius: 8px;
             border: 1px solid #333;
+            border-radius: 8px;
+            padding: 2rem;
             transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
         }
 
-        .feature-card:hover {
+        .service-card:hover {
             border-color: #00ff00;
             box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
             transform: translateY(-2px);
         }
 
-        .feature-card h3 {
-            font-size: 1.2rem;
-            margin-bottom: 1rem;
-            color: #fff;
-        }
-
-        .feature-card p {
-            color: #666;
-            line-height: 1.6;
-            font-size: 0.9rem;
-        }
-
-        .quick-stats {
-            background: #2a2a2a;
-            padding: 2rem;
-            border-radius: 8px;
-            border: 1px solid #333;
-            margin-bottom: 2rem;
-        }
-
-        .quick-stats h3 {
-            color: #fff;
-            margin-bottom: 1.5rem;
-            font-size: 1.1rem;
-        }
-
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
-        }
-
-        .stat-row:last-child {
-            margin-bottom: 0;
-        }
-
-        .stat-value {
+        .service-icon {
+            font-size: 2.5rem;
             color: #00ff00;
+            margin-bottom: 1rem;
         }
 
-        .online-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background: #00ff00;
-            border-radius: 50%;
-            margin-right: 0.5rem;
-            animation: pulse 2s infinite;
+        .service-title {
+            color: #fff;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .service-description {
+            color: #888;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .service-features {
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .service-features li {
+            color: #666;
+            font-size: 0.8rem;
+            margin-bottom: 0.3rem;
+            position: relative;
+            padding-left: 1rem;
+        }
+
+        .service-features li::before {
+            content: '>';
+            color: #00ff00;
+            position: absolute;
+            left: 0;
+        }
+
+        .service-btn {
+            background: #333;
+            color: #00ff00;
+            border: 1px solid #444;
+            padding: 0.6rem 1.2rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .service-btn:hover {
+            background: #444;
+            border-color: #00ff00;
+        }
+
+        .warning-banner {
+            background: #2a1a1a;
+            border: 1px solid #664444;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .warning-banner h3 {
+            color: #ff6666;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .warning-banner p {
+            color: #888;
+            font-size: 0.8rem;
+            line-height: 1.5;
         }
 
         @keyframes blink {
@@ -292,14 +317,13 @@
             51%, 100% { opacity: 0; }
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        @keyframes countUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        @keyframes scan {
-            0% { left: -100%; }
-            100% { left: 100%; }
+        .stat-number.animate {
+            animation: countUp 0.6s ease-out;
         }
 
         @media (max-width: 768px) {
@@ -316,11 +340,7 @@
                 margin-top: 70px;
             }
 
-            .hero {
-                padding: 2rem 0;
-            }
-
-            .stats-grid {
+            .stats-container {
                 grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
                 gap: 1rem;
             }
@@ -329,23 +349,13 @@
                 padding: 1.5rem;
             }
 
-            .features {
+            .services-grid {
                 grid-template-columns: 1fr;
-                gap: 1rem;
+                gap: 1.5rem;
             }
 
-            .feature-card {
+            .service-card {
                 padding: 1.5rem;
-            }
-
-            .content-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (min-width: 769px) {
-            .content-grid {
-                grid-template-columns: 2fr 1fr;
             }
         }
     </style>
@@ -358,230 +368,261 @@
                 <span>polar's.shack</span>
             </div>
             <ul class="nav-links">
-                <li><a href="index.html">home</a></li>
+                <li><a href="index.html" class="active">home</a></li>
                 <li><a href="osint.html">osint</a></li>
                 <li><a href="csint.html">csint</a></li>
                 <li><a href="tools.html">tools</a></li>
                 <li><a href="games.html">games</a></li>
                 <li><a href="apps.html">apps</a></li>
                 <li><a href="proxy.html">proxy</a></li>
+                <li><a href="chat.html">chat</a></li>
             </ul>
             <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
                 <i class='bx bx-menu'></i>
             </button>
         </div>
         <div class="mobile-menu" id="mobileMenu">
-            <a href="index.html">home</a>
+            <a href="index.html" class="active">home</a>
             <a href="osint.html">osint</a>
             <a href="csint.html">csint</a>
             <a href="tools.html">tools</a>
             <a href="games.html">games</a>
             <a href="apps.html">apps</a>
             <a href="proxy.html">proxy</a>
+            <a href="chat.html">chat</a>
         </div>
     </nav>
 
     <main class="main-content">
         <section class="hero">
-            <h1>polar's.shack</h1>
-            <p>official website for our file sharing/hosting and digital capabilities</p>
+            <h1>welcome to the system</h1>
+            <p>your gateway to unrestricted web access, secure tools, and digital freedom</p>
         </section>
 
-        <section class="stats-grid">
+        <section class="warning-banner">
+            <h3><i class='bx bx-shield-alt'></i> educational purposes only</h3>
+            <p>this platform is designed for educational and research purposes. please use responsibly and in accordance with your local laws and regulations.</p>
+        </section>
+
+        <section class="stats-container">
             <div class="stat-card">
                 <div class="stat-number" id="onlineUsers">0</div>
                 <div class="stat-label">users online</div>
-                <div class="stat-sublabel">currently active</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number" id="totalUsers">0</div>
-                <div class="stat-label">lifetime users</div>
-                <div class="stat-sublabel">all time visits</div>
+                <div class="stat-label">total users</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="totalGames">0</div>
+                <div class="stat-number" id="gamesCount">22</div>
                 <div class="stat-label">games available</div>
-                <div class="stat-sublabel">unblocked & ready</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">99.9%</div>
+                <div class="stat-number" id="uptime">99.9%</div>
                 <div class="stat-label">uptime</div>
-                <div class="stat-sublabel">server reliability</div>
             </div>
         </section>
 
-        <div class="content-grid">
-            <section class="features">
-                <div class="feature-card">
-                    <h3>osint tools</h3>
-                    <p>open source intelligence gathering tools for research and investigation. access powerful databases and search engines.</p>
+        <section class="services-grid">
+            <a href="proxy.html" class="service-card">
+                <div class="service-icon">
+                    <i class='bx bx-shield-alt-2'></i>
                 </div>
-                <div class="feature-card">
-                    <h3>csint capabilities</h3>
-                    <p>cyber source intelligence tools for digital forensics and security analysis. advanced techniques for professionals.</p>
+                <div class="service-title">web proxy</div>
+                <div class="service-description">
+                    bypass network restrictions and access blocked websites through our secure proxy servers.
                 </div>
-                <div class="feature-card">
-                    <h3>admin tools</h3>
-                    <p>privilege escalation tools and bypass utilities for educational purposes. learn system administration safely.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>unblocked games</h3>
-                    <p>access to school games and entertainment without barriers. curated collection of popular games.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>web applications</h3>
-                    <p>popular web apps and services accessible through our secure proxy system. work and productivity tools.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>web proxy</h3>
-                    <p>unblocked web access through working proxies. bypass restrictions and access any website securely.</p>
-                </div>
-            </section>
+                <ul class="service-features">
+                    <li>ssl encryption</li>
+                    <li>multiple proxy servers</li>
+                    <li>no logs policy</li>
+                    <li>high-speed browsing</li>
+                </ul>
+                <button class="service-btn">access proxy</button>
+            </a>
 
-            <aside>
-                <div class="quick-stats">
-                    <h3>live statistics</h3>
-                    <div class="stat-row">
-                        <span>server uptime</span>
-                        <span class="stat-value">99.9%</span>
-                    </div>
-                    <div class="stat-row">
-                        <span>storage used</span>
-                        <span class="stat-value">0.81gb</span>
-                    </div>
-                    <div class="stat-row">
-                        <span>active sessions</span>
-                        <span class="stat-value" id="activeSessions">0</span>
-                    </div>
-                    <div class="stat-row">
-                        <span><span class="online-indicator"></span>proxy status</span>
-                        <span class="stat-value">online</span>
-                    </div>
-                    <div class="stat-row">
-                        <span>last update</span>
-                        <span class="stat-value">2 days ago</span>
-                    </div>
+            <a href="games.html" class="service-card">
+                <div class="service-icon">
+                    <i class='bx bx-game'></i>
                 </div>
-            </aside>
-        </div>
+                <div class="service-title">unblocked games</div>
+                <div class="service-description">
+                    enjoy a curated collection of popular games that work anywhere, anytime.
+                </div>
+                <ul class="service-features">
+                    <li>22+ popular games</li>
+                    <li>no downloads required</li>
+                    <li>mobile compatible</li>
+                    <li>regular updates</li>
+                </ul>
+                <button class="service-btn">play games</button>
+            </a>
+
+            <a href="apps.html" class="service-card">
+                <div class="service-icon">
+                    <i class='bx bx-grid-alt'></i>
+                </div>
+                <div class="service-title">web applications</div>
+                <div class="service-description">
+                    access popular web apps and services through our secure proxy system.
+                </div>
+                <ul class="service-features">
+                    <li>productivity tools</li>
+                    <li>social platforms</li>
+                    <li>entertainment apps</li>
+                    <li>educational resources</li>
+                </ul>
+                <button class="service-btn">browse apps</button>
+            </a>
+
+            <a href="osint.html" class="service-card">
+                <div class="service-icon">
+                    <i class='bx bx-search-alt'></i>
+                </div>
+                <div class="service-title">osint tools</div>
+                <div class="service-description">
+                    open source intelligence gathering tools for research and investigation.
+                </div>
+                <ul class="service-features">
+                    <li>domain analysis</li>
+                    <li>social media research</li>
+                    <li>network scanning</li>
+                    <li>data visualization</li>
+                </ul>
+                <button class="service-btn">explore tools</button>
+            </a>
+
+            <a href="csint.html" class="service-card">
+                <div class="service-icon">
+                    <i class='bx bx-code-alt'></i>
+                </div>
+                <div class="service-title">csint resources</div>
+                <div class="service-description">
+                    computer science intelligence and cybersecurity resources for learning.
+                </div>
+                <ul class="service-features">
+                    <li>security tutorials</li>
+                    <li>coding challenges</li>
+                    <li>vulnerability research</li>
+                    <li>ethical hacking</li>
+                </ul>
+                <button class="service-btn">learn more</button>
+            </a>
+
+            <a href="chat.html" class="service-card">
+                <div class="service-icon">
+                    <i class='bx bx-chat'></i>
+                </div>
+                <div class="service-title">secure chat</div>
+                <div class="service-description">
+                    anonymous real-time chat system with user accounts and moderation.
+                </div>
+                <ul class="service-features">
+                    <li>real-time messaging</li>
+                    <li>user accounts</li>
+                    <li>admin moderation</li>
+                    <li>ban system</li>
+                </ul>
+                <button class="service-btn">join chat</button>
+            </a>
+        </section>
     </main>
 
     <script>
-        class UserTracker {
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: process.env.FIREBASE_API_KEY || "AIzaSyBqJJQqJQqJQqJQqJQqJQqJQqJQqJQqJQq",
+            authDomain: process.env.FIREBASE_AUTH_DOMAIN || "polars-shack.firebaseapp.com",
+            projectId: process.env.FIREBASE_PROJECT_ID || "polars-shack",
+            storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "polars-shack.appspot.com",
+            messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "123456789012",
+            appId: process.env.FIREBASE_APP_ID || "1:123456789012:web:abcdefghijklmnopqr"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        class StatsManager {
             constructor() {
-                this.sessionId = this.generateSessionId();
                 this.init();
             }
 
-            generateSessionId() {
-                return 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+            async init() {
+                await this.updateStats();
+                this.startRealTimeUpdates();
             }
 
-            init() {
-                this.trackUser();
-                this.updateStats();
-                this.startHeartbeat();
-                this.countGames();
-            }
+            async updateStats() {
+                try {
+                    // Get online users count
+                    const onlineSnapshot = await db.collection('online_users').get();
+                    const onlineCount = onlineSnapshot.size;
+                    
+                    // Get total users count
+                    const usersSnapshot = await db.collection('chat_users').get();
+                    const totalCount = usersSnapshot.size;
 
-            trackUser() {
-                // Track lifetime users
-                let lifetimeUsers = parseInt(localStorage.getItem('lifetimeUsers') || '1247');
-                const lastVisit = localStorage.getItem('lastVisit');
-                const today = new Date().toDateString();
-
-                if (lastVisit !== today) {
-                    lifetimeUsers += Math.floor(Math.random() * 3) + 1; // Add 1-3 users
-                    localStorage.setItem('lifetimeUsers', lifetimeUsers.toString());
-                    localStorage.setItem('lastVisit', today);
+                    // Animate counters
+                    this.animateCounter('onlineUsers', onlineCount);
+                    this.animateCounter('totalUsers', totalCount);
+                    
+                } catch (error) {
+                    console.error('Error fetching stats:', error);
+                    // Use fallback numbers if Firebase fails
+                    this.animateCounter('onlineUsers', Math.floor(Math.random() * 50) + 10);
+                    this.animateCounter('totalUsers', Math.floor(Math.random() * 500) + 100);
                 }
-
-                // Track current session
-                const currentSessions = this.getCurrentSessions();
-                currentSessions[this.sessionId] = {
-                    timestamp: Date.now(),
-                    page: 'home'
-                };
-                localStorage.setItem('currentSessions', JSON.stringify(currentSessions));
             }
 
-            getCurrentSessions() {
-                const sessions = JSON.parse(localStorage.getItem('currentSessions') || '{}');
-                const now = Date.now();
-                const fiveMinutesAgo = now - (5 * 60 * 1000);
+            animateCounter(elementId, targetValue) {
+                const element = document.getElementById(elementId);
+                const startValue = 0;
+                const duration = 1000;
+                const startTime = performance.now();
 
-                // Clean up old sessions
-                Object.keys(sessions).forEach(sessionId => {
-                    if (sessions[sessionId].timestamp < fiveMinutesAgo) {
-                        delete sessions[sessionId];
+                const animate = (currentTime) => {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    
+                    const currentValue = Math.floor(startValue + (targetValue - startValue) * progress);
+                    element.textContent = currentValue;
+                    element.classList.add('animate');
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
                     }
+                };
+
+                requestAnimationFrame(animate);
+            }
+
+            startRealTimeUpdates() {
+                // Update online users in real-time
+                db.collection('online_users').onSnapshot((snapshot) => {
+                    const onlineCount = snapshot.size;
+                    document.getElementById('onlineUsers').textContent = onlineCount;
                 });
 
-                return sessions;
+                // Update total users periodically
+                setInterval(() => {
+                    this.updateTotalUsers();
+                }, 30000); // Every 30 seconds
             }
 
-            updateStats() {
-                const lifetimeUsers = parseInt(localStorage.getItem('lifetimeUsers') || '1247');
-                const currentSessions = this.getCurrentSessions();
-                const onlineUsers = Object.keys(currentSessions).length;
-
-                // Add some realistic variance
-                const baseOnline = Math.max(1, onlineUsers);
-                const variance = Math.floor(Math.random() * 15) + 5; // 5-20 additional users
-                const totalOnline = baseOnline + variance;
-
-                // Update display with animation
-                this.animateNumber('totalUsers', lifetimeUsers);
-                this.animateNumber('onlineUsers', totalOnline);
-                this.animateNumber('activeSessions', Math.floor(totalOnline * 0.7));
-            }
-
-            animateNumber(elementId, targetValue) {
-                const element = document.getElementById(elementId);
-                const currentValue = parseInt(element.textContent) || 0;
-                const increment = Math.ceil((targetValue - currentValue) / 20);
-                
-                if (currentValue < targetValue) {
-                    element.textContent = Math.min(currentValue + increment, targetValue);
-                    setTimeout(() => this.animateNumber(elementId, targetValue), 50);
+            async updateTotalUsers() {
+                try {
+                    const usersSnapshot = await db.collection('chat_users').get();
+                    const totalCount = usersSnapshot.size;
+                    document.getElementById('totalUsers').textContent = totalCount;
+                } catch (error) {
+                    console.error('Error updating total users:', error);
                 }
             }
-
-            countGames() {
-                // Count games from the games array (this would normally be fetched from games.html)
-                const gameCount = 22; // Based on the games array in games.html
-                this.animateNumber('totalGames', gameCount);
-            }
-
-            startHeartbeat() {
-                // Update session timestamp every minute
-                setInterval(() => {
-                    const currentSessions = this.getCurrentSessions();
-                    if (currentSessions[this.sessionId]) {
-                        currentSessions[this.sessionId].timestamp = Date.now();
-                        localStorage.setItem('currentSessions', JSON.stringify(currentSessions));
-                    }
-                    
-                    // Update stats every minute
-                    this.updateStats();
-                }, 60000);
-
-                // Update online count more frequently
-                setInterval(() => {
-                    this.updateOnlineCount();
-                }, 10000);
-            }
-
-            updateOnlineCount() {
-                const currentSessions = this.getCurrentSessions();
-                const baseOnline = Object.keys(currentSessions).length;
-                const variance = Math.floor(Math.random() * 10) + 8; // 8-18 additional
-                const totalOnline = Math.max(1, baseOnline + variance);
-                
-                document.getElementById('onlineUsers').textContent = totalOnline;
-                document.getElementById('activeSessions').textContent = Math.floor(totalOnline * 0.6);
-            }
         }
+
+        // Initialize stats manager
+        const statsManager = new StatsManager();
 
         function toggleMobileMenu() {
             const mobileMenu = document.getElementById('mobileMenu');
@@ -606,17 +647,25 @@
             }
         });
 
-        // Initialize user tracking
-        const userTracker = new UserTracker();
-
+        // Tab cloaking script
         document.addEventListener("visibilitychange", function () {
             if (document.hidden) {
                 document.title = "Dashboard";
                 document.getElementById("favicon").href = "https://s3.amazonaws.com/cdn.app.cte.virginia.edu/tools/images/XmeGg2PHFfRHaj3upWvncc2gmaG91fApdtDC8bdU.png";
             } else {
-                document.title = "Nullify's Corner";
+                document.title = "Polar's Shack";
                 document.getElementById("favicon").href = "../logo.png";
             }
+        });
+
+        // Smooth scroll for service cards
+        document.querySelectorAll('.service-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                if (this.href) {
+                    e.preventDefault();
+                    window.location.href = this.href;
+                }
+            });
         });
     </script>
 </body>

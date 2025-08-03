@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nullify's Corner</title>
+    <title>Polar's Shack</title>
     <link id="favicon" rel="icon" href="../logo.png" type="image/png">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -176,7 +176,7 @@
             box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
         }
 
-        .app-categories {
+        .category-tabs {
             display: flex;
             gap: 1rem;
             margin-bottom: 2rem;
@@ -184,27 +184,37 @@
             justify-content: center;
         }
 
-        .category-btn {
+        .category-tab {
             background: #333;
             color: #888;
             border: 1px solid #444;
-            padding: 0.5rem 1rem;
+            padding: 0.6rem 1.2rem;
             border-radius: 4px;
+            font-size: 0.8rem;
             cursor: pointer;
             transition: all 0.3s ease;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
         }
 
-        .category-btn:hover, .category-btn.active {
+        .category-tab.active {
             background: #00ff00;
             color: #1a1a1a;
             border-color: #00ff00;
         }
 
+        .category-tab:hover {
+            background: #444;
+            color: #00ff00;
+            border-color: #00ff00;
+        }
+
+        .category-tab.active:hover {
+            background: #00cc00;
+        }
+
         .apps-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 2rem;
             margin-bottom: 3rem;
         }
@@ -216,8 +226,6 @@
             overflow: hidden;
             transition: all 0.3s ease;
             cursor: pointer;
-            text-align: center;
-            padding: 1.5rem;
         }
 
         .app-card:hover {
@@ -226,31 +234,31 @@
             transform: translateY(-2px);
         }
 
-        .app-icon {
-            width: 64px;
-            height: 64px;
-            margin: 0 auto 1rem;
-            border-radius: 8px;
-            overflow: hidden;
+        .app-image {
+            width: 100%;
+            height: 120px;
             background: #333;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 2.5rem;
+            color: #666;
+            position: relative;
+            overflow: hidden;
         }
 
-        .app-icon img {
+        .app-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
-        .app-icon i {
-            font-size: 2rem;
-            color: #666;
+        .app-info {
+            padding: 1.5rem;
         }
 
         .app-name {
-            font-size: 1rem;
+            font-size: 1.1rem;
             margin-bottom: 0.5rem;
             color: #fff;
             font-weight: 500;
@@ -265,30 +273,41 @@
 
         .app-category {
             display: inline-block;
-            background: #333;
-            color: #00ff00;
-            padding: 0.2rem 0.5rem;
+            background: #444;
+            color: #888;
+            padding: 0.2rem 0.6rem;
             border-radius: 3px;
             font-size: 0.7rem;
-            margin-bottom: 0.5rem;
+            margin-bottom: 1rem;
         }
 
         .launch-btn {
             background: #333;
             color: #00ff00;
             border: 1px solid #444;
-            padding: 0.5rem 1rem;
+            padding: 0.6rem 1.2rem;
             border-radius: 4px;
             font-size: 0.8rem;
             cursor: pointer;
             transition: all 0.3s ease;
             width: 100%;
             font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
         .launch-btn:hover {
             background: #444;
             border-color: #00ff00;
+        }
+
+        .no-results {
+            text-align: center;
+            color: #666;
+            font-size: 1rem;
+            margin: 3rem 0;
         }
 
         @keyframes blink {
@@ -311,46 +330,31 @@
             }
 
             .apps-grid {
-                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
                 gap: 1rem;
             }
 
-            .app-card {
+            .app-info {
                 padding: 1rem;
-            }
-
-            .app-icon {
-                width: 48px;
-                height: 48px;
             }
 
             .search-bar {
                 margin-bottom: 2rem;
             }
 
-            .app-categories {
+            .category-tabs {
                 gap: 0.5rem;
             }
 
-            .category-btn {
-                padding: 0.4rem 0.8rem;
+            .category-tab {
+                padding: 0.5rem 0.8rem;
                 font-size: 0.7rem;
             }
         }
 
         @media (max-width: 480px) {
             .apps-grid {
-                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            }
-
-            .app-categories {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .category-btn {
-                width: 100%;
-                max-width: 200px;
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -370,6 +374,7 @@
                 <li><a href="games.html">games</a></li>
                 <li><a href="apps.html" class="active">apps</a></li>
                 <li><a href="proxy.html">proxy</a></li>
+                <li><a href="chat.html">chat</a></li>
             </ul>
             <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
                 <i class='bx bx-menu'></i>
@@ -383,266 +388,163 @@
             <a href="games.html">games</a>
             <a href="apps.html" class="active">apps</a>
             <a href="proxy.html">proxy</a>
+            <a href="chat.html">chat</a>
         </div>
     </nav>
 
     <main class="main-content">
         <section class="page-header">
             <h1>web applications</h1>
-            <p>popular web apps and services accessible through our secure proxy system. work, productivity, and entertainment tools.</p>
+            <p>access popular web apps and services through our secure proxy system. bypass restrictions and stay productive.</p>
         </section>
 
         <div class="search-bar">
             <input type="text" id="searchInput" placeholder="search applications...">
         </div>
 
-        <div class="app-categories">
-            <button class="category-btn active" onclick="filterApps('all')">all</button>
-            <button class="category-btn" onclick="filterApps('productivity')">productivity</button>
-            <button class="category-btn" onclick="filterApps('social')">social</button>
-            <button class="category-btn" onclick="filterApps('entertainment')">entertainment</button>
-            <button class="category-btn" onclick="filterApps('education')">education</button>
-            <button class="category-btn" onclick="filterApps('tools')">tools</button>
+        <div class="category-tabs">
+            <button class="category-tab active" onclick="filterByCategory('all')">all</button>
+            <button class="category-tab" onclick="filterByCategory('social')">social</button>
+            <button class="category-tab" onclick="filterByCategory('productivity')">productivity</button>
+            <button class="category-tab" onclick="filterByCategory('entertainment')">entertainment</button>
+            <button class="category-tab" onclick="filterByCategory('education')">education</button>
+            <button class="category-tab" onclick="filterByCategory('communication')">communication</button>
         </div>
 
         <section class="apps-grid" id="appsGrid">
             <!-- Apps will be populated by JavaScript -->
         </section>
+
+        <div class="no-results" id="noResults" style="display: none;">
+            no applications found matching your search.
+        </div>
     </main>
 
     <script>
         const apps = [
-            {
-                name: "Google Drive",
-                url: "https://drive.google.com",
-                icon: "https://ssl.gstatic.com/docs/doclist/images/drive_2022q3_32dp.png",
-                category: "productivity",
-                description: "cloud storage and file sharing platform"
-            },
-            {
-                name: "Gmail",
-                url: "https://mail.google.com",
-                icon: "https://ssl.gstatic.com/ui/v1/icons/mail/rfr/gmail.ico",
-                category: "productivity",
-                description: "email service and communication platform"
-            },
-            {
-                name: "YouTube",
-                url: "https://youtube.com",
-                icon: "https://www.youtube.com/s/desktop/f506bd45/img/favicon_32x32.png",
-                category: "entertainment",
-                description: "video sharing and streaming platform"
-            },
-            {
-                name: "Discord",
-                url: "https://discord.com/app",
-                icon: "https://discord.com/assets/f9bb9c4af2b9c32a2c5ee0014661546d.png",
-                category: "social",
-                description: "voice, video and text communication service"
-            },
-            {
-                name: "Spotify",
-                url: "https://open.spotify.com",
-                icon: "https://open.spotifycdn.com/cdn/images/favicon32.b64ecc03.png",
-                category: "entertainment",
-                description: "music streaming and podcast platform"
-            },
-            {
-                name: "Netflix",
-                url: "https://netflix.com",
-                icon: "https://assets.nflxext.com/us/ffe/siteui/common/icons/nficon2016.png",
-                category: "entertainment",
-                description: "streaming service for movies and tv shows"
-            },
-            {
-                name: "GitHub",
-                url: "https://github.com",
-                icon: "https://github.githubassets.com/favicons/favicon.png",
-                category: "productivity",
-                description: "code hosting and version control platform"
-            },
-            {
-                name: "Twitch",
-                url: "https://twitch.tv",
-                icon: "https://static.twitchcdn.net/assets/favicon-32-e29e246c157142c94346.png",
-                category: "entertainment",
-                description: "live streaming platform for gaming"
-            },
-            {
-                name: "Reddit",
-                url: "https://reddit.com",
-                icon: "https://www.redditstatic.com/desktop2x/img/favicon/favicon-32x32.png",
-                category: "social",
-                description: "social news aggregation and discussion"
-            },
-            {
-                name: "Twitter",
-                url: "https://twitter.com",
-                icon: "https://abs.twimg.com/favicons/twitter.2.ico",
-                category: "social",
-                description: "social networking and microblogging service"
-            },
-            {
-                name: "Instagram",
-                url: "https://instagram.com",
-                icon: "https://static.cdninstagram.com/rsrc.php/v3/yt/r/30PrGfR3xhI.png",
-                category: "social",
-                description: "photo and video sharing social network"
-            },
-            {
-                name: "TikTok",
-                url: "https://tiktok.com",
-                icon: "https://sf16-website-login.neutral.ttwstatic.com/obj/tiktok_web_login_static/tiktok/webapp/main/webapp-desktop/8152caf0c8e8bc67ae0d.png",
-                category: "entertainment",
-                description: "short-form video hosting service"
-            },
-            {
-                name: "Khan Academy",
-                url: "https://khanacademy.org",
-                icon: "https://cdn.kastatic.org/images/favicon.ico",
-                category: "education",
-                description: "free online courses and educational content"
-            },
-            {
-                name: "Coursera",
-                url: "https://coursera.org",
-                icon: "https://d3njjcbhbojbot.cloudfront.net/web/images/favicons/favicon-32x32.png",
-                category: "education",
-                description: "online learning platform with university courses"
-            },
-            {
-                name: "Canva",
-                url: "https://canva.com",
-                icon: "https://static.canva.com/web/images/favicon-1.ico",
-                category: "productivity",
-                description: "graphic design and visual content creation"
-            },
-            {
-                name: "Figma",
-                url: "https://figma.com",
-                icon: "https://static.figma.com/app/icon/1/favicon.png",
-                category: "productivity",
-                description: "collaborative interface design tool"
-            },
-            {
-                name: "Notion",
-                url: "https://notion.so",
-                icon: "https://www.notion.so/images/favicon.ico",
-                category: "productivity",
-                description: "all-in-one workspace for notes and collaboration"
-            },
-            {
-                name: "Trello",
-                url: "https://trello.com",
-                icon: "https://a.trellocdn.com/prgb/dist/images/favicon.ico",
-                category: "productivity",
-                description: "project management and organization tool"
-            },
-            {
-                name: "Slack",
-                url: "https://slack.com",
-                icon: "https://a.slack-edge.com/80588/marketing/img/meta/favicon-32.png",
-                category: "productivity",
-                description: "business communication and collaboration platform"
-            },
-            {
-                name: "Zoom",
-                url: "https://zoom.us",
-                icon: "https://st1.zoom.us/zoom.ico",
-                category: "productivity",
-                description: "video conferencing and online meetings"
-            },
-            {
-                name: "Google Docs",
-                url: "https://docs.google.com",
-                icon: "https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico",
-                category: "productivity",
-                description: "online document editing and collaboration"
-            },
-            {
-                name: "Google Sheets",
-                url: "https://sheets.google.com",
-                icon: "https://ssl.gstatic.com/docs/spreadsheets/favicon3.ico",
-                category: "productivity",
-                description: "online spreadsheet application"
-            },
-            {
-                name: "Replit",
-                url: "https://replit.com",
-                icon: "https://replit.com/public/images/favicon.ico",
-                category: "tools",
-                description: "online code editor and development environment"
-            },
-            {
-                name: "CodePen",
-                url: "https://codepen.io",
-                icon: "https://cpwebassets.codepen.io/assets/favicon/favicon-aec34940fbc1a6e787974dcd360f2c6b63348d4b1f4e06c77743096d55480f33.ico",
-                category: "tools",
-                description: "online code editor for web development"
-            }
+            // Social Media
+            { name: "Discord", url: "https://discord.com", category: "social", description: "voice, video and text communication service", icon: "bx-message-dots" },
+            { name: "Twitter", url: "https://twitter.com", category: "social", description: "social networking and microblogging service", icon: "bxl-twitter" },
+            { name: "Instagram", url: "https://instagram.com", category: "social", description: "photo and video sharing social networking service", icon: "bxl-instagram" },
+            { name: "Reddit", url: "https://reddit.com", category: "social", description: "social news aggregation and discussion website", icon: "bxl-reddit" },
+            { name: "TikTok", url: "https://tiktok.com", category: "social", description: "short-form video hosting service", icon: "bxl-tiktok" },
+            { name: "Snapchat", url: "https://web.snapchat.com", category: "social", description: "multimedia messaging app", icon: "bxl-snapchat" },
+
+            // Productivity
+            { name: "Google Drive", url: "https://drive.google.com", category: "productivity", description: "file storage and synchronization service", icon: "bxl-google" },
+            { name: "Google Docs", url: "https://docs.google.com", category: "productivity", description: "online word processor", icon: "bx-file" },
+            { name: "Google Sheets", url: "https://sheets.google.com", category: "productivity", description: "online spreadsheet program", icon: "bx-spreadsheet" },
+            { name: "Notion", url: "https://notion.so", category: "productivity", description: "note-taking and collaboration application", icon: "bx-note" },
+            { name: "Trello", url: "https://trello.com", category: "productivity", description: "web-based kanban-style list-making application", icon: "bx-task" },
+            { name: "Canva", url: "https://canva.com", category: "productivity", description: "graphic design platform", icon: "bx-palette" },
+
+            // Entertainment
+            { name: "YouTube", url: "https://youtube.com", category: "entertainment", description: "video sharing and streaming platform", icon: "bxl-youtube" },
+            { name: "Netflix", url: "https://netflix.com", category: "entertainment", description: "streaming service for movies and tv shows", icon: "bx-movie-play" },
+            { name: "Spotify", url: "https://open.spotify.com", category: "entertainment", description: "music streaming and media services provider", icon: "bxl-spotify" },
+            { name: "Twitch", url: "https://twitch.tv", category: "entertainment", description: "live streaming platform for gamers", icon: "bxl-twitch" },
+            { name: "SoundCloud", url: "https://soundcloud.com", category: "entertainment", description: "audio distribution platform", icon: "bxl-soundcloud" },
+
+            // Education
+            { name: "Khan Academy", url: "https://khanacademy.org", category: "education", description: "free online courses and lessons", icon: "bx-book-open" },
+            { name: "Coursera", url: "https://coursera.org", category: "education", description: "online learning platform", icon: "bx-graduation" },
+            { name: "Duolingo", url: "https://duolingo.com", category: "education", description: "language learning platform", icon: "bx-world" },
+            { name: "Quizlet", url: "https://quizlet.com", category: "education", description: "study tools and flashcards", icon: "bx-brain" },
+            { name: "Wikipedia", url: "https://wikipedia.org", category: "education", description: "free online encyclopedia", icon: "bxl-wikipedia" },
+
+            // Communication
+            { name: "Gmail", url: "https://gmail.com", category: "communication", description: "email service developed by google", icon: "bx-envelope" },
+            { name: "Outlook", url: "https://outlook.live.com", category: "communication", description: "email service by microsoft", icon: "bx-mail-send" },
+            { name: "WhatsApp Web", url: "https://web.whatsapp.com", category: "communication", description: "web version of whatsapp messenger", icon: "bxl-whatsapp" },
+            { name: "Telegram Web", url: "https://web.telegram.org", category: "communication", description: "web version of telegram messenger", icon: "bxl-telegram" },
+            { name: "Slack", url: "https://slack.com", category: "communication", description: "business communication platform", icon: "bxl-slack" },
+            { name: "Zoom", url: "https://zoom.us", category: "communication", description: "video conferencing service", icon: "bx-video" },
+
+            // Additional Apps
+            { name: "GitHub", url: "https://github.com", category: "productivity", description: "code hosting platform for version control", icon: "bxl-github" },
+            { name: "Stack Overflow", url: "https://stackoverflow.com", category: "education", description: "question and answer site for programmers", icon: "bx-code-alt" },
+            { name: "Pinterest", url: "https://pinterest.com", category: "social", description: "image sharing and discovery service", icon: "bxl-pinterest" },
+            { name: "LinkedIn", url: "https://linkedin.com", category: "social", description: "professional networking platform", icon: "bxl-linkedin" },
+            { name: "Figma", url: "https://figma.com", category: "productivity", description: "collaborative interface design tool", icon: "bx-shape-polygon" },
+            { name: "Replit", url: "https://replit.com", category: "education", description: "online ide and coding platform", icon: "bx-code-block" }
         ];
 
         let currentCategory = 'all';
-        let filteredApps = [...apps];
 
         function createAppCard(app) {
             return `
-                <div class="app-card" onclick="launchApp('${app.url}', '${app.name}')">
-                    <div class="app-icon">
-                        <img src="${app.icon}" alt="${app.name}" onerror="this.parentElement.innerHTML='<i class=\\'bx bx-cube\\'></i>';">
+                <div class="app-card" onclick="launchApp('${app.name}', '${app.url}')">
+                    <div class="app-image">
+                        <i class='bx ${app.icon}'></i>
                     </div>
-                    <div class="app-category">${app.category}</div>
-                    <div class="app-name">${app.name}</div>
-                    <div class="app-description">${app.description}</div>
-                    <button class="launch-btn">
-                        > launch_app
-                    </button>
+                    <div class="app-info">
+                        <div class="app-name">${app.name}</div>
+                        <div class="app-category">${app.category}</div>
+                        <div class="app-description">${app.description}</div>
+                        <button class="launch-btn">
+                            <i class='bx bx-rocket'></i>
+                            launch app
+                        </button>
+                    </div>
                 </div>
             `;
         }
 
-        function renderApps(appsToRender = filteredApps) {
+        function renderApps(appsToRender = apps) {
             const appsGrid = document.getElementById('appsGrid');
-            appsGrid.innerHTML = appsToRender.map(createAppCard).join('');
+            const noResults = document.getElementById('noResults');
+            
+            if (appsToRender.length === 0) {
+                appsGrid.innerHTML = '';
+                noResults.style.display = 'block';
+            } else {
+                appsGrid.innerHTML = appsToRender.map(createAppCard).join('');
+                noResults.style.display = 'none';
+            }
         }
 
-        function launchApp(url, name) {
-            // Create proxy URL to bypass restrictions
-            const proxyUrl = `proxy.html?url=${encodeURIComponent(url)}&app=${encodeURIComponent(name)}`;
-            window.open(proxyUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+        function launchApp(appName, appUrl) {
+            // Redirect to proxy page with app URL
+            const proxyUrl = `proxy.html?url=${encodeURIComponent(appUrl)}&app=${encodeURIComponent(appName)}`;
+            window.location.href = proxyUrl;
         }
 
-        function filterApps(category) {
+        function filterByCategory(category) {
             currentCategory = category;
             
-            // Update active button
-            document.querySelectorAll('.category-btn').forEach(btn => {
-                btn.classList.remove('active');
+            // Update active tab
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                tab.classList.remove('active');
             });
             event.target.classList.add('active');
             
             // Filter apps
-            if (category === 'all') {
-                filteredApps = [...apps];
-            } else {
-                filteredApps = apps.filter(app => app.category === category);
-            }
+            const filteredApps = category === 'all' 
+                ? apps 
+                : apps.filter(app => app.category === category);
             
-            renderApps();
+            renderApps(filteredApps);
         }
 
         function searchApps() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            let appsToShow = currentCategory === 'all' ? apps : apps.filter(app => app.category === currentCategory);
+            let filteredApps = apps;
             
+            // Apply category filter
+            if (currentCategory !== 'all') {
+                filteredApps = filteredApps.filter(app => app.category === currentCategory);
+            }
+            
+            // Apply search filter
             if (searchTerm) {
-                appsToShow = appsToShow.filter(app => 
+                filteredApps = filteredApps.filter(app => 
                     app.name.toLowerCase().includes(searchTerm) ||
-                    app.description.toLowerCase().includes(searchTerm)
+                    app.description.toLowerCase().includes(searchTerm) ||
+                    app.category.toLowerCase().includes(searchTerm)
                 );
             }
             
-            renderApps(appsToShow);
+            renderApps(filteredApps);
         }
 
         function toggleMobileMenu() {
@@ -680,7 +582,7 @@
                 document.title = "Dashboard";
                 document.getElementById("favicon").href = "https://s3.amazonaws.com/cdn.app.cte.virginia.edu/tools/images/XmeGg2PHFfRHaj3upWvncc2gmaG91fApdtDC8bdU.png";
             } else {
-                document.title = "Nullify's Corner";
+                document.title = "Polar's Shack";
                 document.getElementById("favicon").href = "../logo.png";
             }
         });

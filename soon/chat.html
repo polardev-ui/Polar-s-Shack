@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polar's Shack</title>
+    <link id="favicon" rel="icon" href="../logo.png" type="image/png">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9156548662984796"
+     crossorigin="anonymous"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #888;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .chat-container {
+            display: flex;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            background: #2a2a2a;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .chat-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .chat-title h1 {
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        .online-count {
+            background: #333;
+            color: #00ff00;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .chat-controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .control-btn {
+            background: #333;
+            border: 1px solid #444;
+            color: #888;
+            padding: 0.5rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .control-btn:hover {
+            background: #444;
+            color: #00ff00;
+            border-color: #00ff00;
+        }
+
+        .control-btn.danger:hover {
+            color: #ff6666;
+            border-color: #ff6666;
+        }
+
+        .chat-main {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            background: #1a1a1a;
+        }
+
+        .message {
+            margin-bottom: 1rem;
+            padding: 0.8rem;
+            background: #2a2a2a;
+            border-radius: 8px;
+            border-left: 3px solid #333;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .message.admin {
+            border-left-color: #ff6666;
+            background: #2a1a1a;
+        }
+
+        .message.system {
+            border-left-color: #00ff00;
+            background: #1a2a1a;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .message.own {
+            border-left-color: #00ff00;
+            background: #1a2a1a;
+            margin-left: 2rem;
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .message-user {
+            color: #00ff00;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .message-user.admin {
+            color: #ff6666;
+        }
+
+        .message-time {
+            color: #666;
+            font-size: 0.7rem;
+        }
+
+        .message-content {
+            color: #888;
+            line-height: 1.4;
+            font-size: 0.9rem;
+            word-wrap: break-word;
+        }
+
+        .chat-input-container {
+            background: #2a2a2a;
+            padding: 1rem;
+            border-top: 1px solid #333;
+        }
+
+        .chat-input-form {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 0.8rem;
+            background: #333;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #888;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .chat-input:focus {
+            border-color: #00ff00;
+            box-shadow: 0 0 8px rgba(0, 255, 0, 0.2);
+        }
+
+        .send-btn {
+            background: #00ff00;
+            color: #1a1a1a;
+            border: 1px solid #00ff00;
+            padding: 0.8rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .send-btn:hover {
+            background: #00cc00;
+        }
+
+        .send-btn:disabled {
+            background: #333;
+            color: #666;
+            border-color: #444;
+            cursor: not-allowed;
+        }
+
+        .users-sidebar {
+            width: 250px;
+            background: #2a2a2a;
+            border-left: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .users-header {
+            padding: 1rem;
+            border-bottom: 1px solid #333;
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .users-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+
+        .user-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            margin-bottom: 0.3rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .user-item:hover {
+            background: #333;
+        }
+
+        .user-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff00;
+        }
+
+        .user-status.offline {
+            background: #666;
+        }
+
+        .user-name {
+            color: #888;
+            font-size: 0.8rem;
+        }
+
+        .user-name.admin {
+            color: #ff6666;
+        }
+
+        .login-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .login-modal.hidden {
+            display: none;
+        }
+
+        .login-content {
+            background: #2a2a2a;
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid #333;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .login-content h2 {
+            color: #fff;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .form-group input {
+            background: #333;
+            border: 1px solid #444;
+            color: #888;
+            padding: 0.8rem;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            border-color: #00ff00;
+            box-shadow: 0 0 8px rgba(0, 255, 0, 0.2);
+        }
+
+        .login-btn {
+            background: #00ff00;
+            color: #1a1a1a;
+            border: 1px solid #00ff00;
+            padding: 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .login-btn:hover {
+            background: #00cc00;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .chat-header {
+                padding: 0.8rem 1rem;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .chat-title {
+                justify-content: center;
+            }
+
+            .chat-controls {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .users-sidebar {
+                display: none;
+            }
+
+            .chat-input-form {
+                flex-direction: column;
+            }
+
+            .send-btn {
+                padding: 0.8rem;
+            }
+
+            .login-content {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="chat-title">
+                <h1>secure chat</h1>
+                <div class="online-count" id="onlineCount">0 online</div>
+            </div>
+            <div class="chat-controls">
+                <button class="control-btn" onclick="toggleUsers()" id="toggleUsersBtn">
+                    <i class='bx bx-group'></i> users
+                </button>
+                <button class="control-btn" onclick="clearChat()">
+                    <i class='bx bx-trash'></i> clear
+                </button>
+                <button class="control-btn danger" onclick="logout()">
+                    <i class='bx bx-log-out'></i> logout
+                </button>
+                <button class="control-btn" onclick="goHome()">
+                    <i class='bx bx-home'></i> home
+                </button>
+            </div>
+        </div>
+
+        <div class="chat-main">
+            <div class="chat-messages">
+                <div class="messages-container" id="messagesContainer">
+                    <!-- Messages will be populated here -->
+                </div>
+                <div class="chat-input-container">
+                    <form class="chat-input-form" id="chatForm">
+                        <input type="text" class="chat-input" id="messageInput" placeholder="type your message..." maxlength="500" disabled>
+                        <button type="submit" class="send-btn" id="sendBtn" disabled>send</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="users-sidebar" id="usersSidebar">
+                <div class="users-header">online users</div>
+                <div class="users-list" id="usersList">
+                    <!-- Users will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="login-modal" id="loginModal">
+        <div class="login-content">
+            <h2>join the chat</h2>
+            <form class="login-form" id="loginForm">
+                <div class="form-group">
+                    <label for="usernameInput">username:</label>
+                    <input type="text" id="usernameInput" required maxlength="20" pattern="[a-zA-Z0-9_]+" title="only letters, numbers, and underscores allowed">
+                </div>
+                <div class="form-group">
+                    <label for="passwordInput">password:</label>
+                    <input type="password" id="passwordInput" required minlength="6">
+                </div>
+                <button type="submit" class="login-btn">join chat</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: process.env.FIREBASE_API_KEY || "AIzaSyBqJJQqJQqJQqJQqJQqJQqJQqJQqJQqJQq",
+            authDomain: process.env.FIREBASE_AUTH_DOMAIN || "polars-shack.firebaseapp.com",
+            projectId: process.env.FIREBASE_PROJECT_ID || "polars-shack",
+            storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "polars-shack.appspot.com",
+            messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "123456789012",
+            appId: process.env.FIREBASE_APP_ID || "1:123456789012:web:abcdefghijklmnopqr"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        class ChatApp {
+            constructor() {
+                this.currentUser = null;
+                this.isAdmin = false;
+                this.bannedUsers = new Set();
+                this.usersVisible = true;
+                this.init();
+            }
+
+            async init() {
+                this.setupEventListeners();
+                this.showLoginModal();
+                await this.loadBannedUsers();
+            }
+
+            setupEventListeners() {
+                // Login form
+                document.getElementById('loginForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleLogin();
+                });
+
+                // Chat form
+                document.getElementById('chatForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.sendMessage();
+                });
+
+                // Auto-scroll messages
+                const messagesContainer = document.getElementById('messagesContainer');
+                messagesContainer.addEventListener('scroll', () => {
+                    const { scrollTop, scrollHeight, clientHeight } = messagesContainer;
+                    this.isAtBottom = scrollTop + clientHeight >= scrollHeight - 5;
+                });
+            }
+
+            async handleLogin() {
+                const username = document.getElementById('usernameInput').value.trim();
+                const password = document.getElementById('passwordInput').value;
+
+                if (!username || !password) {
+                    alert('please enter both username and password');
+                    return;
+                }
+
+                // Check if user is banned
+                if (this.bannedUsers.has(username.toLowerCase())) {
+                    alert('you have been banned from the chat');
+                    return;
+                }
+
+                try {
+                    // Create or sign in user
+                    const email = `${username}@polarsshack.com`;
+                    
+                    try {
+                        await auth.createUserWithEmailAndPassword(email, password);
+                        await this.createUserProfile(username);
+                    } catch (error) {
+                        if (error.code === 'auth/email-already-in-use') {
+                            await auth.signInWithEmailAndPassword(email, password);
+                        } else {
+                            throw error;
+                        }
+                    }
+
+                    this.currentUser = { username, email };
+                    this.isAdmin = username.toLowerCase() === 'admin';
+                    
+                    await this.joinChat();
+                    this.hideLoginModal();
+                    this.enableChat();
+                    
+                } catch (error) {
+                    console.error('Login error:', error);
+                    alert('login failed: ' + error.message);
+                }
+            }
+
+            async createUserProfile(username) {
+                await db.collection('chat_users').doc(username).set({
+                    username: username,
+                    joinedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    isAdmin: username.toLowerCase() === 'admin',
+                    lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+
+            async joinChat() {
+                // Add to online users
+                await db.collection('online_users').doc(this.currentUser.username).set({
+                    username: this.currentUser.username,
+                    joinedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    isAdmin: this.isAdmin
+                });
+
+                // Send join message
+                await this.addSystemMessage(`${this.currentUser.username} joined the chat`);
+
+                // Start listening to messages and users
+                this.listenToMessages();
+                this.listenToOnlineUsers();
+            }
+
+            async sendMessage() {
+                const messageInput = document.getElementById('messageInput');
+                const message = messageInput.value.trim();
+
+                if (!message || !this.currentUser) return;
+
+                // Check for admin commands
+                if (this.isAdmin && message.startsWith('/')) {
+                    await this.handleAdminCommand(message);
+                    messageInput.value = '';
+                    return;
+                }
+
+                try {
+                    await db.collection('chat_messages').add({
+                        username: this.currentUser.username,
+                        message: message,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        isAdmin: this.isAdmin
+                    });
+
+                    messageInput.value = '';
+                } catch (error) {
+                    console.error('Error sending message:', error);
+                    alert('failed to send message');
+                }
+            }
+
+            async handleAdminCommand(command) {
+                const parts = command.split(' ');
+                const cmd = parts[0].toLowerCase();
+                const target = parts[1];
+
+                switch (cmd) {
+                    case '/ban':
+                        if (target) {
+                            await this.banUser(target);
+                        }
+                        break;
+                    case '/unban':
+                        if (target) {
+                            await this.unbanUser(target);
+                        }
+                        break;
+                    case '/kick':
+                        if (target) {
+                            await this.kickUser(target);
+                        }
+                        break;
+                    case '/clear':
+                        await this.clearAllMessages();
+                        break;
+                    case '/help':
+                        await this.showAdminHelp();
+                        break;
+                    default:
+                        await this.addSystemMessage('unknown command. type /help for available commands');
+                }
+            }
+
+            async banUser(username) {
+                try {
+                    await db.collection('banned_users').doc(username.toLowerCase()).set({
+                        username: username,
+                        bannedBy: this.currentUser.username,
+                        bannedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    // Remove from online users
+                    await db.collection('online_users').doc(username).delete();
+
+                    await this.addSystemMessage(`${username} has been banned`);
+                    this.bannedUsers.add(username.toLowerCase());
+                } catch (error) {
+                    console.error('Error banning user:', error);
+                }
+            }
+
+            async unbanUser(username) {
+                try {
+                    await db.collection('banned_users').doc(username.toLowerCase()).delete();
+                    await this.addSystemMessage(`${username} has been unbanned`);
+                    this.bannedUsers.delete(username.toLowerCase());
+                } catch (error) {
+                    console.error('Error unbanning user:', error);
+                }
+            }
+
+            async kickUser(username) {
+                try {
+                    await db.collection('online_users').doc(username).delete();
+                    await this.addSystemMessage(`${username} has been kicked`);
+                } catch (error) {
+                    console.error('Error kicking user:', error);
+                }
+            }
+
+            async clearAllMessages() {
+                try {
+                    const messages = await db.collection('chat_messages').get();
+                    const batch = db.batch();
+                    messages.docs.forEach(doc => batch.delete(doc.ref));
+                    await batch.commit();
+                    await this.addSystemMessage('chat cleared by admin');
+                } catch (error) {
+                    console.error('Error clearing messages:', error);
+                }
+            }
+
+            async showAdminHelp() {
+                const commands = [
+                    '/ban <username> - ban a user',
+                    '/unban <username> - unban a user',
+                    '/kick <username> - kick a user',
+                    '/clear - clear all messages',
+                    '/help - show this help'
+                ];
+                await this.addSystemMessage('admin commands: ' + commands.join(', '));
+            }
+
+            async addSystemMessage(message) {
+                await db.collection('chat_messages').add({
+                    username: 'system',
+                    message: message,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    isSystem: true
+                });
+            }
+
+            listenToMessages() {
+                db.collection('chat_messages')
+                    .orderBy('timestamp', 'asc')
+                    .limit(100)
+                    .onSnapshot((snapshot) => {
+                        const messagesContainer = document.getElementById('messagesContainer');
+                        messagesContainer.innerHTML = '';
+
+                        snapshot.docs.forEach(doc => {
+                            const data = doc.data();
+                            this.displayMessage(data);
+                        });
+
+                        this.scrollToBottom();
+                    });
+            }
+
+            listenToOnlineUsers() {
+                db.collection('online_users').onSnapshot((snapshot) => {
+                    const users = [];
+                    snapshot.docs.forEach(doc => {
+                        users.push(doc.data());
+                    });
+
+                    this.updateOnlineCount(users.length);
+                    this.updateUsersList(users);
+                });
+            }
+
+            displayMessage(data) {
+                const messagesContainer = document.getElementById('messagesContainer');
+                const messageDiv = document.createElement('div');
+                
+                let messageClass = 'message';
+                if (data.isSystem) {
+                    messageClass += ' system';
+                } else if (data.isAdmin) {
+                    messageClass += ' admin';
+                } else if (data.username === this.currentUser?.username) {
+                    messageClass += ' own';
+                }
+
+                messageDiv.className = messageClass;
+
+                if (data.isSystem) {
+                    messageDiv.innerHTML = `
+                        <div class="message-content">${data.message}</div>
+                    `;
+                } else {
+                    const time = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleTimeString() : 'now';
+                    messageDiv.innerHTML = `
+                        <div class="message-header">
+                            <span class="message-user ${data.isAdmin ? 'admin' : ''}">${data.username}</span>
+                            <span class="message-time">${time}</span>
+                        </div>
+                        <div class="message-content">${this.escapeHtml(data.message)}</div>
+                    `;
+                }
+
+                messagesContainer.appendChild(messageDiv);
+            }
+
+            updateOnlineCount(count) {
+                document.getElementById('onlineCount').textContent = `${count} online`;
+            }
+
+            updateUsersList(users) {
+                const usersList = document.getElementById('usersList');
+                usersList.innerHTML = '';
+
+                users.sort((a, b) => {
+                    if (a.isAdmin && !b.isAdmin) return -1;
+                    if (!a.isAdmin && b.isAdmin) return 1;
+                    return a.username.localeCompare(b.username);
+                });
+
+                users.forEach(user => {
+                    const userDiv = document.createElement('div');
+                    userDiv.className = 'user-item';
+                    userDiv.innerHTML = `
+                        <div class="user-status"></div>
+                        <div class="user-name ${user.isAdmin ? 'admin' : ''}">${user.username}</div>
+                    `;
+                    usersList.appendChild(userDiv);
+                });
+            }
+
+            async loadBannedUsers() {
+                try {
+                    const snapshot = await db.collection('banned_users').get();
+                    snapshot.docs.forEach(doc => {
+                        this.bannedUsers.add(doc.data().username.toLowerCase());
+                    });
+                } catch (error) {
+                    console.error('Error loading banned users:', error);
+                }
+            }
+
+            scrollToBottom() {
+                const messagesContainer = document.getElementById('messagesContainer');
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            showLoginModal() {
+                document.getElementById('loginModal').classList.remove('hidden');
+            }
+
+            hideLoginModal() {
+                document.getElementById('loginModal').classList.add('hidden');
+            }
+
+            enableChat() {
+                document.getElementById('messageInput').disabled = false;
+                document.getElementById('sendBtn').disabled = false;
+                document.getElementById('messageInput').focus();
+            }
+
+            toggleUsers() {
+                const sidebar = document.getElementById('usersSidebar');
+                const btn = document.getElementById('toggleUsersBtn');
+                
+                this.usersVisible = !this.usersVisible;
+                sidebar.style.display = this.usersVisible ? 'flex' : 'none';
+                btn.innerHTML = this.usersVisible ? '<i class="bx bx-group"></i> hide users' : '<i class="bx bx-group"></i> show users';
+            }
+
+            clearChat() {
+                document.getElementById('messagesContainer').innerHTML = '';
+            }
+
+            async logout() {
+                if (this.currentUser) {
+                    await db.collection('online_users').doc(this.currentUser.username).delete();
+                    await this.addSystemMessage(`${this.currentUser.username} left the chat`);
+                }
+                
+                await auth.signOut();
+                this.currentUser = null;
+                this.isAdmin = false;
+                this.showLoginModal();
+                
+                document.getElementById('messageInput').disabled = true;
+                document.getElementById('sendBtn').disabled = true;
+            }
+
+            goHome() {
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Global functions for UI interactions
+        function toggleUsers() {
+            chatApp.toggleUsers();
+        }
+
+        function clearChat() {
+            chatApp.clearChat();
+        }
+
+        function logout() {
+            chatApp.logout();
+        }
+
+        function goHome() {
+            chatApp.goHome();
+        }
+
+        // Initialize chat app
+        const chatApp = new ChatApp();
+
+        // Handle page unload
+        window.addEventListener('beforeunload', async () => {
+            if (chatApp.currentUser) {
+                await db.collection('online_users').doc(chatApp.currentUser.username).delete();
+            }
+        });
+
+        // Tab cloaking script
+        document.addEventListener("visibilitychange", function () {
+            if (document.hidden) {
+                document.title = "Dashboard";
+                document.getElementById("favicon").href = "https://s3.amazonaws.com/cdn.app.cte.virginia.edu/tools/images/XmeGg2PHFfRHaj3upWvncc2gmaG91fApdtDC8bdU.png";
+            } else {
+                document.title = "Polar's Shack";
+                document.getElementById("favicon").href = "../logo.png";
+            }
+        });
+    </script>
+</body>
+</html>

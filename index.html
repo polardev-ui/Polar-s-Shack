@@ -3,12 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nullify's Corner</title>
+    <title>Polar's Shack</title>
     <link id="favicon" rel="icon" href="logo.png" type="image/png">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9156548662984796"
-     crossorigin="anonymous"></script>
     <style>
         * {
             margin: 0;
@@ -20,199 +18,383 @@
             font-family: 'JetBrains Mono', 'Courier New', monospace;
             background: #1a1a1a;
             color: #888;
+            overflow-x: hidden;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
         }
 
         .container {
-            text-align: center;
-            color: #888;
-            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 2rem;
             position: relative;
         }
 
         .logo {
             width: 120px;
             height: 120px;
-            margin: 0 auto 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0, 255, 0, 0.1);
+            margin-bottom: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
             animation: float 3s ease-in-out infinite;
         }
 
         .title {
-            font-size: 4rem;
-            font-weight: 400;
-            margin-bottom: 20px;
+            font-size: clamp(2.5rem, 8vw, 4rem);
+            font-weight: 300;
+            margin-bottom: 1rem;
             color: #fff;
-            animation: glow 2s ease-in-out infinite alternate;
+            text-align: center;
+            position: relative;
+        }
+
+        .title::after {
+            content: '_';
+            color: #00ff00;
+            animation: blink 1s infinite;
+            margin-left: 4px;
         }
 
         .subtitle {
-            font-size: 1.2rem;
-            margin-bottom: 40px;
+            font-size: clamp(1rem, 3vw, 1.2rem);
             color: #666;
-            animation: fadeInUp 1s ease-out 0.5s both;
-        }
-
-        .coming-soon {
-            font-size: 2.5rem;
-            font-weight: 500;
-            margin-bottom: 30px;
-            color: #00ff00;
-            animation: pulse 2s infinite;
-        }
-
-        .description {
-            font-size: 1rem;
+            margin-bottom: 3rem;
+            text-align: center;
             max-width: 600px;
-            margin: 0 auto 40px;
             line-height: 1.6;
-            color: #666;
-            animation: fadeInUp 1s ease-out 1s both;
+        }
+
+        .status {
+            background: #2a2a2a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .status::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00ff00, transparent);
+            animation: scan 2s linear infinite;
+        }
+
+        .status-text {
+            color: #00ff00;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .status-description {
+            color: #888;
+            font-size: 0.9rem;
+            line-height: 1.5;
         }
 
         .enter-btn {
-            display: inline-block;
-            padding: 12px 30px;
-            background: #2a2a2a;
+            background: #333;
             color: #00ff00;
-            text-decoration: none;
-            border-radius: 4px;
+            border: 1px solid #444;
+            padding: 1rem 2rem;
+            border-radius: 6px;
             font-size: 1rem;
             font-weight: 500;
+            cursor: pointer;
             transition: all 0.3s ease;
-            border: 1px solid #333;
-            animation: fadeInUp 1s ease-out 1.5s both;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
             font-family: 'JetBrains Mono', monospace;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .enter-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .enter-btn:hover::before {
+            left: 100%;
         }
 
         .enter-btn:hover {
-            background: #333;
+            background: #444;
             border-color: #00ff00;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+            transform: translateY(-2px);
         }
 
-        .particles {
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 3rem;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .feature {
+            background: #2a2a2a;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature::before {
+            content: '';
             position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #00ff00;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .feature:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature:hover {
+            border-color: #00ff00;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            color: #00ff00;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            color: #fff;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .feature-description {
+            color: #666;
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+
+        .background-animation {
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            overflow: hidden;
-            z-index: 1;
+            pointer-events: none;
+            z-index: -1;
         }
 
-        .particle {
+        .matrix-char {
             position: absolute;
-            background: rgba(0, 255, 0, 0.1);
-            border-radius: 2px;
-            animation: particleFloat 15s infinite linear;
+            color: #00ff00;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            opacity: 0.1;
+            animation: fall linear infinite;
         }
 
         @keyframes float {
             0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
+            50% { transform: translateY(-10px); }
         }
 
-        @keyframes glow {
-            0% { text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
-            100% { text-shadow: 0 0 20px rgba(255, 255, 255, 0.5); }
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+        @keyframes scan {
+            0% { left: -100%; }
+            100% { left: 100%; }
         }
 
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes particleFloat {
+        @keyframes fall {
             0% {
-                transform: translateY(100vh) rotate(0deg);
+                transform: translateY(-100vh);
                 opacity: 0;
             }
             10% {
-                opacity: 1;
+                opacity: 0.1;
             }
             90% {
-                opacity: 1;
+                opacity: 0.1;
             }
             100% {
-                transform: translateY(-100vh) rotate(360deg);
+                transform: translateY(100vh);
                 opacity: 0;
             }
         }
 
         @media (max-width: 768px) {
-            .title { font-size: 2.5rem; }
-            .coming-soon { font-size: 2rem; }
-            .description { font-size: 0.9rem; padding: 0 20px; }
+            .container {
+                padding: 1rem;
+            }
+
+            .logo {
+                width: 80px;
+                height: 80px;
+                margin-bottom: 1.5rem;
+            }
+
+            .status {
+                padding: 1.5rem;
+                margin-bottom: 2rem;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                margin-top: 2rem;
+            }
+
+            .feature {
+                padding: 1rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="particles" id="particles"></div>
+    <div class="background-animation" id="matrixBg"></div>
     
     <div class="container">
         <img src="logo.png" alt="Polar's Shack Logo" class="logo">
+        
         <h1 class="title">polar's.shack</h1>
-        <p class="subtitle">the ultimate digital toolkit</p>
-        <h2 class="coming-soon">releasing soon</h2>
-        <p class="description">
-            the next #1 site for osint, csint, and advanced digital capabilities — completely free. 
-            a powerful toolkit for students, tech enthusiasts, and digital explorers alike.
+        
+        <p class="subtitle">
+            advanced web tools and unblocked access portal
         </p>
-        <a href="soon/" class="enter-btn">
-            > enter_beta
+        
+        <div class="status">
+            <div class="status-text">system status: online</div>
+            <div class="status-description">
+                all services operational • secure connection established
+            </div>
+        </div>
+        
+        <a href="soon/index.html" class="enter-btn">
+            <i class='bx bx-terminal'></i>
+            > enter_system
         </a>
+        
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">
+                    <i class='bx bx-shield-alt-2'></i>
+                </div>
+                <div class="feature-title">secure proxy</div>
+                <div class="feature-description">bypass restrictions safely</div>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">
+                    <i class='bx bx-game'></i>
+                </div>
+                <div class="feature-title">unblocked games</div>
+                <div class="feature-description">entertainment without limits</div>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">
+                    <i class='bx bx-search-alt'></i>
+                </div>
+                <div class="feature-title">osint tools</div>
+                <div class="feature-description">intelligence gathering</div>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">
+                    <i class='bx bx-chat'></i>
+                </div>
+                <div class="feature-title">secure chat</div>
+                <div class="feature-description">anonymous communication</div>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Tab cloaking script
+        // Matrix background animation
+        function createMatrixEffect() {
+            const container = document.getElementById('matrixBg');
+            const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+            
+            function createChar() {
+                const char = document.createElement('div');
+                char.className = 'matrix-char';
+                char.textContent = chars[Math.floor(Math.random() * chars.length)];
+                char.style.left = Math.random() * 100 + '%';
+                char.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                char.style.animationDelay = Math.random() * 2 + 's';
+                
+                container.appendChild(char);
+                
+                setTimeout(() => {
+                    char.remove();
+                }, 5000);
+            }
+            
+            // Create initial characters
+            for (let i = 0; i < 50; i++) {
+                setTimeout(createChar, Math.random() * 2000);
+            }
+            
+            // Continue creating characters
+            setInterval(createChar, 200);
+        }
+
+        // Initialize matrix effect
+        createMatrixEffect();
+
+        // Tab cloaking
         document.addEventListener("visibilitychange", function () {
             if (document.hidden) {
                 document.title = "Dashboard";
                 document.getElementById("favicon").href = "https://s3.amazonaws.com/cdn.app.cte.virginia.edu/tools/images/XmeGg2PHFfRHaj3upWvncc2gmaG91fApdtDC8bdU.png";
             } else {
-                document.title = "Nullify's Corner";
+                document.title = "Polar's Shack";
                 document.getElementById("favicon").href = "logo.png";
             }
         });
 
-        // Create floating particles
-        function createParticles() {
-            const particlesContainer = document.getElementById('particles');
-            const particleCount = 30;
-
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                
-                const size = Math.random() * 3 + 1;
-                particle.style.width = size + 'px';
-                particle.style.height = size + 'px';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 15 + 's';
-                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
-                
-                particlesContainer.appendChild(particle);
-            }
-        }
-
-        createParticles();
+        // Smooth entrance animation
+        window.addEventListener('load', () => {
+            document.body.style.opacity = '0';
+            document.body.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => {
+                document.body.style.opacity = '1';
+            }, 100);
+        });
     </script>
 </body>
 </html>
