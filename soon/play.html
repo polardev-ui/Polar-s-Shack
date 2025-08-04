@@ -449,7 +449,6 @@
     </div>
 
     <script>
-        // Firebase configuration
         const firebaseConfig = {
             apiKey: process.env.FIREBASE_API_KEY || "AIzaSyBqJJQqJQqJQqJQqJQqJQqJQqJQqJQqJQq",
             authDomain: process.env.FIREBASE_AUTH_DOMAIN || "polars-shack.firebaseapp.com",
@@ -459,7 +458,6 @@
             appId: process.env.FIREBASE_APP_ID || "1:123456789012:web:abcdefghijklmnopqr"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
@@ -489,8 +487,7 @@
                     
                     this.loadGame();
                 } else {
-                    // Redirect back to games if no valid parameters
-                    window.location.href = 'games.html';
+                    window.location.href = 'soon/games.html';
                 }
             }
 
@@ -503,20 +500,16 @@
                 gameTitle.textContent = this.gameName;
                 loadingGameName.textContent = this.gameName;
 
-                // Show loading screen
                 loadingScreen.classList.remove('hidden');
 
-                // Load the game
                 gameFrame.src = this.gameUrl;
 
-                // Hide loading screen after game loads
                 gameFrame.onload = () => {
                     setTimeout(() => {
                         loadingScreen.classList.add('hidden');
                     }, 1000);
                 };
 
-                // Handle load errors
                 gameFrame.onerror = () => {
                     loadingScreen.innerHTML = `
                         <div style="text-align: center;">
@@ -530,7 +523,6 @@
             }
 
             setupEventListeners() {
-                // Handle fullscreen changes
                 document.addEventListener('fullscreenchange', () => {
                     const fullscreenBtn = document.querySelector('.control-btn');
                     const icon = fullscreenBtn.querySelector('i');
@@ -545,7 +537,6 @@
                     }
                 });
 
-                // Handle escape key to exit fullscreen
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'Escape' && document.fullscreenElement) {
                         document.exitFullscreen();
@@ -632,7 +623,6 @@
             }
 
             shareToDiscord() {
-                // Copy to clipboard for Discord sharing
                 this.copyToClipboard();
                 alert('link copied! paste it in your discord chat.');
             }
@@ -642,10 +632,8 @@
             }
         }
 
-        // Initialize game player
         const gamePlayer = new GamePlayer();
 
-        // Global functions for UI interactions
         function toggleFullscreen() {
             gamePlayer.toggleFullscreen();
         }
@@ -682,7 +670,6 @@
             gamePlayer.goBack();
         }
 
-        // Handle report form submission
         document.getElementById('reportForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -697,7 +684,6 @@
             await gamePlayer.submitReport(reason, description);
         });
 
-        // Close modals when clicking outside
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('report-modal')) {
                 gamePlayer.closeReportModal();
@@ -707,7 +693,6 @@
             }
         });
 
-        // Tab cloaking
         document.addEventListener("visibilitychange", function () {
             if (document.hidden) {
                 document.title = "Dashboard";
