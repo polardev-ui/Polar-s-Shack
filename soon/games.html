@@ -612,7 +612,6 @@
             }
         }
 
-        // Initialize game library
         const gameLibrary = new GameLibrary();
 
         function playGame(url, name) {
@@ -632,7 +631,6 @@
                 
                 const description = prompt('Additional details (optional):');
                 
-                // Here you would normally send to Firebase
                 alert(`Thank you for reporting "${gameName}" for: ${reasons[reason]}`);
             }
         }
@@ -650,7 +648,6 @@
             }
         }
 
-        // Close mobile menu when clicking outside
         document.addEventListener('click', function(event) {
             const navbar = document.querySelector('.navbar');
             const mobileMenu = document.getElementById('mobileMenu');
@@ -660,7 +657,6 @@
             }
         });
 
-        // Tab cloaking script
         document.addEventListener("visibilitychange", function () {
             if (document.hidden) {
                 document.title = "Dashboard";

@@ -387,18 +387,15 @@
                     }
                 });
 
-                // Handle iframe load events
                 contentFrame.addEventListener('load', () => {
                     this.hideLoading();
                     this.updateNavigationState();
                 });
 
-                // Handle iframe errors
                 contentFrame.addEventListener('error', () => {
                     this.showError('iframe load error');
                 });
 
-                // Listen for messages from iframe
                 window.addEventListener('message', (event) => {
                     if (event.data.type === 'navigate') {
                         this.navigateToUrl(event.data.url);
@@ -411,7 +408,6 @@
                 
                 url = url.trim();
                 
-                // Handle common shortcuts
                 if (url === 'google' || url === 'g') {
                     return 'https://www.google.com';
                 }
@@ -422,13 +418,10 @@
                     return 'https://www.github.com';
                 }
 
-                // Add protocol if missing
                 if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                    // Check if it looks like a domain
                     if (url.includes('.') && !url.includes(' ')) {
                         url = 'https://' + url;
                     } else {
-                        // Treat as search query
                         url = 'https://www.google.com/search?q=' + encodeURIComponent(url);
                     }
                 }
@@ -447,18 +440,15 @@
 
                 this.showLoading(url);
                 this.currentUrl = url;
-                
-                // Update address bar
+
                 urlInput.value = url;
                 
-                // Add to history
                 if (this.currentIndex === -1 || this.history[this.currentIndex] !== url) {
                     this.history = this.history.slice(0, this.currentIndex + 1);
                     this.history.push(url);
                     this.currentIndex = this.history.length - 1;
                 }
 
-                // Try to load with different proxies
                 await this.loadWithProxy(url);
                 this.updateNavigationState();
             }
@@ -488,7 +478,6 @@
                     console.log(`Trying proxy ${proxy.name}: ${proxyUrl}`);
                     contentFrame.src = proxyUrl;
                     
-                    // Set timeout for this proxy attempt
                     setTimeout(() => {
                         if (!document.getElementById('loadingScreen').classList.contains('hidden')) {
                             console.log(`Proxy ${proxy.name} timeout, trying next...`);
@@ -540,7 +529,6 @@
             }
 
             openSettings() {
-                // Placeholder for settings functionality
                 alert('Settings panel coming soon!');
             }
 
@@ -581,10 +569,8 @@
             }
         }
 
-        // Initialize the advanced proxy
         const proxy = new AdvancedProxy();
 
-        // Global functions for UI interactions
         function navigateToUrl() {
             proxy.navigateToUrl();
         }
@@ -613,7 +599,6 @@
             proxy.retryConnection();
         }
 
-        // Tab cloaking
         document.addEventListener("visibilitychange", function () {
             if (document.hidden) {
                 document.title = "Dashboard";
