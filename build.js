@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 
-// 🔒 Hardcoded config values (use at your own security risk!)
 const config = {
   FIREBASE_API_KEY: "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs",
   FIREBASE_AUTH_DOMAIN: "polars-shack.firebaseapp.com",
@@ -16,10 +15,13 @@ const config = {
   GOOGLE_ADSENSE_FOOTER_SLOT: "your_footer_ad_slot_id"
 };
 
-const htmlPath = path.join(__dirname, 'soon', 'chat.html');
+const htmlPath = [
+    path.join(__dirname, 'soon', 'chat.html'),
+    path.join(__dirname, 'soon', 'games.html'),
+    path.join(__dirname, 'soon', 'play.html')
+];
 let html = fs.readFileSync(htmlPath, 'utf8');
 
-// Replace all process.env.XYZ with actual values
 Object.keys(config).forEach((key) => {
   const regex = new RegExp(`process\\.env\\.${key}`, 'g');
   const safeValue = JSON.stringify(config[key]);
