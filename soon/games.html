@@ -594,7 +594,7 @@
                             <h3 class="game-title">${game.name}</h3>
                             <p class="game-description">${game.description || 'No description available'}</p>
                             <div class="game-actions">
-                                <a href="play.html?game=${encodeURIComponent(game.url)}&name=${encodeURIComponent(game.name)}" class="play-btn">
+                                <a href="play.html?game=${encodeURIComponent(game.url)}&url=${encodeURIComponent(game.url)}&name=${encodeURIComponent(game.name)}" class="play-btn">
                                     <i class='bx bx-play'></i> play
                                 </a>
                                 <button class="report-btn" onclick="event.stopPropagation(); reportGame('${game.name}')">
