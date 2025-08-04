@@ -15,18 +15,25 @@ const config = {
   GOOGLE_ADSENSE_FOOTER_SLOT: "your_footer_ad_slot_id"
 };
 
-const htmlPath = [
-    path.join(__dirname, 'soon', 'chat.html'),
-    path.join(__dirname, 'soon', 'games.html'),
-    path.join(__dirname, 'soon', 'play.html')
+const targetFiles = [
+  path.join(__dirname, 'soon', 'chat.html'),
+  path.join(__dirname, 'soon', 'play.html'),
+  path.join(__dirname, 'soon', 'games.html')
 ];
-let html = fs.readFileSync(htmlPath, 'utf8');
 
-Object.keys(config).forEach((key) => {
-  const regex = new RegExp(`process\\.env\\.${key}`, 'g');
-  const safeValue = JSON.stringify(config[key]);
-  html = html.replace(regex, safeValue);
+targetFiles.forEach((filePath) => {
+  if (fs.existsSync(filePath)) {
+    let html = fs.readFileSync(filePath, 'utf8');
+
+    Object.keys(config).forEach((key) => {
+      const regex = new RegExp(`process\\.env\\.${key}`, 'g');
+      const safeValue = JSON.stringify(config[key]);
+      html = html.replace(regex, safeValue);
+    });
+
+    fs.writeFileSync(filePath, html);
+    console.log(`✅ Environment variables injected into ${path.basename(filePath)}`);
+  } else {
+    console.warn(`⚠️  File not found: ${filePath}`);
+  }
 });
-
-fs.writeFileSync(htmlPath, html);
-console.log('✅ Environment variables injected into chat.html');
