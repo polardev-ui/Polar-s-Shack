@@ -349,11 +349,11 @@
                 this.history = [];
                 this.currentIndex = -1;
                 this.currentUrl = '';
-                this.customProxyUrl = 'http://localhost:3001'; // Change to your deployed server URL
+                this.customProxyUrl = 'https://polars-shack.vercel.app/api/proxy';
                 this.proxyEndpoints = [
                     {
-                        name: 'Custom Proxy',
-                        url: `${this.customProxyUrl}/proxy/`,
+                        name: 'Vercel Proxy',
+                        url: 'https://polars-shack.vercel.app/api/proxy?url=',
                         encode: true,
                         isCustom: true
                     },
@@ -363,20 +363,9 @@
                         encode: true
                     },
                     {
-                        name: 'CroxyProxy',
-                        url: 'https://www.croxyproxy.com/go.php?u=',
-                        encode: true,
-                        suffix: '&b=1'
-                    },
-                    {
-                        name: 'ProxyNova',
-                        url: 'https://www.proxynova.com/proxy-server/?u=',
-                        encode: true
-                    },
-                    {
-                        name: 'HideMe',
-                        url: 'https://hide.me/en/proxy?u=',
-                        encode: true
+                        name: 'CORS Anywhere',
+                        url: 'https://cors-anywhere.herokuapp.com/',
+                        encode: false
                     }
                 ];
                 this.currentProxyIndex = 0;
@@ -392,18 +381,18 @@
 
             async checkCustomProxyStatus() {
                 try {
-                    const response = await fetch(`${this.customProxyUrl}/health`);
+                    const response = await fetch('https://polars-shack.vercel.app/api/proxy/health');
                     if (response.ok) {
                         this.customProxyAvailable = true;
-                        this.updateProxyStatus('custom proxy online');
-                        console.log('[v0] Custom proxy server available');
+                        this.updateProxyStatus('vercel proxy online');
+                        console.log('[v0] Vercel proxy server available');
                     } else {
-                        throw new Error('Custom proxy not responding');
+                        throw new Error('Vercel proxy not responding');
                     }
                 } catch (error) {
                     this.customProxyAvailable = false;
                     this.updateProxyStatus('fallback proxies');
-                    console.log('[v0] Custom proxy unavailable, using fallbacks:', error.message);
+                    console.log('[v0] Vercel proxy unavailable, using fallbacks:', error.message);
                     this.proxyEndpoints = this.proxyEndpoints.filter(p => !p.isCustom);
                 }
             }
@@ -525,10 +514,10 @@
                         try {
                             const testResponse = await fetch(`${this.customProxyUrl}/proxy/status`);
                             if (!testResponse.ok) {
-                                throw new Error('Custom proxy server not responding');
+                                throw new Error('Vercel proxy server not responding');
                             }
                         } catch (error) {
-                            console.log(`[v0] Custom proxy test failed: ${error.message}, trying next proxy...`);
+                            console.log(`[v0] Vercel proxy test failed: ${error.message}, trying next proxy...`);
                             this.loadWithProxy(url, proxyIndex + 1);
                             return;
                         }
