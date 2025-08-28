@@ -1911,7 +1911,19 @@
         // Initialize admin panel when page loads
         document.addEventListener('DOMContentLoaded', function() {
             console.log('[v0] Admin panel initializing...')
-            adminPanel.init()
+            
+            // Initialize admin panel
+            const adminPanelInstance = new AdminPanel();
+            adminPanelInstance.init();
+            
+            // Prevent form submission and handle login
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    adminPanelInstance.handleLogin(event);
+                });
+            }
         })
     </script>
 </body>
