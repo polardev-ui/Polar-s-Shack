@@ -1951,6 +1951,13 @@
             event.preventDefault();
             adminPanel.handleLogin(event);
         });
+
+        // The testProxyConnection method already exists in the adminPanel object
+        
+        // Initialize admin panel when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            adminPanel.init()
+        })
     </script>
 </body>
 </html>
