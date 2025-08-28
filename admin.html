@@ -752,6 +752,23 @@
         <section class="admin-section" id="security">
             <h2>security management</h2>
             
+            <!-- Added security system toggle controls -->
+            <div class="form-inline">
+                <div class="maintenance-toggle">
+                    <h3>security system</h3>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="securityToggle" onchange="toggleSecuritySystem()" checked>
+                        <span class="slider"></span>
+                    </label>
+                    <span id="securityStatus">security system enabled</span>
+                </div>
+            </div>
+
+            <div class="form-inline">
+                <button class="danger" onclick="disableAllSecurity()">disable all security features</button>
+                <button onclick="resetSecuritySettings()">reset security settings</button>
+            </div>
+            
             <div class="system-controls">
                 <div class="control-card">
                     <h4>failed login attempts</h4>
@@ -800,18 +817,20 @@
     </div>
 
     <script>
-        // Firebase configuration
+        // Firebase configuration - Replace with your actual Firebase config
         const firebaseConfig = {
-            apiKey: "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs",
-            authDomain: "polars-shack.firebaseapp.com",
-            projectId: "polars-shack",
-            storageBucket: "polars-shack.firebasestorage.app",
-            messagingSenderId: "205388124682",
-            appId: "1:205388124682:web:2b0b1605517e0c6c53c5f3",
+            // NOTE: These are placeholder values - replace with your actual Firebase project config
+            // You can get these from Firebase Console > Project Settings > General > Your apps
+            apiKey: "your-actual-api-key-here",
+            authDomain: "your-project.firebaseapp.com", 
+            projectId: "your-project-id",
+            storageBucket: "your-project.appspot.com",
+            messagingSenderId: "your-sender-id",
+            appId: "your-app-id"
         };
 
         // Check if Firebase config is properly set
-        const isFirebaseConfigured = firebaseConfig.apiKey !== "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs";
+        const isFirebaseConfigured = firebaseConfig.apiKey !== "your-actual-api-key-here";
         
         let db = null;
         if (isFirebaseConfigured) {
@@ -996,13 +1015,14 @@
                 
                 const isMaintenanceMode = localStorage.getItem('maintenanceMode') === 'true';
                 const isLockdownMode = localStorage.getItem('lockdownMode') === 'true';
+                const isSecurityEnabled = localStorage.getItem('securityEnabled') !== 'false';
                 
                 if (toggle) {
-                    toggle.checked = isMaintenanceMode || isLockdownMode;
+                    toggle.checked = isMaintenanceMode || (isLockdownMode && isSecurityEnabled);
                 }
                 
                 if (status) {
-                    if (isLockdownMode) {
+                    if (isLockdownMode && isSecurityEnabled) {
                         status.textContent = 'emergency lockdown active';
                         status.style.color = '#ff6666';
                     } else if (isMaintenanceMode) {
@@ -1015,7 +1035,7 @@
                 }
                 
                 if (siteStatusElement) {
-                    if (isLockdownMode) {
+                    if (isLockdownMode && isSecurityEnabled) {
                         siteStatusElement.className = 'status-badge offline';
                         siteStatusElement.textContent = 'lockdown';
                     } else if (isMaintenanceMode) {
@@ -1024,6 +1044,19 @@
                     } else {
                         siteStatusElement.className = 'status-badge online';
                         siteStatusElement.textContent = 'online';
+                    }
+                }
+                
+                const securityToggle = document.getElementById('securityToggle');
+                const securityStatus = document.getElementById('securityStatus');
+                if (securityToggle && securityStatus) {
+                    securityToggle.checked = isSecurityEnabled;
+                    if (isSecurityEnabled) {
+                        securityStatus.textContent = 'security system enabled';
+                        securityStatus.style.color = '#4CAF50';
+                    } else {
+                        securityStatus.textContent = 'security system disabled';
+                        securityStatus.style.color = '#ff6666';
                     }
                 }
             }
@@ -1378,6 +1411,81 @@
                 }
             }
 
+            async toggleSecuritySystem() {
+                const toggle = document.getElementById('securityToggle');
+                const status = document.getElementById('securityStatus');
+                
+                if (toggle.checked) {
+                    localStorage.setItem('securityEnabled', 'true');
+                    status.textContent = 'security system enabled';
+                    status.style.color = '#4CAF50';
+                    this.addSecurityLog('Security system enabled by admin', 'info');
+                } else {
+                    localStorage.setItem('securityEnabled', 'false');
+                    status.textContent = 'security system disabled';
+                    status.style.color = '#ff6666';
+                    this.addSecurityLog('Security system disabled by admin', 'warning');
+                    alert('Security system has been disabled. All security features are now inactive.');
+                }
+            }
+
+            async disableAllSecurity() {
+                if (confirm('Are you sure you want to disable ALL security features? This will turn off emergency lockdown, IP banning, rate limiting, and all security monitoring.')) {
+                    // Clear all security settings
+                    localStorage.setItem('securityEnabled', 'false');
+                    localStorage.setItem('lockdownMode', 'false');
+                    localStorage.setItem('emergencyMaintenance', 'false');
+                    localStorage.setItem('bannedIPs', JSON.stringify([]));
+                    localStorage.setItem('rateLimit', '100');
+                    localStorage.setItem('securityLogs', JSON.stringify([]));
+                    
+                    // Reset security data
+                    this.securityData = {
+                        failedLogins: 0,
+                        bannedIPs: [],
+                        proxyBlocks: 0,
+                        rateLimit: 100,
+                        securityLogs: []
+                    };
+                    
+                    // Update UI
+                    document.getElementById('securityToggle').checked = false;
+                    document.getElementById('securityStatus').textContent = 'security system disabled';
+                    document.getElementById('securityStatus').style.color = '#ff6666';
+                    
+                    this.updateSecurityStats();
+                    this.updateMaintenanceStatus();
+                    
+                    alert('All security features have been disabled and reset.');
+                }
+            }
+
+            async resetSecuritySettings() {
+                if (confirm('Reset all security settings to default values?')) {
+                    localStorage.setItem('securityEnabled', 'true');
+                    localStorage.setItem('lockdownMode', 'false');
+                    localStorage.setItem('emergencyMaintenance', 'false');
+                    localStorage.setItem('bannedIPs', JSON.stringify([]));
+                    localStorage.setItem('rateLimit', '100');
+                    
+                    this.securityData = {
+                        failedLogins: 0,
+                        bannedIPs: [],
+                        proxyBlocks: 0,
+                        rateLimit: 100,
+                        securityLogs: this.securityData.securityLogs || []
+                    };
+                    
+                    document.getElementById('securityToggle').checked = true;
+                    document.getElementById('securityStatus').textContent = 'security system enabled';
+                    document.getElementById('securityStatus').style.color = '#4CAF50';
+                    
+                    this.updateSecurityStats();
+                    this.addSecurityLog('Security settings reset to defaults', 'info');
+                    alert('Security settings have been reset to default values.');
+                }
+            }
+
             addSecurityLog(message, level = 'info') {
                 const logEntry = {
                     timestamp: new Date().toISOString(),
@@ -1465,6 +1573,18 @@
 
         function lockdownMode() {
             adminPanel.lockdownMode();
+        }
+
+        function toggleSecuritySystem() {
+            adminPanel.toggleSecuritySystem();
+        }
+
+        function disableAllSecurity() {
+            adminPanel.disableAllSecurity();
+        }
+
+        function resetSecuritySettings() {
+            adminPanel.resetSecuritySettings();
         }
 
         function banUser() {
