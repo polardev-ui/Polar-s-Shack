@@ -309,7 +309,7 @@
             
             <div class="proxy-info">
                 <div class="status-indicator"></div>
-                <span>secure proxy</span>
+                <span id="proxyStatusText">secure proxy</span>
             </div>
         </div>
 
@@ -340,12 +340,23 @@
     </div>
 
     <script>
+        const maintenanceScript = document.createElement('script');
+        maintenanceScript.src = '../maintenance-mode.js';
+        document.head.appendChild(maintenanceScript);
+
         class AdvancedProxy {
             constructor() {
                 this.history = [];
                 this.currentIndex = -1;
                 this.currentUrl = '';
+                this.customProxyUrl = 'http://localhost:3001'; // Change to your deployed server URL
                 this.proxyEndpoints = [
+                    {
+                        name: 'Custom Proxy',
+                        url: `${this.customProxyUrl}/proxy/`,
+                        encode: true,
+                        isCustom: true
+                    },
                     {
                         name: 'AllOrigins',
                         url: 'https://api.allorigins.win/raw?url=',
@@ -369,12 +380,45 @@
                     }
                 ];
                 this.currentProxyIndex = 0;
+                this.customProxyAvailable = false;
                 this.init();
             }
 
-            init() {
+            async init() {
                 this.setupEventListeners();
+                await this.checkCustomProxyStatus();
                 this.loadHomePage();
+            }
+
+            async checkCustomProxyStatus() {
+                try {
+                    const response = await fetch(`${this.customProxyUrl}/health`);
+                    if (response.ok) {
+                        this.customProxyAvailable = true;
+                        this.updateProxyStatus('custom proxy online');
+                        console.log('[v0] Custom proxy server available');
+                    } else {
+                        throw new Error('Custom proxy not responding');
+                    }
+                } catch (error) {
+                    this.customProxyAvailable = false;
+                    this.updateProxyStatus('fallback proxies');
+                    console.log('[v0] Custom proxy unavailable, using fallbacks:', error.message);
+                    this.proxyEndpoints = this.proxyEndpoints.filter(p => !p.isCustom);
+                }
+            }
+
+            updateProxyStatus(statusText) {
+                const statusElement = document.getElementById('proxyStatusText');
+                const indicator = document.querySelector('.status-indicator');
+                
+                statusElement.textContent = statusText;
+                
+                if (this.customProxyAvailable) {
+                    indicator.style.background = '#00ff00';
+                } else {
+                    indicator.style.background = '#ffa500';
+                }
             }
 
             setupEventListeners() {
@@ -455,7 +499,7 @@
 
             async loadWithProxy(url, proxyIndex = 0) {
                 if (proxyIndex >= this.proxyEndpoints.length) {
-                    this.showError('all proxy services failed to load the website');
+                    this.showError('all proxy services failed to load the website. the site may block proxy connections or be temporarily unavailable.');
                     return;
                 }
 
@@ -475,18 +519,33 @@
                 const contentFrame = document.getElementById('contentFrame');
                 
                 try {
-                    console.log(`Trying proxy ${proxy.name}: ${proxyUrl}`);
+                    console.log(`[v0] Trying proxy ${proxy.name}: ${proxyUrl}`);
+                    
+                    if (proxy.isCustom) {
+                        try {
+                            const testResponse = await fetch(`${this.customProxyUrl}/proxy/status`);
+                            if (!testResponse.ok) {
+                                throw new Error('Custom proxy server not responding');
+                            }
+                        } catch (error) {
+                            console.log(`[v0] Custom proxy test failed: ${error.message}, trying next proxy...`);
+                            this.loadWithProxy(url, proxyIndex + 1);
+                            return;
+                        }
+                    }
+                    
                     contentFrame.src = proxyUrl;
                     
+                    const timeout = proxy.isCustom ? 15000 : 10000;
                     setTimeout(() => {
                         if (!document.getElementById('loadingScreen').classList.contains('hidden')) {
-                            console.log(`Proxy ${proxy.name} timeout, trying next...`);
+                            console.log(`[v0] Proxy ${proxy.name} timeout, trying next...`);
                             this.loadWithProxy(url, proxyIndex + 1);
                         }
-                    }, 10000);
+                    }, timeout);
 
                 } catch (error) {
-                    console.error(`Error with proxy ${proxy.name}:`, error);
+                    console.error(`[v0] Error with proxy ${proxy.name}:`, error);
                     this.loadWithProxy(url, proxyIndex + 1);
                 }
             }
@@ -523,13 +582,31 @@
             }
 
             loadHomePage() {
-                setTimeout(() => {
-                    this.navigateToUrl('https://www.google.com');
-                }, 500);
+                const urlParams = new URLSearchParams(window.location.search);
+                const targetUrl = urlParams.get('url');
+                
+                if (targetUrl) {
+                    setTimeout(() => {
+                        this.navigateToUrl(decodeURIComponent(targetUrl));
+                    }, 1000);
+                } else {
+                    setTimeout(() => {
+                        this.navigateToUrl('https://www.google.com');
+                    }, 500);
+                }
             }
 
             openSettings() {
-                alert('Settings panel coming soon!');
+                const settings = `
+Proxy Settings:
+- Custom Server: ${this.customProxyAvailable ? 'Online' : 'Offline'}
+- Fallback Services: ${this.proxyEndpoints.length} available
+- Current URL: ${this.currentUrl || 'None'}
+- History: ${this.history.length} entries
+
+Advanced features coming soon!
+                `;
+                alert(settings);
             }
 
             updateNavigationState() {
