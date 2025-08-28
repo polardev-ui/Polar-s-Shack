@@ -894,27 +894,27 @@
     <script>
         // Firebase configuration - Replace with your actual Firebase config
         const firebaseConfig = {
-            // NOTE: These are placeholder values - replace with your actual Firebase project config
-            // You can get these from Firebase Console > Project Settings > General > Your apps
-            apiKey: "your-actual-api-key-here",
-            authDomain: "your-project.firebaseapp.com", 
-            projectId: "your-project-id",
-            storageBucket: "your-project.appspot.com",
-            messagingSenderId: "your-sender-id",
-            appId: "your-app-id"
+            apiKey: "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs",
+            authDomain: "polars-shack.firebaseapp.com", 
+            projectId: "polars-shack",
+            storageBucket: "polars-shack.firebasestorage.app",
+            messagingSenderId: "205388124682",
+            appId: "1:205388124682:web:2b0b1605517e0c6c53c5f3"
         };
 
-        // Check if Firebase config is properly set
-        const isFirebaseConfigured = firebaseConfig.apiKey !== "your-actual-api-key-here";
+        const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "your-actual-api-key-here";
         
         let db = null;
+        let auth = null;
         if (isFirebaseConfigured) {
             try {
                 firebase.initializeApp(firebaseConfig);
                 db = firebase.firestore();
+                auth = firebase.auth();
                 console.log('[v0] Firebase initialized successfully');
             } catch (error) {
                 console.log('[v0] Firebase initialization failed:', error);
+                isFirebaseConfigured = false;
             }
         } else {
             console.log('[v0] Firebase not configured - using local authentication only');
@@ -924,23 +924,15 @@
             constructor() {
                 this.apiUrl = 'https://api.jsonbin.io/v3/b/67a0f1e5e41b4d34e4684c8a'
                 this.apiKey = '$2a$10$9L8kM7nP5qR3sT6uI2oW1.4jG8hK9dL2cE5bA7yT1uI6pW0qV8rX3'
-                this.proxyServerUrl = 'https://polars-proxy-server.vercel.app'
+                this.proxyServerUrl = window.location.hostname === 'localhost' ? 'http://localhost:3001' : 'https://polars-proxy-server.vercel.app'
                 this.isLoggedIn = false;
                 // The correct password is "Mango030911!" and its SHA-256 hash
                 this.adminPasswordHash = "50172b3e278ccc1f2caaac89e2911df21304024b98578c4642af9d340fc73b71";
-                this.connectionStatus = isFirebaseConfigured ? 'connecting' : 'local';
+                this.connectionStatus = isFirebaseConfigured ? 'connected' : 'local';
                 this.startTime = Date.now();
                 this.proxyClient = null;
                 this.useFirebase = isFirebaseConfigured && db !== null;
-                this.securityData = {
-                    failedLogins: parseInt(localStorage.getItem('failedLogins') || '0'),
-                    activeSessions: 1,
-                    proxyBlocks: parseInt(localStorage.getItem('proxyBlocks') || '0'),
-                    rateLimit: parseInt(localStorage.getItem('rateLimit') || '100'),
-                    bannedIPs: JSON.parse(localStorage.getItem('bannedIPs') || '[]'),
-                    securityLogs: JSON.parse(localStorage.getItem('securityLogs') || '[]')
-                };
-                this.init();
+
             }
 
             init() {
@@ -979,6 +971,49 @@
                         statusElement.innerHTML = '<i class="bx bx-wifi-off"></i> Local Mode';
                         statusElement.className = 'real-time-indicator disconnected';
                     }
+                }
+                
+                this.checkProxyConnection();
+            }
+
+            async checkProxyConnection() {
+                try {
+                    const response = await fetch(`${this.proxyServerUrl}/health`);
+                    if (response.ok) {
+                        console.log('[v0] Proxy server connection successful');
+                        const proxyStatusElement = document.getElementById('proxyStatus');
+                        if (proxyStatusElement) {
+                            proxyStatusElement.innerHTML = '<i class="bx bx-check-circle"></i> Proxy Online';
+                            proxyStatusElement.className = 'status-indicator online';
+                        }
+                    }
+                } catch (error) {
+                    console.log('[v0] Proxy server connection failed:', error);
+                    const proxyStatusElement = document.getElementById('proxyStatus');
+                    if (proxyStatusElement) {
+                        proxyStatusElement.innerHTML = '<i class="bx bx-x-circle"></i> Proxy Offline';
+                        proxyStatusElement.className = 'status-indicator offline';
+                    }
+                }
+            }
+
+            async initializeProxyClient() {
+                try {
+                    const response = await fetch(`${this.proxyServerUrl}/proxy/status`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('[v0] Proxy client initialized:', data);
+                        this.proxyClient = {
+                            status: 'connected',
+                            stats: data.stats || {}
+                        };
+                    }
+                } catch (error) {
+                    console.log('[v0] Proxy client initialization failed:', error);
+                    this.proxyClient = {
+                        status: 'disconnected',
+                        stats: {}
+                    };
                 }
             }
 
