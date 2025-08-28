@@ -344,6 +344,11 @@
     </div>
 
     <script>
+        // Load maintenance mode system
+        const maintenanceScript = document.createElement('script');
+        maintenanceScript.src = 'maintenance-mode.js';
+        document.head.appendChild(maintenanceScript);
+
         // Matrix background animation
         function createMatrixEffect() {
             const container = document.getElementById('matrixBg');
