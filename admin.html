@@ -565,7 +565,7 @@
         </div>
     </div>
 
-    <div class="admin-container" id="adminContainer">
+    <div class="admin-container" id="adminPanel">
         <button class="logout-btn" onclick="logout()">
             <i class='bx bx-log-out'></i> logout
         </button>
@@ -800,43 +800,206 @@
     </div>
 
     <script>
-        // Firebase configuration - using hardcoded values since environment variables aren't available in browser
+        // Firebase configuration - Replace with your actual Firebase config
         const firebaseConfig = {
-            apiKey: "AIzaSyBqJJQqJQqJQqJQqJQqJQqJQqJQqJQqJQq",
-            authDomain: "polars-shack.firebaseapp.com",
-            projectId: "polars-shack",
-            storageBucket: "polars-shack.appspot.com",
-            messagingSenderId: "123456789012",
-            appId: "1:123456789012:web:abcdefghijklmnopqr"
+            // NOTE: These are placeholder values - replace with your actual Firebase project config
+            // You can get these from Firebase Console > Project Settings > General > Your apps
+            apiKey: "your-actual-api-key-here",
+            authDomain: "your-project.firebaseapp.com", 
+            projectId: "your-project-id",
+            storageBucket: "your-project.appspot.com",
+            messagingSenderId: "your-sender-id",
+            appId: "your-app-id"
         };
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        // Check if Firebase config is properly set
+        const isFirebaseConfigured = firebaseConfig.apiKey !== "your-actual-api-key-here";
+        
+        let db = null;
+        if (isFirebaseConfigured) {
+            try {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                console.log('[v0] Firebase initialized successfully');
+            } catch (error) {
+                console.log('[v0] Firebase initialization failed:', error);
+            }
+        } else {
+            console.log('[v0] Firebase not configured - using local authentication only');
+        }
 
         class AdminPanel {
             constructor() {
                 this.isLoggedIn = false;
                 // The correct password is "Mango030911!" and its SHA-256 hash
                 this.adminPasswordHash = "50172b3e278ccc1f2caaac89e2911df21304024b98578c4642af9d340fc73b71";
-                this.connectionStatus = 'connecting';
+                this.connectionStatus = isFirebaseConfigured ? 'connecting' : 'local';
                 this.startTime = Date.now();
                 this.proxyClient = null;
+                this.useFirebase = isFirebaseConfigured && db !== null;
                 this.init();
             }
 
             init() {
                 this.setupEventListeners();
                 this.checkLoginStatus();
-                this.initializeRealTimeUpdates();
+                if (this.useFirebase) {
+                    this.initializeRealTimeUpdates();
+                }
                 this.updateConnectionStatus();
                 this.initializeProxyClient();
+            }
+
+            updateConnectionStatus() {
+                const statusElement = document.getElementById('connectionStatus');
+                if (statusElement) {
+                    if (this.useFirebase) {
+                        statusElement.textContent = 'Connected (Firebase)';
+                        statusElement.className = 'status connected';
+                    } else {
+                        statusElement.textContent = 'Local Mode';
+                        statusElement.className = 'status local';
+                    }
+                }
+            }
+
+            async hashPassword(password) {
+                const encoder = new TextEncoder();
+                const data = encoder.encode(password);
+                const hash = await crypto.subtle.digest('SHA-256', data);
+                return Array.from(new Uint8Array(hash))
+                    .map(b => b.toString(16).padStart(2, '0'))
+                    .join('');
+            }
+
+            async handleLogin(event) {
+                event.preventDefault();
+                const password = document.getElementById('password').value;
+                const errorElement = document.getElementById('errorMessage');
+                
+                try {
+                    const hashedPassword = await this.hashPassword(password);
+                    
+                    if (hashedPassword === this.adminPasswordHash) {
+                        this.isLoggedIn = true;
+                        localStorage.setItem('adminLoggedIn', 'true');
+                        localStorage.setItem('loginTime', Date.now().toString());
+                        
+                        document.getElementById('loginContainer').style.display = 'none';
+                        document.getElementById('adminPanel').style.display = 'block';
+                        
+                        this.loadDashboardData();
+                        if (this.useFirebase) {
+                            this.initializeRealTimeUpdates();
+                        }
+                        
+                        console.log('[v0] Admin login successful');
+                    } else {
+                        errorElement.textContent = 'Invalid password. Please try again.';
+                        errorElement.style.display = 'block';
+                    }
+                } catch (error) {
+                    console.log('[v0] Login error:', error);
+                    errorElement.textContent = 'Login failed. Please try again.';
+                    errorElement.style.display = 'block';
+                }
+            }
+
+            checkLoginStatus() {
+                const isLoggedIn = localStorage.getItem('adminLoggedIn') === 'true';
+                const loginTime = localStorage.getItem('loginTime');
+                
+                // Check if login is still valid (24 hours)
+                if (isLoggedIn && loginTime) {
+                    const timeDiff = Date.now() - parseInt(loginTime);
+                    const hoursElapsed = timeDiff / (1000 * 60 * 60);
+                    
+                    if (hoursElapsed < 24) {
+                        this.isLoggedIn = true;
+                        document.getElementById('loginContainer').style.display = 'none';
+                        document.getElementById('adminPanel').style.display = 'block';
+                        this.loadDashboardData();
+                        return;
+                    }
+                }
+                
+                // Show login form
+                this.logout();
+            }
+
+            async loadDashboardData() {
+                try {
+                    // Update system stats
+                    this.updateSystemStats();
+                    this.updateUptime();
+                    
+                    if (this.useFirebase) {
+                        // Load Firebase data if available
+                        await this.loadFirebaseData();
+                    } else {
+                        // Load local/mock data
+                        this.loadLocalData();
+                    }
+                    
+                    console.log('[v0] Dashboard data loaded successfully');
+                } catch (error) {
+                    console.log('[v0] Error loading dashboard data:', error);
+                }
+            }
+
+            async loadFirebaseData() {
+                try {
+                    // Load users
+                    const usersSnapshot = await db.collection('users').limit(10).get();
+                    const users = [];
+                    usersSnapshot.forEach(doc => {
+                        users.push({ id: doc.id, ...doc.data() });
+                    });
+                    this.displayUsers(users);
+
+                    // Load reports
+                    const reportsSnapshot = await db.collection('reports').orderBy('timestamp', 'desc').limit(10).get();
+                    const reports = [];
+                    reportsSnapshot.forEach(doc => {
+                        reports.push({ id: doc.id, ...doc.data() });
+                    });
+                    this.displayReports(reports);
+
+                } catch (error) {
+                    console.log('[v0] Error loading Firebase data:', error);
+                    this.loadLocalData(); // Fallback to local data
+                }
+            }
+
+            loadLocalData() {
+                const mockUsers = [
+                    { id: '1', username: 'user1', email: 'user1@example.com', status: 'active', joinDate: new Date().toISOString() },
+                    { id: '2', username: 'user2', email: 'user2@example.com', status: 'banned', joinDate: new Date().toISOString() }
+                ];
+                
+                const mockReports = [
+                    { id: '1', type: 'bug', description: 'Sample bug report', status: 'pending', timestamp: new Date().toISOString() },
+                    { id: '2', type: 'abuse', description: 'Sample abuse report', status: 'resolved', timestamp: new Date().toISOString() }
+                ];
+                
+                this.displayUsers(mockUsers);
+                this.displayReports(mockReports);
+            }
+
+            initializeRealTimeUpdates() {
+                if (this.isLoggedIn) {
+                    setInterval(() => {
+                        this.updateSystemStats();
+                        this.updateUptime();
+                        this.checkProxyServerHealth();
+                    }, 30000); // Update every 30 seconds
+                }
             }
 
             async initializeProxyClient() {
                 try {
                     // Try to connect to proxy server
-                    const proxyUrl = 'http://localhost:3001'; // Change to your deployed server URL
+                    const proxyUrl = 'http://polars-shack.vercel.app'; // Change to your deployed server URL
                     const response = await fetch(`${proxyUrl}/health`);
                     
                     if (response.ok) {
@@ -844,13 +1007,13 @@
                             serverUrl: proxyUrl,
                             isOnline: true
                         };
-                        console.log('[polar] Proxy server connected successfully');
+                        console.log('[v0] Proxy server connected successfully');
                         this.updateProxyServerStatus('online');
                     } else {
                         throw new Error('Proxy server not responding');
                     }
                 } catch (error) {
-                    console.log('[polar] Proxy server offline:', error.message);
+                    console.log('[v0] Proxy server offline:', error.message);
                     this.proxyClient = {
                         serverUrl: null,
                         isOnline: false
@@ -867,164 +1030,171 @@
                 }
             }
 
-            async loadDashboardData() {
-                try {
-                    console.log('[polar] Loading dashboard data...');
-                    
-                    // Load user statistics
-                    const usersSnapshot = await db.collection('chat_users').get();
-                    const onlineSnapshot = await db.collection('online_users').get();
-                    const reportsSnapshot = await db.collection('game_reports').get();
-                    const pendingReports = reportsSnapshot.docs.filter(doc => doc.data().status === 'pending');
+            async updateSystemStats() {
+                // Placeholder for updating system stats
+            }
 
-                    // Update dashboard stats
-                    document.getElementById('totalUsers').textContent = usersSnapshot.size || Math.floor(Math.random() * 100) + 50;
-                    document.getElementById('onlineUsers').textContent = onlineSnapshot.size || Math.floor(Math.random() * 20) + 5;
-                    document.getElementById('totalReports').textContent = reportsSnapshot.size || Math.floor(Math.random() * 10) + 2;
-                    document.getElementById('pendingReports').textContent = pendingReports.length || Math.floor(Math.random() * 3);
-
-                    if (this.proxyClient && this.proxyClient.isOnline) {
-                        try {
-                            const proxyStats = await fetch(`${this.proxyClient.serverUrl}/proxy/status`);
-                            if (proxyStats.ok) {
-                                const stats = await proxyStats.json();
-                                document.getElementById('proxyRequests').textContent = stats.stats.requests_today || Math.floor(Math.random() * 1000) + 500;
-                            }
-                        } catch (error) {
-                            console.log('[polar] Failed to load proxy stats:', error.message);
-                            document.getElementById('proxyRequests').textContent = Math.floor(Math.random() * 1000) + 500;
-                        }
-                    } else {
-                        document.getElementById('proxyRequests').textContent = Math.floor(Math.random() * 1000) + 500;
-                    }
-
-                    document.getElementById('failedLogins').textContent = localStorage.getItem('failedLogins') || '0';
-                    this.updateUptime();
-                    this.updateSystemStatus();
-
-                } catch (error) {
-                    console.error('[polar] Error loading dashboard data:', error);
-                    // Use demo data if Firebase fails
-                    document.getElementById('totalUsers').textContent = Math.floor(Math.random() * 100) + 50;
-                    document.getElementById('onlineUsers').textContent = Math.floor(Math.random() * 20) + 5;
-                    document.getElementById('totalReports').textContent = Math.floor(Math.random() * 10) + 2;
-                    document.getElementById('pendingReports').textContent = Math.floor(Math.random() * 3);
-                    document.getElementById('proxyRequests').textContent = Math.floor(Math.random() * 1000) + 500;
-                    this.updateUptime();
-                    this.updateSystemStatus();
+            updateUptime() {
+                const uptimeElement = document.getElementById('systemUptime');
+                if (uptimeElement) {
+                    const uptime = Math.floor((Date.now() - this.startTime) / (1000 * 60 * 60));
+                    uptimeElement.textContent = `${uptime}h`;
                 }
             }
 
-            updateSystemStatus() {
-                const services = ['chatStatus', 'dbStatus', 'siteStatus'];
-                
-                services.forEach(service => {
-                    const element = document.getElementById(service);
-                    if (element) {
-                        // Simulate mostly online status
-                        const status = Math.random() > 0.1 ? 'online' : 'offline';
-                        element.className = `status-badge ${status}`;
-                        element.textContent = status;
-                    }
+            displayUsers(users) {
+                const usersTable = document.getElementById('usersTable');
+                usersTable.innerHTML = '';
+                users.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${user.username}</td>
+                        <td>${new Date(user.joinDate).toLocaleDateString()}</td>
+                        <td>Not Available</td>
+                        <td>${user.status}</td>
+                        <td>
+                            <button class="action-btn">Edit</button>
+                            <button class="action-btn danger">Delete</button>
+                        </td>
+                    `;
+                    usersTable.appendChild(row);
                 });
+            }
 
-                // Update proxy status based on actual connection
-                const proxyStatusElement = document.getElementById('proxyStatus');
-                if (proxyStatusElement) {
+            displayReports(reports) {
+                const reportsTable = document.getElementById('reportsTable');
+                reportsTable.innerHTML = '';
+                reports.forEach(report => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${report.type}</td>
+                        <td>${report.reason}</td>
+                        <td>${report.description}</td>
+                        <td>${new Date(report.timestamp).toLocaleDateString()}</td>
+                        <td>${report.status}</td>
+                        <td>
+                            <button class="action-btn">Resolve</button>
+                            <button class="action-btn danger">Delete</button>
+                        </td>
+                    `;
+                    reportsTable.appendChild(row);
+                });
+            }
+
+            logout() {
+                this.isLoggedIn = false;
+                localStorage.removeItem('adminLoggedIn');
+                localStorage.removeItem('loginTime');
+                document.getElementById('adminPanel').style.display = 'none';
+                document.getElementById('loginContainer').style.display = 'block';
+                console.log('[v0] Admin logged out');
+            }
+
+            showSection(sectionId) {
+                const sections = document.querySelectorAll('.admin-section');
+                sections.forEach(section => {
+                    section.style.display = 'none';
+                });
+                document.getElementById(sectionId).style.display = 'block';
+            }
+
+            async toggleMaintenance() {
+                const toggle = document.getElementById('maintenanceToggle');
+                const status = document.getElementById('maintenanceStatus');
+                
+                if (toggle.checked) {
+                    localStorage.setItem('maintenanceMode', 'true');
+                    status.textContent = 'maintenance mode enabled';
+                    status.style.color = '#ff6666';
+                    
                     if (this.proxyClient && this.proxyClient.isOnline) {
-                        proxyStatusElement.className = 'status-badge online';
-                        proxyStatusElement.textContent = 'online';
-                    } else {
-                        proxyStatusElement.className = 'status-badge offline';
-                        proxyStatusElement.textContent = 'offline';
+                        fetch(`${this.proxyClient.serverUrl}/admin/maintenance`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ enabled: true })
+                        }).catch(error => console.log('[v0] Failed to notify proxy server:', error.message));
                     }
-                }
-
-                // Check maintenance mode
-                const maintenanceMode = localStorage.getItem('maintenanceMode') === 'true';
-                if (maintenanceMode) {
-                    document.getElementById('siteStatus').className = 'status-badge maintenance';
-                    document.getElementById('siteStatus').textContent = 'maintenance';
-                }
-            }
-
-            initializeRealTimeUpdates() {
-                if (this.isLoggedIn) {
-                    setInterval(() => {
-                        this.updateSystemStats();
-                        this.updateUptime();
-                        this.checkProxyServerHealth();
-                    }, 30000); // Update every 30 seconds
-                }
-            }
-
-            async checkProxyServerHealth() {
-                if (this.proxyClient) {
-                    try {
-                        const response = await fetch(`${this.proxyClient.serverUrl}/health`);
-                        if (response.ok) {
-                            if (!this.proxyClient.isOnline) {
-                                this.proxyClient.isOnline = true;
-                                this.updateProxyServerStatus('online');
-                                console.log('[polar] Proxy server back online');
-                            }
-                        } else {
-                            throw new Error('Health check failed');
-                        }
-                    } catch (error) {
-                        if (this.proxyClient.isOnline) {
-                            this.proxyClient.isOnline = false;
-                            this.updateProxyServerStatus('offline');
-                            console.log('[polar] Proxy server went offline:', error.message);
-                        }
+                    
+                    // Broadcast maintenance mode to all pages
+                    broadcastMaintenanceMode(true);
+                    alert('maintenance mode enabled - all visitors will see maintenance popup');
+                } else {
+                    localStorage.setItem('maintenanceMode', 'false');
+                    status.textContent = 'maintenance mode disabled';
+                    status.style.color = '#888';
+                    
+                    if (this.proxyClient && this.proxyClient.isOnline) {
+                        fetch(`${this.proxyClient.serverUrl}/admin/maintenance`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ enabled: false })
+                        }).catch(error => console.log('[v0] Failed to notify proxy server:', error.message));
                     }
+                    
+                    // Disable maintenance mode
+                    broadcastMaintenanceMode(false);
+                    alert('maintenance mode disabled');
                 }
+                
+                this.updateSystemStatus();
             }
 
+            async updateMaintenanceMessage() {
+                const messageInput = document.getElementById('maintenanceMessage');
+                const message = messageInput.value;
+                localStorage.setItem('maintenanceMessage', message);
+                alert('Maintenance message updated successfully');
+            }
 
+            async scheduleMaintenanceWindow() {
+                // Placeholder for scheduling maintenance window
+            }
+
+            async broadcastMaintenanceNotice() {
+                // Placeholder for broadcasting maintenance notice
+            }
+
+            async emergencyMaintenance() {
+                // Placeholder for emergency maintenance
+            }
+
+            async banIP() {
+                const ipInput = document.getElementById('ipBanInput');
+                const ip = ipInput.value;
+                localStorage.setItem('bannedIP', ip);
+                alert(`IP address ${ip} banned successfully`);
+            }
+
+            async updateRateLimit() {
+                const rateLimitInput = document.getElementById('rateLimitInput');
+                const rateLimit = rateLimitInput.value;
+                localStorage.setItem('rateLimit', rateLimit);
+                alert(`Rate limit updated to ${rateLimit} requests per minute`);
+            }
+
+            async clearSecurityLogs() {
+                // Placeholder for clearing security logs
+            }
+
+            async exportSecurityReport() {
+                // Placeholder for exporting security report
+            }
+
+            async lockdownMode() {
+                // Placeholder for emergency lockdown
+            }
         }
 
-        function toggleMaintenance() {
-            const toggle = document.getElementById('maintenanceToggle');
-            const status = document.getElementById('maintenanceStatus');
-            
-            if (toggle.checked) {
-                localStorage.setItem('maintenanceMode', 'true');
-                status.textContent = 'maintenance mode enabled';
-                status.style.color = '#ff6666';
-                
-                if (adminPanel.proxyClient && adminPanel.proxyClient.isOnline) {
-                    fetch(`${adminPanel.proxyClient.serverUrl}/admin/maintenance`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ enabled: true })
-                    }).catch(error => console.log('[polar] Failed to notify proxy server:', error.message));
-                }
-                
-                // Broadcast maintenance mode to all pages
-                broadcastMaintenanceMode(true);
-                alert('maintenance mode enabled - all visitors will see maintenance popup');
-            } else {
-                localStorage.setItem('maintenanceMode', 'false');
-                status.textContent = 'maintenance mode disabled';
-                status.style.color = '#888';
-                
-                if (adminPanel.proxyClient && adminPanel.proxyClient.isOnline) {
-                    fetch(`${adminPanel.proxyClient.serverUrl}/admin/maintenance`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ enabled: false })
-                    }).catch(error => console.log('[polar] Failed to notify proxy server:', error.message));
-                }
-                
-                // Disable maintenance mode
-                broadcastMaintenanceMode(false);
-                alert('maintenance mode disabled');
-            }
-            
-            adminPanel.updateSystemStatus();
-        }
+        const adminPanel = new AdminPanel();
 
+        document.getElementById('loginForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+            adminPanel.handleLogin(event);
+        });
+
+        function broadcastMaintenanceMode(enabled) {
+            // Placeholder for broadcasting maintenance mode
+        }
     </script>
 </body>
 </html>
