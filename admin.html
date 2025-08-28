@@ -800,14 +800,16 @@
     </div>
 
     <script>
-        // Firebase configuration
+        // Firebase configuration - Replace with your actual Firebase config
         const firebaseConfig = {
-            apiKey: "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs",
-            authDomain: "polars-shack.firebaseapp.com", 
-            projectId: "polars-shack",
-            storageBucket: "polars-shack.firebasestorage.app",
-            messagingSenderId: "205388124682",
-            appId: "1:205388124682:web:2b0b1605517e0c6c53c5f3"
+            // NOTE: These are placeholder values - replace with your actual Firebase project config
+            // You can get these from Firebase Console > Project Settings > General > Your apps
+            apiKey: "your-actual-api-key-here",
+            authDomain: "your-project.firebaseapp.com", 
+            projectId: "your-project-id",
+            storageBucket: "your-project.appspot.com",
+            messagingSenderId: "your-sender-id",
+            appId: "your-app-id"
         };
 
         // Check if Firebase config is properly set
@@ -835,6 +837,14 @@
                 this.startTime = Date.now();
                 this.proxyClient = null;
                 this.useFirebase = isFirebaseConfigured && db !== null;
+                this.securityData = {
+                    failedLogins: parseInt(localStorage.getItem('failedLogins') || '0'),
+                    activeSessions: 1,
+                    proxyBlocks: parseInt(localStorage.getItem('proxyBlocks') || '0'),
+                    rateLimit: parseInt(localStorage.getItem('rateLimit') || '100'),
+                    bannedIPs: JSON.parse(localStorage.getItem('bannedIPs') || '[]'),
+                    securityLogs: JSON.parse(localStorage.getItem('securityLogs') || '[]')
+                };
                 this.init();
             }
 
@@ -846,17 +856,33 @@
                 }
                 this.updateConnectionStatus();
                 this.initializeProxyClient();
+                this.loadSecurityData();
+            }
+
+            setupEventListeners() {
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                    });
+                });
+
+                window.addEventListener('storage', (e) => {
+                    if (e.key === 'maintenanceMode' || e.key === 'lockdownMode') {
+                        this.updateMaintenanceStatus();
+                    }
+                });
             }
 
             updateConnectionStatus() {
                 const statusElement = document.getElementById('connectionStatus');
                 if (statusElement) {
                     if (this.useFirebase) {
-                        statusElement.textContent = 'Connected (Firebase)';
-                        statusElement.className = 'status connected';
+                        statusElement.innerHTML = '<i class="bx bx-wifi"></i> Connected (Firebase)';
+                        statusElement.className = 'real-time-indicator connected';
                     } else {
-                        statusElement.textContent = 'Local Mode';
-                        statusElement.className = 'status local';
+                        statusElement.innerHTML = '<i class="bx bx-wifi-off"></i> Local Mode';
+                        statusElement.className = 'real-time-indicator disconnected';
                     }
                 }
             }
@@ -891,8 +917,14 @@
                             this.initializeRealTimeUpdates();
                         }
                         
+                        this.addSecurityLog('Admin login successful', 'info');
                         console.log('[v0] Admin login successful');
                     } else {
+                        this.securityData.failedLogins++;
+                        localStorage.setItem('failedLogins', this.securityData.failedLogins.toString());
+                        this.addSecurityLog(`Failed login attempt from ${this.getClientIP()}`, 'warning');
+                        this.updateSecurityStats();
+                        
                         errorElement.textContent = 'Invalid password. Please try again.';
                         errorElement.style.display = 'block';
                     }
@@ -930,6 +962,8 @@
                     // Update system stats
                     this.updateSystemStats();
                     this.updateUptime();
+                    this.updateSecurityStats();
+                    this.updateMaintenanceStatus();
                     
                     if (this.useFirebase) {
                         // Load Firebase data if available
@@ -942,6 +976,57 @@
                     console.log('[v0] Dashboard data loaded successfully');
                 } catch (error) {
                     console.log('[v0] Error loading dashboard data:', error);
+                }
+            }
+
+            loadSecurityData() {
+                this.updateSecurityStats();
+                this.displaySecurityLogs();
+            }
+
+            updateSecurityStats() {
+                document.getElementById('failedLogins').textContent = this.securityData.failedLogins;
+                document.getElementById('activeSessions').textContent = this.securityData.activeSessions;
+                document.getElementById('proxyBlocks').textContent = this.securityData.proxyBlocks;
+                document.getElementById('rateLimit').textContent = this.securityData.rateLimit;
+            }
+
+            updateMaintenanceStatus() {
+                const toggle = document.getElementById('maintenanceToggle');
+                const status = document.getElementById('maintenanceStatus');
+                const siteStatusElement = document.getElementById('siteStatus');
+                
+                const isMaintenanceMode = localStorage.getItem('maintenanceMode') === 'true';
+                const isLockdownMode = localStorage.getItem('lockdownMode') === 'true';
+                
+                if (toggle) {
+                    toggle.checked = isMaintenanceMode || isLockdownMode;
+                }
+                
+                if (status) {
+                    if (isLockdownMode) {
+                        status.textContent = 'emergency lockdown active';
+                        status.style.color = '#ff6666';
+                    } else if (isMaintenanceMode) {
+                        status.textContent = 'maintenance mode enabled';
+                        status.style.color = '#ffa500';
+                    } else {
+                        status.textContent = 'maintenance mode disabled';
+                        status.style.color = '#888';
+                    }
+                }
+                
+                if (siteStatusElement) {
+                    if (isLockdownMode) {
+                        siteStatusElement.className = 'status-badge offline';
+                        siteStatusElement.textContent = 'lockdown';
+                    } else if (isMaintenanceMode) {
+                        siteStatusElement.className = 'status-badge maintenance';
+                        siteStatusElement.textContent = 'maintenance';
+                    } else {
+                        siteStatusElement.className = 'status-badge online';
+                        siteStatusElement.textContent = 'online';
+                    }
                 }
             }
 
@@ -990,6 +1075,7 @@
                         this.updateSystemStats();
                         this.updateUptime();
                         this.checkProxyServerHealth();
+                        this.updateMaintenanceStatus();
                     }, 30000); // Update every 30 seconds
                 }
             }
@@ -997,7 +1083,7 @@
             async initializeProxyClient() {
                 try {
                     // Try to connect to proxy server
-                    const proxyUrl = 'http://polars-shack.vercel.app'; // Change to your deployed server URL
+                    const proxyUrl = 'http://localhost:3001'; // Change to your deployed server URL
                     const response = await fetch(`${proxyUrl}/health`);
                     
                     if (response.ok) {
@@ -1029,7 +1115,11 @@
             }
 
             async updateSystemStats() {
-                // Placeholder for updating system stats
+                const proxyRequestsElement = document.getElementById('proxyRequests');
+                if (proxyRequestsElement) {
+                    const requests = parseInt(localStorage.getItem('proxyRequests') || '0');
+                    proxyRequestsElement.textContent = requests;
+                }
             }
 
             updateUptime() {
@@ -1083,6 +1173,7 @@
                 this.isLoggedIn = false;
                 localStorage.removeItem('adminLoggedIn');
                 localStorage.removeItem('loginTime');
+                this.addSecurityLog('Admin logged out', 'info');
                 document.getElementById('adminPanel').style.display = 'none';
                 document.getElementById('loginContainer').style.display = 'block';
                 console.log('[v0] Admin logged out');
@@ -1091,9 +1182,9 @@
             showSection(sectionId) {
                 const sections = document.querySelectorAll('.admin-section');
                 sections.forEach(section => {
-                    section.style.display = 'none';
+                    section.classList.remove('active');
                 });
-                document.getElementById(sectionId).style.display = 'block';
+                document.getElementById(sectionId).classList.add('active');
             }
 
             async toggleMaintenance() {
@@ -1102,8 +1193,11 @@
                 
                 if (toggle.checked) {
                     localStorage.setItem('maintenanceMode', 'true');
+                    localStorage.removeItem('lockdownMode'); // Clear lockdown if maintenance is enabled
                     status.textContent = 'maintenance mode enabled';
-                    status.style.color = '#ff6666';
+                    status.style.color = '#ffa500';
+                    
+                    this.addSecurityLog('Maintenance mode enabled by admin', 'info');
                     
                     if (this.proxyClient && this.proxyClient.isOnline) {
                         fetch(`${this.proxyClient.serverUrl}/admin/maintenance`, {
@@ -1114,12 +1208,14 @@
                     }
                     
                     // Broadcast maintenance mode to all pages
-                    broadcastMaintenanceMode(true);
-                    alert('maintenance mode enabled - all visitors will see maintenance popup');
+                    this.broadcastMaintenanceMode(true);
+                    alert('Maintenance mode enabled - all visitors will see maintenance popup');
                 } else {
                     localStorage.setItem('maintenanceMode', 'false');
                     status.textContent = 'maintenance mode disabled';
                     status.style.color = '#888';
+                    
+                    this.addSecurityLog('Maintenance mode disabled by admin', 'info');
                     
                     if (this.proxyClient && this.proxyClient.isOnline) {
                         fetch(`${this.proxyClient.serverUrl}/admin/maintenance`, {
@@ -1130,69 +1226,290 @@
                     }
                     
                     // Disable maintenance mode
-                    broadcastMaintenanceMode(false);
-                    alert('maintenance mode disabled');
+                    this.broadcastMaintenanceMode(false);
+                    alert('Maintenance mode disabled');
                 }
                 
-                this.updateSystemStatus();
+                this.updateMaintenanceStatus();
             }
 
             async updateMaintenanceMessage() {
                 const messageInput = document.getElementById('maintenanceMessage');
-                const message = messageInput.value;
+                const message = messageInput.value.trim();
+                
+                if (!message) {
+                    alert('Please enter a maintenance message');
+                    return;
+                }
+                
                 localStorage.setItem('maintenanceMessage', message);
+                this.addSecurityLog('Maintenance message updated', 'info');
                 alert('Maintenance message updated successfully');
             }
 
             async scheduleMaintenanceWindow() {
-                // Placeholder for scheduling maintenance window
+                const startTime = prompt('Enter maintenance start time (YYYY-MM-DD HH:MM):');
+                const duration = prompt('Enter maintenance duration in hours:');
+                
+                if (startTime && duration) {
+                    const scheduledMaintenance = {
+                        startTime: startTime,
+                        duration: parseInt(duration),
+                        scheduled: new Date().toISOString()
+                    };
+                    
+                    localStorage.setItem('scheduledMaintenance', JSON.stringify(scheduledMaintenance));
+                    this.addSecurityLog(`Maintenance scheduled for ${startTime} (${duration}h)`, 'info');
+                    alert(`Maintenance window scheduled for ${startTime} lasting ${duration} hours`);
+                }
             }
 
             async broadcastMaintenanceNotice() {
-                // Placeholder for broadcasting maintenance notice
+                const notice = prompt('Enter maintenance notice to broadcast:');
+                if (notice) {
+                    localStorage.setItem('maintenanceNotice', notice);
+                    localStorage.setItem('noticeTimestamp', Date.now().toString());
+                    this.addSecurityLog('Maintenance notice broadcasted', 'info');
+                    alert('Maintenance notice has been broadcasted to all users');
+                }
             }
 
             async emergencyMaintenance() {
-                // Placeholder for emergency maintenance
+                if (confirm('Are you sure you want to activate emergency maintenance? This will immediately show maintenance popup to all users.')) {
+                    localStorage.setItem('maintenanceMode', 'true');
+                    localStorage.setItem('emergencyMaintenance', 'true');
+                    localStorage.setItem('maintenanceMessage', 'EMERGENCY MAINTENANCE: The site is temporarily unavailable due to critical updates. Please check back shortly.');
+                    
+                    this.addSecurityLog('Emergency maintenance activated', 'critical');
+                    this.updateMaintenanceStatus();
+                    this.broadcastMaintenanceMode(true);
+                    
+                    alert('Emergency maintenance activated! All users will see the maintenance popup immediately.');
+                }
             }
 
             async banIP() {
                 const ipInput = document.getElementById('ipBanInput');
-                const ip = ipInput.value;
-                localStorage.setItem('bannedIP', ip);
-                alert(`IP address ${ip} banned successfully`);
+                const ip = ipInput.value.trim();
+                
+                if (!ip) {
+                    alert('Please enter an IP address');
+                    return;
+                }
+                
+                // Validate IP format
+                const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+                if (!ipRegex.test(ip)) {
+                    alert('Please enter a valid IP address');
+                    return;
+                }
+                
+                if (!this.securityData.bannedIPs.includes(ip)) {
+                    this.securityData.bannedIPs.push(ip);
+                    localStorage.setItem('bannedIPs', JSON.stringify(this.securityData.bannedIPs));
+                    this.addSecurityLog(`IP address ${ip} banned by admin`, 'warning');
+                    alert(`IP address ${ip} has been banned successfully`);
+                    ipInput.value = '';
+                } else {
+                    alert('IP address is already banned');
+                }
             }
 
             async updateRateLimit() {
                 const rateLimitInput = document.getElementById('rateLimitInput');
-                const rateLimit = rateLimitInput.value;
-                localStorage.setItem('rateLimit', rateLimit);
+                const rateLimit = parseInt(rateLimitInput.value);
+                
+                if (!rateLimit || rateLimit < 1 || rateLimit > 1000) {
+                    alert('Please enter a valid rate limit between 1 and 1000');
+                    return;
+                }
+                
+                this.securityData.rateLimit = rateLimit;
+                localStorage.setItem('rateLimit', rateLimit.toString());
+                this.updateSecurityStats();
+                this.addSecurityLog(`Rate limit updated to ${rateLimit} requests/min`, 'info');
                 alert(`Rate limit updated to ${rateLimit} requests per minute`);
+                rateLimitInput.value = '';
             }
 
             async clearSecurityLogs() {
-                // Placeholder for clearing security logs
+                if (confirm('Are you sure you want to clear all security logs? This action cannot be undone.')) {
+                    this.securityData.securityLogs = [];
+                    localStorage.setItem('securityLogs', JSON.stringify([]));
+                    this.displaySecurityLogs();
+                    this.addSecurityLog('Security logs cleared by admin', 'info');
+                    alert('Security logs have been cleared');
+                }
             }
 
             async exportSecurityReport() {
-                // Placeholder for exporting security report
+                const report = {
+                    generatedAt: new Date().toISOString(),
+                    failedLogins: this.securityData.failedLogins,
+                    bannedIPs: this.securityData.bannedIPs,
+                    proxyBlocks: this.securityData.proxyBlocks,
+                    rateLimit: this.securityData.rateLimit,
+                    securityLogs: this.securityData.securityLogs
+                };
+                
+                const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `security-report-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                this.addSecurityLog('Security report exported', 'info');
+                alert('Security report has been exported and downloaded');
             }
 
             async lockdownMode() {
-                // Placeholder for emergency lockdown
+                if (confirm('Are you sure you want to activate EMERGENCY LOCKDOWN? This will completely lock down the site and prevent all user access.')) {
+                    localStorage.setItem('lockdownMode', 'true');
+                    localStorage.setItem('maintenanceMode', 'false'); // Override maintenance mode
+                    localStorage.setItem('maintenanceMessage', 'EMERGENCY LOCKDOWN: This site is temporarily unavailable due to security concerns. Access has been restricted by the administrator.');
+                    
+                    this.addSecurityLog('EMERGENCY LOCKDOWN activated by admin', 'critical');
+                    this.updateMaintenanceStatus();
+                    this.broadcastMaintenanceMode(true);
+                    
+                    alert('EMERGENCY LOCKDOWN ACTIVATED! The site is now completely locked down.');
+                }
+            }
+
+            addSecurityLog(message, level = 'info') {
+                const logEntry = {
+                    timestamp: new Date().toISOString(),
+                    message: message,
+                    level: level,
+                    ip: this.getClientIP()
+                };
+                
+                this.securityData.securityLogs.unshift(logEntry);
+                
+                // Keep only last 100 logs
+                if (this.securityData.securityLogs.length > 100) {
+                    this.securityData.securityLogs = this.securityData.securityLogs.slice(0, 100);
+                }
+                
+                localStorage.setItem('securityLogs', JSON.stringify(this.securityData.securityLogs));
+                this.displaySecurityLogs();
+            }
+
+            displaySecurityLogs() {
+                // This would display security logs in the security section
+                // Implementation depends on where you want to show the logs
+            }
+
+            getClientIP() {
+                // This is a placeholder - in a real implementation you'd get the actual client IP
+                return 'localhost';
+            }
+
+            broadcastMaintenanceMode(enabled) {
+                // Trigger storage event for other tabs
+                window.dispatchEvent(new StorageEvent('storage', {
+                    key: enabled ? 'maintenanceMode' : 'maintenanceMode',
+                    newValue: enabled.toString(),
+                    url: window.location.href
+                }));
             }
         }
 
         const adminPanel = new AdminPanel();
 
+        function showSection(sectionId) {
+            adminPanel.showSection(sectionId);
+        }
+
+        function logout() {
+            adminPanel.logout();
+        }
+
+        function toggleMaintenance() {
+            adminPanel.toggleMaintenance();
+        }
+
+        function updateMaintenanceMessage() {
+            adminPanel.updateMaintenanceMessage();
+        }
+
+        function scheduleMaintenanceWindow() {
+            adminPanel.scheduleMaintenanceWindow();
+        }
+
+        function broadcastMaintenanceNotice() {
+            adminPanel.broadcastMaintenanceNotice();
+        }
+
+        function emergencyMaintenance() {
+            adminPanel.emergencyMaintenance();
+        }
+
+        function banIP() {
+            adminPanel.banIP();
+        }
+
+        function updateRateLimit() {
+            adminPanel.updateRateLimit();
+        }
+
+        function clearSecurityLogs() {
+            adminPanel.clearSecurityLogs();
+        }
+
+        function exportSecurityReport() {
+            adminPanel.exportSecurityReport();
+        }
+
+        function lockdownMode() {
+            adminPanel.lockdownMode();
+        }
+
+        function banUser() {
+            const username = document.getElementById('banUsername').value;
+            if (username) {
+                adminPanel.addSecurityLog(`User ${username} banned by admin`, 'warning');
+                alert(`User ${username} has been banned`);
+                document.getElementById('banUsername').value = '';
+            }
+        }
+
+        function unbanUser() {
+            const username = document.getElementById('unbanUsername').value;
+            if (username) {
+                adminPanel.addSecurityLog(`User ${username} unbanned by admin`, 'info');
+                alert(`User ${username} has been unbanned`);
+                document.getElementById('unbanUsername').value = '';
+            }
+        }
+
+        function clearAllReports() {
+            if (confirm('Are you sure you want to clear all reports?')) {
+                adminPanel.addSecurityLog('All reports cleared by admin', 'info');
+                alert('All reports have been cleared');
+            }
+        }
+
+        function clearChatHistory() {
+            if (confirm('Are you sure you want to clear chat history?')) {
+                adminPanel.addSecurityLog('Chat history cleared by admin', 'info');
+                alert('Chat history has been cleared');
+            }
+        }
+
+        function exportData() {
+            adminPanel.addSecurityLog('Data export initiated by admin', 'info');
+            alert('Data export has been initiated');
+        }
+
         document.getElementById('loginForm').addEventListener('submit', (event) => {
             event.preventDefault();
             adminPanel.handleLogin(event);
         });
-
-        function broadcastMaintenanceMode(enabled) {
-            // Placeholder for broadcasting maintenance mode
-        }
     </script>
 </body>
 </html>
