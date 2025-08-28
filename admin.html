@@ -1227,7 +1227,7 @@
             async initializeProxyClient() {
                 try {
                     // Try to connect to proxy server
-                    const proxyUrl = 'http://localhost:3001'; // Change to your deployed server URL
+                    const proxyUrl = this.proxyServerUrl; // Use the same proxy URL logic as the rest of the app
                     const response = await fetch(`${proxyUrl}/health`);
                     
                     if (response.ok) {
@@ -1954,10 +1954,16 @@
 
         // The testProxyConnection method already exists in the adminPanel object
         
-        // Initialize admin panel when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            adminPanel.init()
-        })
+            console.log('[v0] Admin panel initializing...');
+            adminPanel.init();
+            
+            // Test proxy connection on load
+            setTimeout(() => {
+                console.log('[v0] Testing proxy connection...');
+                adminPanel.testProxyConnection();
+            }, 1000);
+        });
     </script>
 </body>
 </html>
