@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # Proxy Server
+  proxy-server:
+    build: ./proxy-server
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    volumes:
+      - ./logs:/app/logs
+      - ./proxy-server:/app
+    networks:
+      - polars-network
+
+  # NGINX Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./:/var/www/html:ro
+    depends_on:
+      - proxy-server
+    restart: unless-stopped
+    networks:
+      - polars-network
+
+  # Redis for session management (optional)
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    networks:
+      - polars-network
+
+volumes:
+  redis-data:
+
+networks:
+  polars-network:
+    driver: bridge
