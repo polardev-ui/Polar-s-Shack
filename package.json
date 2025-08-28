@@ -1,9 +1,35 @@
 {
-    "name": "polars-shack",
-    "version": "1.0.0",
-    "scripts": {
-      "build": "node build.js",
-      "deploy": "npm run build && firebase deploy"
-    }
+  "name": "polars-shack",
+  "version": "2.0.0",
+  "description": "Advanced web proxy and unblocked access portal with admin panel and maintenance mode",
+  "main": "index.html",
+  "scripts": {
+    "start": "cd proxy-server && npm start",
+    "dev": "cd proxy-server && npm run dev",
+    "build": "echo 'Building Polar's Shack...' && cd proxy-server && npm install",
+    "deploy": "./deploy.sh",
+    "stop": "./deploy.sh stop",
+    "restart": "./deploy.sh restart",
+    "logs": "./deploy.sh logs",
+    "status": "./deploy.sh status",
+    "test": "cd proxy-server && npm test"
+  },
+  "keywords": ["proxy", "unblock", "web-proxy", "nginx", "admin-panel", "maintenance-mode", "cors-proxy"],
+  "author": "Polar's Shack",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/polars-shack.git"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "http-proxy-middleware": "^2.0.6",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
   }
-  
+}
