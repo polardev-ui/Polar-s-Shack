@@ -1,48 +1,69 @@
-import firebase from 'firebase/app';
-import 'firebase/firestore';
-import 'firebase/auth';
+import firebase from "firebase/app"
+import "firebase/firestore"
+import "firebase/auth"
 
 class FirebaseConfig {
-    constructor() {
-        this.config = {
-            apiKey: process.env.FIREBASE_API_KEY || "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs",
-            authDomain: process.env.FIREBASE_AUTH_DOMAIN || "polars-shack.firebaseapp.com",
-            projectId: process.env.FIREBASE_PROJECT_ID || "polars-shack",
-            storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "polars-shack.firebasestorage.app",
-            messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "205388124682",
-            appId: process.env.FIREBASE_APP_ID || "1:205388124682:web:2b0b1605517e0c6c53c5f3"
-        };
-        
-        this.initializeFirebase();
+  constructor() {
+    this.config = {
+      apiKey: "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs",
+      authDomain: "polars-shack.firebaseapp.com",
+      projectId: "polars-shack",
+      storageBucket: "polars-shack.firebasestorage.app",
+      messagingSenderId: "205388124682",
+      appId: "1:205388124682:web:2b0b1605517e0c6c53c5f3",
     }
 
-    initializeFirebase() {
-        try {
-            firebase.initializeApp(this.config);
-            this.db = firebase.firestore();
-            this.auth = firebase.auth();
-            
-            console.log('Firebase initialized successfully');
-            return true;
-        } catch (error) {
-            console.error('Firebase initialization error:', error);
-            return false;
-        }
-    }
+    this.initializeFirebase()
+  }
 
-    getFirestore() {
-        return this.db;
-    }
+  initializeFirebase() {
+    try {
+      if (!firebase.apps.length) {
+        firebase.initializeApp(this.config)
+      }
+      this.db = firebase.firestore()
+      this.auth = firebase.auth()
 
-    getAuth() {
-        return this.auth;
+      console.log("[v0] Firebase initialized successfully")
+      return true
+    } catch (error) {
+      console.error("[v0] Firebase initialization error:", error)
+      return false
     }
+  }
 
-    getConfig() {
-        return this.config;
+  getFirestore() {
+    return this.db
+  }
+
+  getAuth() {
+    return this.auth
+  }
+
+  getConfig() {
+    return this.config
+  }
+
+  async testConnection() {
+    try {
+      if (this.db) {
+        // Try to read from a test collection to verify connection
+        await this.db.collection("test").limit(1).get()
+        console.log("[v0] Firebase connection test successful")
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error("[v0] Firebase connection test failed:", error)
+      return false
     }
+  }
 }
 
-window.firebaseApp = new FirebaseConfig();
-window.db = window.firebaseApp.getFirestore();
-window.auth = window.firebaseApp.getAuth();
+if (typeof window !== "undefined") {
+  window.firebaseApp = new FirebaseConfig()
+  window.db = window.firebaseApp.getFirestore()
+  window.auth = window.firebaseApp.getAuth()
+}
+
+export default FirebaseConfig
