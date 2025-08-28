@@ -463,7 +463,7 @@
     <main class="main-content">
         <section class="page-header">
             <h1>web proxy</h1>
-            <p>unblocked web access through working proxies. bypass restrictions and access any website securely. [CURRENTLY BROKEN]</p>
+            <p>unblocked web access through our custom NGINX proxy servers. bypass restrictions and access any website securely.</p>
         </section>
 
         <div class="proxy-container">
@@ -510,6 +510,12 @@
         </div>
 
         <section class="proxy-options">
+            <div class="proxy-card" onclick="useProxyService('custom')">
+                <h3><span class="status-indicator status-online"></span>polar's proxy</h3>
+                <p>our custom NGINX-powered proxy server with high performance and reliability</p>
+                <button class="launch-btn">launch proxy</button>
+            </div>
+
             <div class="proxy-card" onclick="useProxyService('croxyproxy')">
                 <h3><span class="status-indicator status-online"></span>croxyproxy</h3>
                 <p>free web proxy with ssl support and high-speed browsing</p>
@@ -539,12 +545,6 @@
                 <p>free anonymous web proxy with multiple server locations</p>
                 <button class="launch-btn">launch proxy</button>
             </div>
-
-            <div class="proxy-card" onclick="useProxyService('plainproxies')">
-                <h3><span class="status-indicator status-online"></span>plainproxies</h3>
-                <p>simple and fast web proxy for everyday browsing</p>
-                <button class="launch-btn">launch proxy</button>
-            </div>
         </section>
     </main>
 
@@ -555,8 +555,9 @@
 
         class ProxyManager {
             constructor() {
-                this.customProxyUrl = 'http://localhost:3001'; // Change to your deployed server URL
+                this.customProxyUrl = 'https://proxy.polarsshack.com'; // Your deployed NGINX proxy server
                 this.fallbackServices = {
+                    custom: this.customProxyUrl,
                     croxyproxy: 'https://www.croxyproxy.com/',
                     proxysite: 'https://www.proxysite.com/',
                     hideme: 'https://hide.me/en/proxy',
@@ -564,6 +565,7 @@
                     kproxy: 'https://www.kproxy.com/',
                     plainproxies: 'https://plainproxies.com/'
                 };
+                this.customProxyOnline = false;
                 this.setupEventListeners();
                 this.checkProxyStatus();
             }
@@ -579,36 +581,50 @@
 
             async checkProxyStatus() {
                 try {
-                    const response = await fetch(`${this.customProxyUrl}/proxy/status`);
+                    const response = await fetch(`${this.customProxyUrl}/health`, {
+                        method: 'GET',
+                        mode: 'cors',
+                        timeout: 5000
+                    });
+                    
                     if (response.ok) {
-                        const status = await response.json();
-                        console.log('[v0] Custom proxy server online:', status);
+                        console.log('[v0] Custom NGINX proxy server online');
+                        this.customProxyOnline = true;
                         this.updateProxyStatus('online');
                     } else {
                         throw new Error('Proxy server not responding');
                     }
                 } catch (error) {
-                    console.log('[v0] Custom proxy server offline, using fallbacks:', error.message);
+                    console.log('[v0] Custom NGINX proxy server offline, using fallbacks:', error.message);
+                    this.customProxyOnline = false;
                     this.updateProxyStatus('fallback');
                 }
             }
 
             updateProxyStatus(status) {
                 const statusElements = document.querySelectorAll('.status-indicator');
-                statusElements.forEach(element => {
-                    if (status === 'online') {
-                        element.className = 'status-indicator status-online';
-                    } else {
-                        element.className = 'status-indicator status-offline';
-                    }
-                });
-
-                // Update page header description
-                const pageDescription = document.querySelector('.page-header p');
+                const customProxyCard = document.querySelector('.proxy-card');
+                
                 if (status === 'online') {
-                    pageDescription.textContent = 'unblocked web access through our custom proxy servers. bypass restrictions and access any website securely.';
+                    // Update custom proxy status
+                    if (customProxyCard) {
+                        const customStatus = customProxyCard.querySelector('.status-indicator');
+                        customStatus.className = 'status-indicator status-online';
+                    }
+                    
+                    // Update page header description
+                    const pageDescription = document.querySelector('.page-header p');
+                    pageDescription.textContent = 'unblocked web access through our custom NGINX proxy servers. bypass restrictions and access any website securely.';
                 } else {
-                    pageDescription.textContent = 'unblocked web access through working proxies. custom server offline, using fallback services.';
+                    // Mark custom proxy as offline
+                    if (customProxyCard) {
+                        const customStatus = customProxyCard.querySelector('.status-indicator');
+                        customStatus.className = 'status-indicator status-offline';
+                    }
+                    
+                    // Update page header description
+                    const pageDescription = document.querySelector('.page-header p');
+                    pageDescription.textContent = 'unblocked web access through working proxies. custom NGINX server offline, using fallback services.';
                 }
             }
 
@@ -658,22 +674,23 @@
                 // Save to recent sites
                 this.saveRecentSite(url);
 
-                try {
-                    // Try custom proxy server first
-                    const proxyUrl = `${this.customProxyUrl}/proxy/${encodeURIComponent(url)}`;
-                    console.log('[v0] Opening with custom proxy:', proxyUrl);
-                    
-                    // Test if custom proxy is working
-                    const testResponse = await fetch(`${this.customProxyUrl}/health`);
-                    if (testResponse.ok) {
+                if (this.customProxyOnline) {
+                    try {
+                        // Use custom NGINX proxy with proper URL encoding
+                        const proxyUrl = `${this.customProxyUrl}/proxy?url=${encodeURIComponent(url)}`;
+                        console.log('[v0] Opening with custom NGINX proxy:', proxyUrl);
+                        
                         window.open(proxyUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=yes,menubar=yes,location=yes');
                         return;
+                    } catch (error) {
+                        console.log('[v0] Custom NGINX proxy failed:', error.message);
+                        this.customProxyOnline = false;
+                        this.updateProxyStatus('fallback');
                     }
-                } catch (error) {
-                    console.log('[v0] Custom proxy failed, using fallback:', error.message);
                 }
 
                 // Fallback to CroxyProxy
+                console.log('[v0] Using CroxyProxy fallback');
                 const fallbackUrl = `https://www.croxyproxy.com/go.php?u=${encodeURIComponent(url)}&b=1`;
                 window.open(fallbackUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=yes,menubar=yes,location=yes');
             }
@@ -706,23 +723,19 @@
                 const url = this.normalizeUrl(urlInput.value);
                 
                 if (url) {
-                    // Try custom proxy first for better performance
-                    if (service === 'croxyproxy') {
-                        try {
-                            const customUrl = `${this.customProxyUrl}/proxy/${encodeURIComponent(url)}`;
-                            const testResponse = await fetch(`${this.customProxyUrl}/health`);
-                            if (testResponse.ok) {
-                                window.open(customUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
-                                return;
-                            }
-                        } catch (error) {
-                            console.log('[v0] Custom proxy unavailable, using external service');
-                        }
-                    }
-
-                    // Use external services as fallback
                     let proxyUrl;
+                    
                     switch(service) {
+                        case 'custom':
+                            if (this.customProxyOnline) {
+                                proxyUrl = `${this.customProxyUrl}/proxy?url=${encodeURIComponent(url)}`;
+                                console.log('[v0] Using custom NGINX proxy:', proxyUrl);
+                            } else {
+                                // Fallback to CroxyProxy if custom is offline
+                                proxyUrl = `https://www.croxyproxy.com/go.php?u=${encodeURIComponent(url)}&b=1`;
+                                console.log('[v0] Custom proxy offline, using CroxyProxy fallback');
+                            }
+                            break;
                         case 'croxyproxy':
                             proxyUrl = `https://www.croxyproxy.com/go.php?u=${encodeURIComponent(url)}&b=1`;
                             break;
@@ -735,9 +748,15 @@
                         default:
                             proxyUrl = this.fallbackServices[service];
                     }
+                    
                     window.open(proxyUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
                 } else {
-                    window.open(this.fallbackServices[service], '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+                    // Open proxy service homepage if no URL provided
+                    if (service === 'custom') {
+                        window.open(this.customProxyUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+                    } else {
+                        window.open(this.fallbackServices[service], '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+                    }
                 }
             }
 
