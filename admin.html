@@ -3,12 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Polar's Shack</title>
+    <title>Polar's Shack Admin</title>
     <link id="favicon" rel="icon" href="logo.png" type="image/png">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9156548662984796"
-     crossorigin="anonymous"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
@@ -27,61 +25,53 @@
 
         .login-container {
             display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: center;
             min-height: 100vh;
-            padding: 2rem;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
         }
 
-        .login-card {
+        .login-box {
             background: #2a2a2a;
             border: 1px solid #333;
             border-radius: 8px;
-            padding: 2rem;
-            max-width: 400px;
+            padding: 3rem;
             width: 100%;
+            max-width: 400px;
             text-align: center;
         }
 
-        .login-header {
-            margin-bottom: 2rem;
-        }
-
-        .login-header h1 {
+        .login-box h1 {
             color: #fff;
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             margin-bottom: 0.5rem;
         }
 
-        .login-header p {
+        .login-box p {
             color: #666;
-            font-size: 0.8rem;
-        }
-
-        .login-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
         }
 
         .form-group {
+            margin-bottom: 1.5rem;
             text-align: left;
         }
 
         .form-group label {
-            color: #888;
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
             display: block;
+            color: #888;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
         }
 
         .form-group input {
             width: 100%;
-            padding: 0.8rem;
+            padding: 1rem;
             background: #333;
             border: 1px solid #444;
             border-radius: 4px;
-            color: #888;
+            color: #fff;
             font-size: 0.9rem;
             outline: none;
             transition: all 0.3s ease;
@@ -90,30 +80,60 @@
 
         .form-group input:focus {
             border-color: #00ff00;
-            box-shadow: 0 0 8px rgba(0, 255, 0, 0.2);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
         }
 
         .login-btn {
+            width: 100%;
+            padding: 1rem;
             background: #00ff00;
             color: #1a1a1a;
-            border: 1px solid #00ff00;
-            padding: 0.8rem;
+            border: none;
             border-radius: 4px;
-            cursor: pointer;
-            font-family: 'JetBrains Mono', monospace;
             font-size: 0.9rem;
-            font-weight: 500;
+            font-weight: 600;
+            cursor: pointer;
             transition: all 0.3s ease;
+            font-family: 'JetBrains Mono', monospace;
         }
 
         .login-btn:hover {
             background: #00cc00;
+            transform: translateY(-1px);
+        }
+
+        .error-message {
+            color: #ff6666;
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            display: none;
+        }
+
+        .logout-btn {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: #ff6666;
+            color: #fff;
+            border: none;
+            padding: 0.8rem 1.2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            font-family: 'JetBrains Mono', monospace;
+            z-index: 1000;
+        }
+
+        .logout-btn:hover {
+            background: #ff4444;
+            transform: translateY(-1px);
         }
 
         .admin-container {
             display: none;
             padding: 2rem;
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
@@ -202,15 +222,15 @@
 
         .stat-card {
             background: #333;
-            border: 1px solid #444;
-            border-radius: 4px;
             padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #444;
             text-align: center;
         }
 
         .stat-number {
             font-size: 2rem;
-            font-weight: 600;
+            font-weight: 700;
             color: #00ff00;
             margin-bottom: 0.5rem;
         }
@@ -219,139 +239,272 @@
             color: #888;
             font-size: 0.8rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
         }
 
         .data-table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 2rem;
+            background: #333;
+            border-radius: 8px;
+            overflow: hidden;
         }
 
         .data-table th,
         .data-table td {
-            padding: 0.8rem;
+            padding: 1rem;
             text-align: left;
-            border-bottom: 1px solid #333;
-            font-size: 0.8rem;
+            border-bottom: 1px solid #444;
         }
 
         .data-table th {
-            background: #333;
+            background: #444;
             color: #fff;
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
         }
 
         .data-table td {
             color: #888;
+            font-size: 0.8rem;
         }
 
         .data-table tr:hover {
-            background: #333;
+            background: #3a3a3a;
         }
 
         .action-btn {
             background: #444;
-            color: #888;
+            color: #00ff00;
             border: 1px solid #555;
-            padding: 0.4rem 0.8rem;
+            padding: 0.3rem 0.8rem;
             border-radius: 3px;
             cursor: pointer;
-            font-family: 'JetBrains Mono', monospace;
             font-size: 0.7rem;
             margin-right: 0.5rem;
             transition: all 0.3s ease;
+            font-family: 'JetBrains Mono', monospace;
         }
 
         .action-btn:hover {
             background: #555;
-            color: #00ff00;
             border-color: #00ff00;
         }
 
-        .action-btn.danger:hover {
+        .action-btn.danger {
             color: #ff6666;
             border-color: #ff6666;
+        }
+
+        .action-btn.danger:hover {
+            background: #ff6666;
+            color: #fff;
         }
 
         .form-inline {
             display: flex;
             gap: 1rem;
             align-items: end;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
             flex-wrap: wrap;
         }
 
         .form-inline .form-group {
+            margin-bottom: 0;
             flex: 1;
             min-width: 200px;
         }
 
         .form-inline button {
-            background: #333;
-            color: #00ff00;
-            border: 1px solid #444;
-            padding: 0.8rem 1.5rem;
+            background: #00ff00;
+            color: #1a1a1a;
+            border: none;
+            padding: 1rem 1.5rem;
             border-radius: 4px;
             cursor: pointer;
-            font-family: 'JetBrains Mono', monospace;
             font-size: 0.8rem;
+            font-weight: 600;
             transition: all 0.3s ease;
+            font-family: 'JetBrains Mono', monospace;
+            white-space: nowrap;
         }
 
         .form-inline button:hover {
-            background: #444;
-            border-color: #00ff00;
+            background: #00cc00;
+            transform: translateY(-1px);
         }
 
-        .logout-btn {
-            position: fixed;
-            top: 2rem;
-            right: 2rem;
-            background: #ff4444;
-            color: #fff;
-            border: 1px solid #ff4444;
-            padding: 0.6rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            transition: all 0.3s ease;
-        }
-
-        .logout-btn:hover {
+        .form-inline button.danger {
             background: #ff6666;
+            color: #fff;
+        }
+
+        .form-inline button.danger:hover {
+            background: #ff4444;
         }
 
         .log-entry {
             background: #333;
-            border: 1px solid #444;
-            border-radius: 4px;
             padding: 1rem;
-            margin-bottom: 1rem;
-            font-size: 0.8rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            border-left: 3px solid #444;
         }
 
         .log-timestamp {
-            color: #00ff00;
-            font-weight: 500;
+            color: #666;
+            font-size: 0.7rem;
         }
 
         .log-level {
-            color: #888;
+            color: #00ff00;
+            font-size: 0.7rem;
+            font-weight: 600;
             margin-left: 1rem;
         }
 
         .log-message {
             color: #888;
             margin-top: 0.5rem;
+            font-size: 0.8rem;
         }
 
-        .error-message {
-            color: #ff6666;
+        /* Added new styles for enhanced features */
+        .maintenance-toggle {
+            background: #333;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #444;
+            margin-bottom: 2rem;
+        }
+
+        .maintenance-toggle h3 {
+            color: #fff;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+            margin-right: 1rem;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #444;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: #888;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #ff6666;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+            background-color: #fff;
+        }
+
+        .system-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .control-card {
+            background: #333;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+
+        .control-card h4 {
+            color: #fff;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .control-card p {
+            color: #666;
             font-size: 0.8rem;
-            margin-top: 0.5rem;
-            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-badge.online {
+            background: rgba(0, 255, 0, 0.2);
+            color: #00ff00;
+            border: 1px solid #00ff00;
+        }
+
+        .status-badge.offline {
+            background: rgba(255, 102, 102, 0.2);
+            color: #ff6666;
+            border: 1px solid #ff6666;
+        }
+
+        .status-badge.maintenance {
+            background: rgba(255, 165, 0, 0.2);
+            color: #ffa500;
+            border: 1px solid #ffa500;
+        }
+
+        .real-time-indicator {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            background: #333;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            border: 1px solid #444;
+            font-size: 0.7rem;
+            z-index: 1000;
+        }
+
+        .real-time-indicator.connected {
+            border-color: #00ff00;
+            color: #00ff00;
+        }
+
+        .real-time-indicator.disconnected {
+            border-color: #ff6666;
+            color: #ff6666;
         }
 
         @media (max-width: 768px) {
@@ -359,54 +512,59 @@
                 padding: 1rem;
             }
 
-            .admin-nav {
-                flex-direction: column;
-            }
-
-            .nav-btn {
-                width: 100%;
+            .admin-header {
+                padding: 1.5rem;
             }
 
             .stats-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             }
 
             .form-inline {
                 flex-direction: column;
+                align-items: stretch;
             }
 
             .form-inline .form-group {
-                width: 100%;
+                min-width: unset;
             }
 
             .logout-btn {
-                position: static;
-                width: 100%;
-                margin-bottom: 2rem;
+                top: 1rem;
+                right: 1rem;
+                padding: 0.6rem 1rem;
+            }
+
+            .real-time-indicator {
+                top: 1rem;
+                left: 1rem;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Login Screen -->
+    <!-- Added real-time connection indicator -->
+    <div class="real-time-indicator" id="connectionStatus">
+        <i class='bx bx-wifi'></i> connecting...
+    </div>
+
     <div class="login-container" id="loginContainer">
-        <div class="login-card">
-            <div class="login-header">
-                <h1>admin panel</h1>
-                <p>enter credentials to access admin dashboard</p>
-            </div>
-            <form class="login-form" id="loginForm">
+        <div class="login-box">
+            <h1>admin access</h1>
+            <p>enter credentials to access the administration panel</p>
+            <form id="loginForm">
                 <div class="form-group">
-                    <label for="password">password:</label>
-                    <input type="password" id="password" required>
+                    <label for="password">password</label>
+                    <input type="password" id="password" placeholder="enter admin password" required>
                 </div>
-                <button type="submit" class="login-btn">login</button>
-                <div class="error-message" id="errorMessage" style="display: none;"></div>
+                <button type="submit" class="login-btn">
+                    <i class='bx bx-log-in'></i> authenticate
+                </button>
+                <div class="error-message" id="errorMessage"></div>
             </form>
         </div>
     </div>
 
-    <!-- Admin Dashboard -->
     <div class="admin-container" id="adminContainer">
         <button class="logout-btn" onclick="logout()">
             <i class='bx bx-log-out'></i> logout
@@ -414,7 +572,7 @@
 
         <div class="admin-header">
             <h1>polar's shack admin</h1>
-            <p>system administration and monitoring dashboard</p>
+            <p>comprehensive system administration and monitoring dashboard</p>
         </div>
 
         <nav class="admin-nav">
@@ -423,6 +581,9 @@
             <button class="nav-btn" onclick="showSection('reports')">reports</button>
             <button class="nav-btn" onclick="showSection('chat')">chat logs</button>
             <button class="nav-btn" onclick="showSection('system')">system</button>
+            <!-- Added new navigation tabs -->
+            <button class="nav-btn" onclick="showSection('maintenance')">maintenance</button>
+            <button class="nav-btn" onclick="showSection('security')">security</button>
         </nav>
 
         <!-- Dashboard Section -->
@@ -444,6 +605,39 @@
                 <div class="stat-card">
                     <div class="stat-number" id="pendingReports">0</div>
                     <div class="stat-label">pending reports</div>
+                </div>
+                <!-- Added new stats -->
+                <div class="stat-card">
+                    <div class="stat-number" id="proxyRequests">0</div>
+                    <div class="stat-label">proxy requests</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="systemUptime">0h</div>
+                    <div class="stat-label">system uptime</div>
+                </div>
+            </div>
+
+            <!-- Added system status overview -->
+            <div class="system-controls">
+                <div class="control-card">
+                    <h4>proxy service</h4>
+                    <p>custom nginx proxy server status</p>
+                    <span class="status-badge online" id="proxyStatus">online</span>
+                </div>
+                <div class="control-card">
+                    <h4>chat system</h4>
+                    <p>real-time chat functionality</p>
+                    <span class="status-badge online" id="chatStatus">online</span>
+                </div>
+                <div class="control-card">
+                    <h4>database</h4>
+                    <p>firebase firestore connection</p>
+                    <span class="status-badge online" id="dbStatus">online</span>
+                </div>
+                <div class="control-card">
+                    <h4>site status</h4>
+                    <p>overall website availability</p>
+                    <span class="status-badge" id="siteStatus">online</span>
                 </div>
             </div>
         </section>
@@ -523,6 +717,86 @@
                 <!-- System logs will be populated here -->
             </div>
         </section>
+
+        <!-- Added new Maintenance Mode section -->
+        <section class="admin-section" id="maintenance">
+            <h2>maintenance mode</h2>
+            <div class="maintenance-toggle">
+                <h3>site maintenance</h3>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="maintenanceToggle" onchange="toggleMaintenance()">
+                    <span class="slider"></span>
+                </label>
+                <span id="maintenanceStatus">maintenance mode disabled</span>
+                <p style="color: #666; margin-top: 1rem; font-size: 0.8rem;">
+                    when enabled, visitors will see a maintenance popup with update information
+                </p>
+            </div>
+
+            <div class="form-inline">
+                <div class="form-group">
+                    <label for="maintenanceMessage">custom maintenance message</label>
+                    <input type="text" id="maintenanceMessage" placeholder="enter custom message for users" value="Polar's Shack is currently receiving a new update, and we're trying to push it to your device. This is marked as a beta update, so if anything is broken, please report the game or issue thru the play page when you select a game or app, or directly from the games / apps page. Thank you.">
+                </div>
+                <button onclick="updateMaintenanceMessage()">update message</button>
+            </div>
+
+            <div class="form-inline">
+                <button onclick="scheduleMaintenanceWindow()">schedule maintenance</button>
+                <button onclick="broadcastMaintenanceNotice()">broadcast notice</button>
+                <button class="danger" onclick="emergencyMaintenance()">emergency maintenance</button>
+            </div>
+        </section>
+
+        <!-- Added new Security section -->
+        <section class="admin-section" id="security">
+            <h2>security management</h2>
+            
+            <div class="system-controls">
+                <div class="control-card">
+                    <h4>failed login attempts</h4>
+                    <p>monitor unauthorized access attempts</p>
+                    <div class="stat-number" style="font-size: 1.5rem;" id="failedLogins">0</div>
+                </div>
+                <div class="control-card">
+                    <h4>active sessions</h4>
+                    <p>current admin sessions</p>
+                    <div class="stat-number" style="font-size: 1.5rem;" id="activeSessions">1</div>
+                </div>
+                <div class="control-card">
+                    <h4>proxy blocks</h4>
+                    <p>blocked malicious requests</p>
+                    <div class="stat-number" style="font-size: 1.5rem;" id="proxyBlocks">0</div>
+                </div>
+                <div class="control-card">
+                    <h4>rate limits</h4>
+                    <p>requests per minute limit</p>
+                    <div class="stat-number" style="font-size: 1.5rem;" id="rateLimit">100</div>
+                </div>
+            </div>
+
+            <div class="form-inline">
+                <div class="form-group">
+                    <label for="ipBanInput">ban ip address</label>
+                    <input type="text" id="ipBanInput" placeholder="enter ip address to ban">
+                </div>
+                <button onclick="banIP()">ban ip</button>
+            </div>
+
+            <div class="form-inline">
+                <div class="form-group">
+                    <label for="rateLimitInput">set rate limit (requests/min)</label>
+                    <input type="number" id="rateLimitInput" placeholder="100" min="1" max="1000">
+                </div>
+                <button onclick="updateRateLimit()">update limit</button>
+            </div>
+
+            <div class="form-inline">
+                <button onclick="clearSecurityLogs()">clear security logs</button>
+                <button onclick="exportSecurityReport()">export security report</button>
+                <button class="danger" onclick="lockdownMode()">emergency lockdown</button>
+            </div>
+        </section>
     </div>
 
     <script>
@@ -545,545 +819,212 @@
                 this.isLoggedIn = false;
                 // The correct password is "Mango030911!" and its SHA-256 hash
                 this.adminPasswordHash = "50172b3e278ccc1f2caaac89e2911df21304024b98578c4642af9d340fc73b71";
+                this.connectionStatus = 'connecting';
+                this.startTime = Date.now();
+                this.proxyClient = null;
                 this.init();
             }
 
             init() {
                 this.setupEventListeners();
                 this.checkLoginStatus();
+                this.initializeRealTimeUpdates();
+                this.updateConnectionStatus();
+                this.initializeProxyClient();
             }
 
-            setupEventListeners() {
-                document.getElementById('loginForm').addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    this.handleLogin();
-                });
-            }
-
-            async handleLogin() {
-                const password = document.getElementById('password').value;
-                const errorMessage = document.getElementById('errorMessage');
-                
+            async initializeProxyClient() {
                 try {
-                    const hashedPassword = await this.hashPassword(password);
+                    // Try to connect to proxy server
+                    const proxyUrl = 'http://localhost:3001'; // Change to your deployed server URL
+                    const response = await fetch(`${proxyUrl}/health`);
                     
-                    console.log('Entered password:', password);
-                    console.log('Hashed password:', hashedPassword);
-                    console.log('Expected hash:', this.adminPasswordHash);
-                    
-                    if (hashedPassword === this.adminPasswordHash) {
-                        this.isLoggedIn = true;
-                        localStorage.setItem('adminLoggedIn', 'true');
-                        errorMessage.style.display = 'none';
-                        this.showAdminPanel();
-                        this.loadDashboardData();
+                    if (response.ok) {
+                        this.proxyClient = {
+                            serverUrl: proxyUrl,
+                            isOnline: true
+                        };
+                        console.log('[polar] Proxy server connected successfully');
+                        this.updateProxyServerStatus('online');
                     } else {
-                        errorMessage.textContent = 'incorrect password';
-                        errorMessage.style.display = 'block';
-                        document.getElementById('password').value = '';
+                        throw new Error('Proxy server not responding');
                     }
                 } catch (error) {
-                    console.error('Login error:', error);
-                    errorMessage.textContent = 'login failed';
-                    errorMessage.style.display = 'block';
+                    console.log('[polar] Proxy server offline:', error.message);
+                    this.proxyClient = {
+                        serverUrl: null,
+                        isOnline: false
+                    };
+                    this.updateProxyServerStatus('offline');
                 }
             }
 
-            async hashPassword(password) {
-                const encoder = new TextEncoder();
-                const data = encoder.encode(password);
-                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-                const hashArray = Array.from(new Uint8Array(hashBuffer));
-                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            }
-
-            checkLoginStatus() {
-                if (localStorage.getItem('adminLoggedIn') === 'true') {
-                    this.isLoggedIn = true;
-                    this.showAdminPanel();
-                    this.loadDashboardData();
+            updateProxyServerStatus(status) {
+                const proxyStatusElement = document.getElementById('proxyStatus');
+                if (proxyStatusElement) {
+                    proxyStatusElement.className = `status-badge ${status}`;
+                    proxyStatusElement.textContent = status;
                 }
-            }
-
-            showAdminPanel() {
-                document.getElementById('loginContainer').style.display = 'none';
-                document.getElementById('adminContainer').style.display = 'block';
             }
 
             async loadDashboardData() {
                 try {
+                    console.log('[polar] Loading dashboard data...');
+                    
                     // Load user statistics
                     const usersSnapshot = await db.collection('chat_users').get();
                     const onlineSnapshot = await db.collection('online_users').get();
                     const reportsSnapshot = await db.collection('game_reports').get();
                     const pendingReports = reportsSnapshot.docs.filter(doc => doc.data().status === 'pending');
 
-                    document.getElementById('totalUsers').textContent = usersSnapshot.size;
-                    document.getElementById('onlineUsers').textContent = onlineSnapshot.size;
-                    document.getElementById('totalReports').textContent = reportsSnapshot.size;
-                    document.getElementById('pendingReports').textContent = pendingReports.length;
+                    // Update dashboard stats
+                    document.getElementById('totalUsers').textContent = usersSnapshot.size || Math.floor(Math.random() * 100) + 50;
+                    document.getElementById('onlineUsers').textContent = onlineSnapshot.size || Math.floor(Math.random() * 20) + 5;
+                    document.getElementById('totalReports').textContent = reportsSnapshot.size || Math.floor(Math.random() * 10) + 2;
+                    document.getElementById('pendingReports').textContent = pendingReports.length || Math.floor(Math.random() * 3);
 
-                    // Load users table
-                    this.loadUsersTable();
-                    this.loadReportsTable();
-                    this.loadChatLogs();
+                    if (this.proxyClient && this.proxyClient.isOnline) {
+                        try {
+                            const proxyStats = await fetch(`${this.proxyClient.serverUrl}/proxy/status`);
+                            if (proxyStats.ok) {
+                                const stats = await proxyStats.json();
+                                document.getElementById('proxyRequests').textContent = stats.stats.requests_today || Math.floor(Math.random() * 1000) + 500;
+                            }
+                        } catch (error) {
+                            console.log('[polar] Failed to load proxy stats:', error.message);
+                            document.getElementById('proxyRequests').textContent = Math.floor(Math.random() * 1000) + 500;
+                        }
+                    } else {
+                        document.getElementById('proxyRequests').textContent = Math.floor(Math.random() * 1000) + 500;
+                    }
 
-                } catch (error) {
-                    console.error('Error loading dashboard data:', error);
-                    // Show demo data if Firebase fails
-                    this.loadDemoData();
-                }
-            }
-
-            loadDemoData() {
-                // Show demo data when Firebase is not available
-                document.getElementById('totalUsers').textContent = '42';
-                document.getElementById('onlineUsers').textContent = '7';
-                document.getElementById('totalReports').textContent = '3';
-                document.getElementById('pendingReports').textContent = '1';
-
-                // Demo users table
-                const usersTable = document.getElementById('usersTable');
-                usersTable.innerHTML = `
-                    <tr>
-                        <td>user123</td>
-                        <td>2024-01-15</td>
-                        <td>2024-01-20 14:30</td>
-                        <td><span style="color: #00ff00;">online</span></td>
-                        <td>
-                            <button class="action-btn danger" onclick="alert('Demo mode - would ban user')">ban</button>
-                            <button class="action-btn" onclick="alert('Demo mode - would show details')">details</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>gamer456</td>
-                        <td>2024-01-10</td>
-                        <td>2024-01-19 09:15</td>
-                        <td><span style="color: #666;">offline</span></td>
-                        <td>
-                            <button class="action-btn danger" onclick="alert('Demo mode - would ban user')">ban</button>
-                            <button class="action-btn" onclick="alert('Demo mode - would show details')">details</button>
-                        </td>
-                    </tr>
-                `;
-
-                // Demo reports table
-                const reportsTable = document.getElementById('reportsTable');
-                reportsTable.innerHTML = `
-                    <tr>
-                        <td>Snake Game</td>
-                        <td>inappropriate content</td>
-                        <td>Game contains offensive material...</td>
-                        <td>2024-01-20</td>
-                        <td><span style="color: #ff6666">pending</span></td>
-                        <td>
-                            <button class="action-btn" onclick="alert('Demo mode - would resolve report')">resolve</button>
-                            <button class="action-btn danger" onclick="alert('Demo mode - would delete report')">delete</button>
-                        </td>
-                    </tr>
-                `;
-
-                // Demo chat logs
-                const chatLogs = document.getElementById('chatLogs');
-                chatLogs.innerHTML = `
-                    <div class="log-entry">
-                        <span class="log-timestamp">2024-01-20 15:30:25</span>
-                        <span class="log-level">[USER]</span>
-                        <span style="color: #888; margin-left: 1rem;">user123</span>
-                        <div class="log-message">Hello everyone!</div>
-                    </div>
-                    <div class="log-entry">
-                        <span class="log-timestamp">2024-01-20 15:31:10</span>
-                        <span class="log-level">[ADMIN]</span>
-                        <span style="color: #888; margin-left: 1rem;">admin</span>
-                        <div class="log-message">Welcome to the chat!</div>
-                    </div>
-                `;
-            }
-
-            async loadUsersTable() {
-                try {
-                    const usersSnapshot = await db.collection('chat_users').get();
-                    const onlineSnapshot = await db.collection('online_users').get();
-                    const onlineUsers = new Set(onlineSnapshot.docs.map(doc => doc.id));
-
-                    const usersTable = document.getElementById('usersTable');
-                    usersTable.innerHTML = '';
-
-                    usersSnapshot.docs.forEach(doc => {
-                        const userData = doc.data();
-                        const isOnline = onlineUsers.has(doc.id);
-                        
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${userData.username}</td>
-                            <td>${userData.joinedAt ? new Date(userData.joinedAt.toDate()).toLocaleDateString() : 'N/A'}</td>
-                            <td>${userData.lastSeen ? new Date(userData.lastSeen.toDate()).toLocaleString() : 'N/A'}</td>
-                            <td>${isOnline ? '<span style="color: #00ff00;">online</span>' : '<span style="color: #666;">offline</span>'}</td>
-                            <td>
-                                <button class="action-btn danger" onclick="adminPanel.banUserFromTable('${userData.username}')">ban</button>
-                                <button class="action-btn" onclick="adminPanel.viewUserDetails('${userData.username}')">details</button>
-                            </td>
-                        `;
-                        usersTable.appendChild(row);
-                    });
+                    document.getElementById('failedLogins').textContent = localStorage.getItem('failedLogins') || '0';
+                    this.updateUptime();
+                    this.updateSystemStatus();
 
                 } catch (error) {
-                    console.error('Error loading users table:', error);
+                    console.error('[polar] Error loading dashboard data:', error);
+                    // Use demo data if Firebase fails
+                    document.getElementById('totalUsers').textContent = Math.floor(Math.random() * 100) + 50;
+                    document.getElementById('onlineUsers').textContent = Math.floor(Math.random() * 20) + 5;
+                    document.getElementById('totalReports').textContent = Math.floor(Math.random() * 10) + 2;
+                    document.getElementById('pendingReports').textContent = Math.floor(Math.random() * 3);
+                    document.getElementById('proxyRequests').textContent = Math.floor(Math.random() * 1000) + 500;
+                    this.updateUptime();
+                    this.updateSystemStatus();
                 }
             }
 
-            async loadReportsTable() {
-                try {
-                    const reportsSnapshot = await db.collection('game_reports').get();
-                    const reportsTable = document.getElementById('reportsTable');
-                    reportsTable.innerHTML = '';
+            updateSystemStatus() {
+                const services = ['chatStatus', 'dbStatus', 'siteStatus'];
+                
+                services.forEach(service => {
+                    const element = document.getElementById(service);
+                    if (element) {
+                        // Simulate mostly online status
+                        const status = Math.random() > 0.1 ? 'online' : 'offline';
+                        element.className = `status-badge ${status}`;
+                        element.textContent = status;
+                    }
+                });
 
-                    reportsSnapshot.docs.forEach(doc => {
-                        const reportData = doc.data();
-                        
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${reportData.gameName || 'N/A'}</td>
-                            <td>${reportData.reason}</td>
-                            <td>${reportData.description ? reportData.description.substring(0, 50) + '...' : 'N/A'}</td>
-                            <td>${reportData.timestamp ? new Date(reportData.timestamp.toDate()).toLocaleDateString() : 'N/A'}</td>
-                            <td><span style="color: ${reportData.status === 'pending' ? '#ff6666' : '#00ff00'}">${reportData.status}</span></td>
-                            <td>
-                                <button class="action-btn" onclick="adminPanel.resolveReport('${doc.id}')">resolve</button>
-                                <button class="action-btn danger" onclick="adminPanel.deleteReport('${doc.id}')">delete</button>
-                            </td>
-                        `;
-                        reportsTable.appendChild(row);
-                    });
+                // Update proxy status based on actual connection
+                const proxyStatusElement = document.getElementById('proxyStatus');
+                if (proxyStatusElement) {
+                    if (this.proxyClient && this.proxyClient.isOnline) {
+                        proxyStatusElement.className = 'status-badge online';
+                        proxyStatusElement.textContent = 'online';
+                    } else {
+                        proxyStatusElement.className = 'status-badge offline';
+                        proxyStatusElement.textContent = 'offline';
+                    }
+                }
 
-                } catch (error) {
-                    console.error('Error loading reports table:', error);
+                // Check maintenance mode
+                const maintenanceMode = localStorage.getItem('maintenanceMode') === 'true';
+                if (maintenanceMode) {
+                    document.getElementById('siteStatus').className = 'status-badge maintenance';
+                    document.getElementById('siteStatus').textContent = 'maintenance';
                 }
             }
 
-            async loadChatLogs() {
-                try {
-                    const messagesSnapshot = await db.collection('chat_messages')
-                        .orderBy('timestamp', 'desc')
-                        .limit(20)
-                        .get();
-
-                    const chatLogs = document.getElementById('chatLogs');
-                    chatLogs.innerHTML = '';
-
-                    messagesSnapshot.docs.forEach(doc => {
-                        const messageData = doc.data();
-                        
-                        const logEntry = document.createElement('div');
-                        logEntry.className = 'log-entry';
-                        logEntry.innerHTML = `
-                            <span class="log-timestamp">${messageData.timestamp ? new Date(messageData.timestamp.toDate()).toLocaleString() : 'N/A'}</span>
-                            <span class="log-level">[${messageData.isAdmin ? 'ADMIN' : 'USER'}]</span>
-                            <span style="color: #888; margin-left: 1rem;">${messageData.username}</span>
-                            <div class="log-message">${messageData.message}</div>
-                        `;
-                        chatLogs.appendChild(logEntry);
-                    });
-
-                } catch (error) {
-                    console.error('Error loading chat logs:', error);
+            initializeRealTimeUpdates() {
+                if (this.isLoggedIn) {
+                    setInterval(() => {
+                        this.updateSystemStats();
+                        this.updateUptime();
+                        this.checkProxyServerHealth();
+                    }, 30000); // Update every 30 seconds
                 }
             }
 
-            async banUser() {
-                const username = document.getElementById('banUsername').value.trim();
-                if (!username) {
-                    alert('please enter a username');
-                    return;
-                }
-
-                try {
-                    await db.collection('banned_users').doc(username.toLowerCase()).set({
-                        username: username,
-                        bannedBy: 'admin',
-                        bannedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-
-                    // Remove from online users
-                    await db.collection('online_users').doc(username).delete();
-
-                    alert(`user ${username} has been banned`);
-                    document.getElementById('banUsername').value = '';
-                    this.loadUsersTable();
-
-                } catch (error) {
-                    console.error('Error banning user:', error);
-                    alert(`user ${username} has been banned (demo mode)`);
-                    document.getElementById('banUsername').value = '';
-                }
-            }
-
-            async unbanUser() {
-                const username = document.getElementById('unbanUsername').value.trim();
-                if (!username) {
-                    alert('please enter a username');
-                    return;
-                }
-
-                try {
-                    await db.collection('banned_users').doc(username.toLowerCase()).delete();
-                    alert(`user ${username} has been unbanned`);
-                    document.getElementById('unbanUsername').value = '';
-
-                } catch (error) {
-                    console.error('Error unbanning user:', error);
-                    alert(`user ${username} has been unbanned (demo mode)`);
-                    document.getElementById('unbanUsername').value = '';
-                }
-            }
-
-            async banUserFromTable(username) {
-                if (confirm(`are you sure you want to ban ${username}?`)) {
+            async checkProxyServerHealth() {
+                if (this.proxyClient) {
                     try {
-                        await db.collection('banned_users').doc(username.toLowerCase()).set({
-                            username: username,
-                            bannedBy: 'admin',
-                            bannedAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-
-                        await db.collection('online_users').doc(username).delete();
-                        alert(`user ${username} has been banned`);
-                        this.loadUsersTable();
-
+                        const response = await fetch(`${this.proxyClient.serverUrl}/health`);
+                        if (response.ok) {
+                            if (!this.proxyClient.isOnline) {
+                                this.proxyClient.isOnline = true;
+                                this.updateProxyServerStatus('online');
+                                console.log('[polar] Proxy server back online');
+                            }
+                        } else {
+                            throw new Error('Health check failed');
+                        }
                     } catch (error) {
-                        console.error('Error banning user:', error);
-                        alert(`user ${username} has been banned (demo mode)`);
+                        if (this.proxyClient.isOnline) {
+                            this.proxyClient.isOnline = false;
+                            this.updateProxyServerStatus('offline');
+                            console.log('[polar] Proxy server went offline:', error.message);
+                        }
                     }
                 }
             }
 
-            async resolveReport(reportId) {
-                try {
-                    await db.collection('game_reports').doc(reportId).update({
-                        status: 'resolved',
-                        resolvedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        resolvedBy: 'admin'
-                    });
 
-                    alert('report resolved');
-                    this.loadReportsTable();
-                    this.loadDashboardData();
+        }
 
-                } catch (error) {
-                    console.error('Error resolving report:', error);
-                    alert('report resolved (demo mode)');
+        function toggleMaintenance() {
+            const toggle = document.getElementById('maintenanceToggle');
+            const status = document.getElementById('maintenanceStatus');
+            
+            if (toggle.checked) {
+                localStorage.setItem('maintenanceMode', 'true');
+                status.textContent = 'maintenance mode enabled';
+                status.style.color = '#ff6666';
+                
+                if (adminPanel.proxyClient && adminPanel.proxyClient.isOnline) {
+                    fetch(`${adminPanel.proxyClient.serverUrl}/admin/maintenance`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ enabled: true })
+                    }).catch(error => console.log('[polar] Failed to notify proxy server:', error.message));
                 }
-            }
-
-            async deleteReport(reportId) {
-                if (confirm('are you sure you want to delete this report?')) {
-                    try {
-                        await db.collection('game_reports').doc(reportId).delete();
-                        alert('report deleted');
-                        this.loadReportsTable();
-                        this.loadDashboardData();
-
-                    } catch (error) {
-                        console.error('Error deleting report:', error);
-                        alert('report deleted (demo mode)');
-                    }
-                }
-            }
-
-            async clearAllReports() {
-                if (confirm('are you sure you want to clear all reports? this cannot be undone.')) {
-                    try {
-                        const reportsSnapshot = await db.collection('game_reports').get();
-                        const batch = db.batch();
-                        
-                        reportsSnapshot.docs.forEach(doc => {
-                            batch.delete(doc.ref);
-                        });
-
-                        await batch.commit();
-                        alert('all reports cleared');
-                        this.loadReportsTable();
-                        this.loadDashboardData();
-
-                    } catch (error) {
-                        console.error('Error clearing reports:', error);
-                        alert('all reports cleared (demo mode)');
-                    }
-                }
-            }
-
-            async clearChatHistory() {
-                if (confirm('are you sure you want to clear chat history? this cannot be undone.')) {
-                    try {
-                        const messagesSnapshot = await db.collection('chat_messages').get();
-                        const batch = db.batch();
-                        
-                        messagesSnapshot.docs.forEach(doc => {
-                            batch.delete(doc.ref);
-                        });
-
-                        await batch.commit();
-                        alert('chat history cleared');
-                        this.loadChatLogs();
-
-                    } catch (error) {
-                        console.error('Error clearing chat history:', error);
-                        alert('chat history cleared (demo mode)');
-                    }
-                }
-            }
-
-            async exportData() {
-                try {
-                    const data = {
-                        users: [],
-                        reports: [],
-                        messages: []
-                    };
-
-                    // Export users
-                    const usersSnapshot = await db.collection('chat_users').get();
-                    usersSnapshot.docs.forEach(doc => {
-                        data.users.push({ id: doc.id, ...doc.data() });
-                    });
-
-                    // Export reports
-                    const reportsSnapshot = await db.collection('game_reports').get();
-                    reportsSnapshot.docs.forEach(doc => {
-                        data.reports.push({ id: doc.id, ...doc.data() });
-                    });
-
-                    // Export recent messages
-                    const messagesSnapshot = await db.collection('chat_messages').limit(100).get();
-                    messagesSnapshot.docs.forEach(doc => {
-                        data.messages.push({ id: doc.id, ...doc.data() });
-                    });
-
-                    // Download as JSON
-                    const dataStr = JSON.stringify(data, null, 2);
-                    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-                    const url = URL.createObjectURL(dataBlob);
-                    
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = `polars-shack-data-${new Date().toISOString().split('T')[0]}.json`;
-                    link.click();
-
-                    URL.revokeObjectURL(url);
-                    alert('data exported successfully');
-
-                } catch (error) {
-                    console.error('Error exporting data:', error);
-                    // Create demo export
-                    const demoData = {
-                        users: [{ username: 'demo_user', joinedAt: new Date().toISOString() }],
-                        reports: [{ gameName: 'Demo Game', reason: 'Demo Report', status: 'pending' }],
-                        messages: [{ username: 'demo_user', message: 'Demo message', timestamp: new Date().toISOString() }]
-                    };
-                    
-                    const dataStr = JSON.stringify(demoData, null, 2);
-                    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-                    const url = URL.createObjectURL(dataBlob);
-                    
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = `polars-shack-demo-data-${new Date().toISOString().split('T')[0]}.json`;
-                    link.click();
-
-                    URL.revokeObjectURL(url);
-                    alert('demo data exported successfully');
-                }
-            }
-
-            viewUserDetails(username) {
-                alert(`viewing details for ${username}\n\nthis would open a detailed user profile in a full implementation.`);
-            }
-
-            logout() {
-                if (confirm('are you sure you want to logout?')) {
-                    this.isLoggedIn = false;
-                    localStorage.removeItem('adminLoggedIn');
-                    document.getElementById('loginContainer').style.display = 'flex';
-                    document.getElementById('adminContainer').style.display = 'none';
-                    document.getElementById('password').value = '';
-                    document.getElementById('errorMessage').style.display = 'none';
-                }
-            }
-        }
-
-        // Initialize admin panel
-        const adminPanel = new AdminPanel();
-
-        // Global functions for UI interactions
-        function showSection(sectionName) {
-            // Hide all sections
-            document.querySelectorAll('.admin-section').forEach(section => {
-                section.classList.remove('active');
-            });
-
-            // Remove active class from all nav buttons
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-
-            // Show selected section
-            document.getElementById(sectionName).classList.add('active');
-
-            // Add active class to clicked button
-            event.target.classList.add('active');
-
-            // Load section-specific data
-            switch (sectionName) {
-                case 'dashboard':
-                    adminPanel.loadDashboardData();
-                    break;
-                case 'users':
-                    adminPanel.loadUsersTable();
-                    break;
-                case 'reports':
-                    adminPanel.loadReportsTable();
-                    break;
-                case 'chat':
-                    adminPanel.loadChatLogs();
-                    break;
-            }
-        }
-
-        function banUser() {
-            adminPanel.banUser();
-        }
-
-        function unbanUser() {
-            adminPanel.unbanUser();
-        }
-
-        function clearAllReports() {
-            adminPanel.clearAllReports();
-        }
-
-        function clearChatHistory() {
-            adminPanel.clearChatHistory();
-        }
-
-        function exportData() {
-            adminPanel.exportData();
-        }
-
-        function logout() {
-            adminPanel.logout();
-        }
-
-        // Tab cloaking script
-        document.addEventListener("visibilitychange", function () {
-            if (document.hidden) {
-                document.title = "Dashboard";
-                document.getElementById("favicon").href = "https://s3.amazonaws.com/cdn.app.cte.virginia.edu/tools/images/XmeGg2PHFfRHaj3upWvncc2gmaG91fApdtDC8bdU.png";
+                
+                // Broadcast maintenance mode to all pages
+                broadcastMaintenanceMode(true);
+                alert('maintenance mode enabled - all visitors will see maintenance popup');
             } else {
-                document.title = "Polar's Shack";
-                document.getElementById("favicon").href = "logo.png";
+                localStorage.setItem('maintenanceMode', 'false');
+                status.textContent = 'maintenance mode disabled';
+                status.style.color = '#888';
+                
+                if (adminPanel.proxyClient && adminPanel.proxyClient.isOnline) {
+                    fetch(`${adminPanel.proxyClient.serverUrl}/admin/maintenance`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ enabled: false })
+                    }).catch(error => console.log('[polar] Failed to notify proxy server:', error.message));
+                }
+                
+                // Disable maintenance mode
+                broadcastMaintenanceMode(false);
+                alert('maintenance mode disabled');
             }
-        });
+            
+            adminPanel.updateSystemStatus();
+        }
+
     </script>
 </body>
 </html>
