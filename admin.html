@@ -924,7 +924,7 @@
             constructor() {
                 this.apiUrl = 'https://api.jsonbin.io/v3/b/67a0f1e5e41b4d34e4684c8a'
                 this.apiKey = '$2a$10$9L8kM7nP5qR3sT6uI2oW1.4jG8hK9dL2cE5bA7yT1uI6pW0qV8rX3'
-                this.proxyServerUrl = window.location.hostname === 'localhost' ? 'http://localhost:3001' : 'https://polars-shack.vercel.app'
+                this.proxyServerUrl = 'https://polars-shack.vercel.app/api/proxy'
                 this.isLoggedIn = false;
                 // The correct password is "Mango030911!" and its SHA-256 hash
                 this.adminPasswordHash = "50172b3e278ccc1f2caaac89e2911df21304024b98578c4642af9d340fc73b71";
@@ -932,7 +932,6 @@
                 this.startTime = Date.now();
                 this.proxyClient = null;
                 this.useFirebase = isFirebaseConfigured && db !== null;
-
             }
 
             init() {
@@ -999,21 +998,32 @@
 
             async initializeProxyClient() {
                 try {
-                    const response = await fetch(`${this.proxyServerUrl}/proxy/status`);
+                    const response = await fetch(`${this.proxyServerUrl}/health`, {
+                        method: 'GET',
+                        timeout: 5000
+                    });
                     if (response.ok) {
                         const data = await response.json();
                         console.log('[v0] Proxy client initialized:', data);
                         this.proxyClient = {
                             status: 'connected',
+                            serverUrl: this.proxyServerUrl,
+                            isOnline: true,
                             stats: data.stats || {}
                         };
+                        this.updateProxyServerStatus('online');
+                    } else {
+                        throw new Error('Proxy server not responding');
                     }
                 } catch (error) {
                     console.log('[v0] Proxy client initialization failed:', error);
                     this.proxyClient = {
                         status: 'disconnected',
+                        serverUrl: null,
+                        isOnline: false,
                         stats: {}
                     };
+                    this.updateProxyServerStatus('offline');
                 }
             }
 
@@ -1624,8 +1634,7 @@
             }
 
             getClientIP() {
-                // This is a placeholder - in a real implementation you'd get the actual client IP
-                return 'localhost';
+                return 'unknown';
             }
 
             broadcastMaintenanceMode(enabled) {
@@ -1735,7 +1744,7 @@
                 results.innerHTML = '<p>Testing proxy connections...</p>'
                 
                 const proxies = [
-                    { name: "Polar's Custom Proxy", url: 'https://polars-proxy-server.vercel.app', priority: 1 },
+                    { name: "Polar's Official Proxy", url: 'https://polars-shack.vercel.app/api/proxy', priority: 1 },
                     { name: 'Corsproxy.io', url: 'https://corsproxy.io/?', priority: 2 },
                     { name: 'AllOrigins', url: 'https://api.allorigins.win/raw?url=', priority: 3 }
                 ]
@@ -1744,7 +1753,7 @@
                 
                 for (const proxy of proxies) {
                     try {
-                        const testUrl = proxy.url.includes('polars-proxy') ? 
+                        const testUrl = proxy.url.includes('polars-shack') ? 
                             `${proxy.url}/health` :
                             proxy.url.includes('corsproxy') ?
                             `${proxy.url}https://httpbin.org/status/200` :
@@ -1784,7 +1793,7 @@
             async restartProxyServer() {
                 if (confirm('Are you sure you want to restart the proxy server? This may cause temporary downtime.')) {
                     try {
-                        const response = await fetch('https://polars-proxy-server.vercel.app/admin/restart', {
+                        const response = await fetch('https://polars-shack.vercel.app/api/proxy/admin/restart', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ adminKey: 'polar-admin-2024' })
@@ -1954,16 +1963,38 @@
 
         // The testProxyConnection method already exists in the adminPanel object
         
+        let adminPanel;
+        
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('[v0] Admin panel initializing...');
+            adminPanel = new AdminPanel();
             adminPanel.init();
             
-            // Test proxy connection on load
+            // Update connection status immediately
+            document.getElementById('connectionStatus').textContent = 'Initializing...';
+            document.getElementById('connectionStatus').style.color = '#ffa500';
+            
             setTimeout(() => {
-                console.log('[v0] Testing proxy connection...');
-                adminPanel.testProxyConnection();
-            }, 1000);
+                if (adminPanel.proxyClient && adminPanel.proxyClient.status === 'connected') {
+                    document.getElementById('connectionStatus').textContent = 'Connected';
+                    document.getElementById('connectionStatus').style.color = '#00ff00';
+                } else {
+                    document.getElementById('connectionStatus').textContent = 'Offline (Using Fallbacks)';
+                    document.getElementById('connectionStatus').style.color = '#ff6666';
+                }
+            }, 2000);
         });
+
+        function lockdownMode() {
+            if (adminPanel) adminPanel.lockdownMode();
+        }
+        
+        function emergencyGlobalLockdown() {
+            if (adminPanel) adminPanel.emergencyGlobalLockdown();
+        }
+        
+        function toggleMaintenanceDismissal() {
+            if (adminPanel) adminPanel.toggleMaintenanceDismissal();
+        }
     </script>
 </body>
 </html>
