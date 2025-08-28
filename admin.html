@@ -1904,97 +1904,13 @@
                 }
             }
 
-        function testProxyConnection() {
-            adminPanel.testProxyConnection()
-        }
+        // All functionality is now properly contained within the adminPanel object
 
-        function restartProxyServer() {
-            adminPanel.restartProxyServer()
-        }
-
-        function generateAnalyticsReport() {
-            adminPanel.generateAnalyticsReport()
-        }
-
-        function exportAnalytics() {
-            adminPanel.generateAnalyticsReport()
-        }
-
-        function createBackup() {
-            adminPanel.createBackup()
-        }
-
-        function restoreBackup() {
-            alert('Restore functionality requires file upload - feature coming soon')
-        }
-
-        function purgeCache() {
-            adminPanel.addSecurityLog('CDN cache purged by admin', 'info')
-            alert('CDN cache has been purged successfully')
-        }
-
-        function optimizeAssets() {
-            adminPanel.addSecurityLog('Asset optimization initiated', 'info')
-            alert('Asset optimization has been initiated')
-        }
-
-        function executeCustomCommand() {
-            adminPanel.executeCustomCommand()
-        }
-
-        function viewSystemLogs() {
-            adminPanel.addSecurityLog('System logs accessed by admin', 'info')
-            alert('System logs viewer - feature coming soon')
-        }
-
-        function monitorPerformance() {
-            adminPanel.addSecurityLog('Performance monitoring accessed', 'info')
-            alert('Performance monitoring dashboard - feature coming soon')
-        }
-
-        function emergencyShutdown() {
-            adminPanel.emergencyShutdown()
-        }
-
-        document.getElementById('loginForm').addEventListener('submit', (event) => {
-            event.preventDefault();
-            adminPanel.handleLogin(event);
-        });
-
-        // The testProxyConnection method already exists in the adminPanel object
-        
-        let adminPanel;
-        
+        // Initialize admin panel when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            adminPanel = new AdminPanel();
-            adminPanel.init();
-            
-            // Update connection status immediately
-            document.getElementById('connectionStatus').textContent = 'Initializing...';
-            document.getElementById('connectionStatus').style.color = '#ffa500';
-            
-            setTimeout(() => {
-                if (adminPanel.proxyClient && adminPanel.proxyClient.status === 'connected') {
-                    document.getElementById('connectionStatus').textContent = 'Connected';
-                    document.getElementById('connectionStatus').style.color = '#00ff00';
-                } else {
-                    document.getElementById('connectionStatus').textContent = 'Offline (Using Fallbacks)';
-                    document.getElementById('connectionStatus').style.color = '#ff6666';
-                }
-            }, 2000);
-        });
-
-        function lockdownMode() {
-            if (adminPanel) adminPanel.lockdownMode();
-        }
-        
-        function emergencyGlobalLockdown() {
-            if (adminPanel) adminPanel.emergencyGlobalLockdown();
-        }
-        
-        function toggleMaintenanceDismissal() {
-            if (adminPanel) adminPanel.toggleMaintenanceDismissal();
-        }
+            console.log('[v0] Admin panel initializing...')
+            adminPanel.init()
+        })
     </script>
 </body>
 </html>
