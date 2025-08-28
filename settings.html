@@ -376,6 +376,11 @@
     </div>
 
     <script>
+        // Load maintenance mode system
+        const maintenanceScript = document.createElement('script');
+        maintenanceScript.src = 'maintenance-mode.js';
+        document.head.appendChild(maintenanceScript);
+
         // Load settings on page load
         window.addEventListener('load', loadSettings);
 
