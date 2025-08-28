@@ -549,9 +549,14 @@
     </main>
 
     <script>
+        const maintenanceScript = document.createElement('script');
+        maintenanceScript.src = '../maintenance-mode.js';
+        document.head.appendChild(maintenanceScript);
+
         class ProxyManager {
             constructor() {
-                this.proxyServices = {
+                this.customProxyUrl = 'http://localhost:3001'; // Change to your deployed server URL
+                this.fallbackServices = {
                     croxyproxy: 'https://www.croxyproxy.com/',
                     proxysite: 'https://www.proxysite.com/',
                     hideme: 'https://hide.me/en/proxy',
@@ -560,6 +565,7 @@
                     plainproxies: 'https://plainproxies.com/'
                 };
                 this.setupEventListeners();
+                this.checkProxyStatus();
             }
 
             setupEventListeners() {
@@ -569,6 +575,41 @@
                         this.openInProxy();
                     }
                 });
+            }
+
+            async checkProxyStatus() {
+                try {
+                    const response = await fetch(`${this.customProxyUrl}/proxy/status`);
+                    if (response.ok) {
+                        const status = await response.json();
+                        console.log('[v0] Custom proxy server online:', status);
+                        this.updateProxyStatus('online');
+                    } else {
+                        throw new Error('Proxy server not responding');
+                    }
+                } catch (error) {
+                    console.log('[v0] Custom proxy server offline, using fallbacks:', error.message);
+                    this.updateProxyStatus('fallback');
+                }
+            }
+
+            updateProxyStatus(status) {
+                const statusElements = document.querySelectorAll('.status-indicator');
+                statusElements.forEach(element => {
+                    if (status === 'online') {
+                        element.className = 'status-indicator status-online';
+                    } else {
+                        element.className = 'status-indicator status-offline';
+                    }
+                });
+
+                // Update page header description
+                const pageDescription = document.querySelector('.page-header p');
+                if (status === 'online') {
+                    pageDescription.textContent = 'unblocked web access through our custom proxy servers. bypass restrictions and access any website securely.';
+                } else {
+                    pageDescription.textContent = 'unblocked web access through working proxies. custom server offline, using fallback services.';
+                }
             }
 
             normalizeUrl(url) {
@@ -605,7 +646,7 @@
                 return url;
             }
 
-            openInProxy() {
+            async openInProxy() {
                 const urlInput = document.getElementById('urlInput');
                 const url = this.normalizeUrl(urlInput.value);
                 
@@ -617,9 +658,24 @@
                 // Save to recent sites
                 this.saveRecentSite(url);
 
-                // Open in CroxyProxy by default (handles X-Frame-Options better)
-                const proxyUrl = `https://www.croxyproxy.com/go.php?u=${encodeURIComponent(url)}&b=1`;
-                window.open(proxyUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=yes,menubar=yes,location=yes');
+                try {
+                    // Try custom proxy server first
+                    const proxyUrl = `${this.customProxyUrl}/proxy/${encodeURIComponent(url)}`;
+                    console.log('[v0] Opening with custom proxy:', proxyUrl);
+                    
+                    // Test if custom proxy is working
+                    const testResponse = await fetch(`${this.customProxyUrl}/health`);
+                    if (testResponse.ok) {
+                        window.open(proxyUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=yes,menubar=yes,location=yes');
+                        return;
+                    }
+                } catch (error) {
+                    console.log('[v0] Custom proxy failed, using fallback:', error.message);
+                }
+
+                // Fallback to CroxyProxy
+                const fallbackUrl = `https://www.croxyproxy.com/go.php?u=${encodeURIComponent(url)}&b=1`;
+                window.open(fallbackUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=yes,menubar=yes,location=yes');
             }
 
             openDirect() {
@@ -645,11 +701,26 @@
                 }
             }
 
-            useProxyService(service) {
+            async useProxyService(service) {
                 const urlInput = document.getElementById('urlInput');
                 const url = this.normalizeUrl(urlInput.value);
                 
                 if (url) {
+                    // Try custom proxy first for better performance
+                    if (service === 'croxyproxy') {
+                        try {
+                            const customUrl = `${this.customProxyUrl}/proxy/${encodeURIComponent(url)}`;
+                            const testResponse = await fetch(`${this.customProxyUrl}/health`);
+                            if (testResponse.ok) {
+                                window.open(customUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+                                return;
+                            }
+                        } catch (error) {
+                            console.log('[v0] Custom proxy unavailable, using external service');
+                        }
+                    }
+
+                    // Use external services as fallback
                     let proxyUrl;
                     switch(service) {
                         case 'croxyproxy':
@@ -662,11 +733,11 @@
                             proxyUrl = `https://hide.me/en/proxy`;
                             break;
                         default:
-                            proxyUrl = this.proxyServices[service];
+                            proxyUrl = this.fallbackServices[service];
                     }
                     window.open(proxyUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
                 } else {
-                    window.open(this.proxyServices[service], '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+                    window.open(this.fallbackServices[service], '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
                 }
             }
 
