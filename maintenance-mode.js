@@ -3,6 +3,8 @@ class MaintenanceMode {
     this.isMaintenanceMode = false
     this.maintenanceMessage = ""
     this.popup = null
+    this.apiUrl = "https://api.jsonbin.io/v3/b/67a0f1e5e41b4d34e4684c8a" // JSONBin.io endpoint for cross-device state
+    this.apiKey = "$2a$10$FyO6Rk61cFF8tkXtzyZ61O4RM4VR4SwRvSRhbyUtCuIvO6e6OXRHq" // Read-only key
     this.init()
   }
 
@@ -10,10 +12,45 @@ class MaintenanceMode {
     this.checkMaintenanceStatus()
     this.setupStorageListener()
 
-    // Check maintenance status every 30 seconds
     setInterval(() => {
-      this.checkMaintenanceStatus()
-    }, 30000)
+      this.checkServerMaintenanceStatus()
+    }, 15000)
+
+    this.checkServerMaintenanceStatus()
+  }
+
+  async checkServerMaintenanceStatus() {
+    try {
+      const response = await fetch(`${this.apiUrl}/latest`, {
+        headers: {
+          "X-Master-Key": this.apiKey,
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        const serverState = data.record
+
+        if (serverState.maintenanceMode || serverState.lockdownMode) {
+          const message =
+            serverState.maintenanceMessage ||
+            "Polar's Shack is currently receiving a new update, and we're trying to push it to your device. This is marked as a beta update, so if anything is broken, please report the game or issue thru the play page when you select a game or app, or directly from the games / apps page. Thank you."
+
+          if (!this.isMaintenanceMode) {
+            this.showMaintenancePopup(message, serverState.lockdownMode)
+          }
+        } else if (
+          this.isMaintenanceMode &&
+          !localStorage.getItem("maintenanceMode") &&
+          !localStorage.getItem("lockdownMode")
+        ) {
+          this.hideMaintenancePopup()
+        }
+      }
+    } catch (error) {
+      console.log("[v0] Server maintenance check failed, using local storage fallback")
+      this.checkMaintenanceStatus() // Fallback to local storage
+    }
   }
 
   checkMaintenanceStatus() {
@@ -31,7 +68,6 @@ class MaintenanceMode {
   }
 
   setupStorageListener() {
-    // Listen for storage changes from other tabs/windows
     window.addEventListener("storage", (e) => {
       if (e.key === "maintenanceMode" || e.key === "lockdownMode") {
         this.checkMaintenanceStatus()
@@ -40,12 +76,11 @@ class MaintenanceMode {
   }
 
   showMaintenancePopup(message, isLockdown = false) {
-    if (this.popup) return // Already showing
+    if (this.popup) return
 
     this.isMaintenanceMode = true
     this.maintenanceMessage = message
 
-    // Create popup overlay
     this.popup = document.createElement("div")
     this.popup.className = "maintenance-popup-overlay"
     this.popup.innerHTML = `
@@ -81,21 +116,16 @@ class MaintenanceMode {
             </div>
         `
 
-    // Add styles
     this.addMaintenanceStyles()
 
-    // Add to page
     document.body.appendChild(this.popup)
 
-    // Animate in
     setTimeout(() => {
       this.popup.classList.add("active")
     }, 100)
 
-    // Start progress animation
     this.animateProgress()
 
-    // Disable page interactions if lockdown
     if (isLockdown) {
       document.body.style.pointerEvents = "none"
       this.popup.style.pointerEvents = "auto"
@@ -108,7 +138,6 @@ class MaintenanceMode {
     this.isMaintenanceMode = false
     this.popup.classList.remove("active")
 
-    // Re-enable interactions
     document.body.style.pointerEvents = ""
 
     setTimeout(() => {
@@ -120,9 +149,10 @@ class MaintenanceMode {
   }
 
   dismissPopup() {
-    // Only allow dismissal if not in lockdown mode
+    const allowDismissal = localStorage.getItem("allowMaintenanceDismissal") === "true"
     const lockdownMode = localStorage.getItem("lockdownMode") === "true"
-    if (!lockdownMode) {
+
+    if (!lockdownMode || allowDismissal) {
       this.hideMaintenancePopup()
     }
   }
@@ -340,8 +370,5 @@ class MaintenanceMode {
   }
 }
 
-// Initialize maintenance mode system
 const maintenanceMode = new MaintenanceMode()
-
-// Make it globally available
 window.maintenanceMode = maintenanceMode
