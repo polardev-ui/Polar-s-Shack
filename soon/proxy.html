@@ -555,7 +555,7 @@
 
         class ProxyManager {
             constructor() {
-                this.customProxyUrl = 'https://polars-proxy-server.vercel.app'; // Your deployed NGINX proxy server
+                this.customProxyUrl = 'https://polars-shack.vercel.app/api/proxy'; // Your Vercel API endpoint
                 this.fallbackServices = {
                     custom: this.customProxyUrl,
                     corsproxy: 'https://corsproxy.io/?',
@@ -582,7 +582,7 @@
 
             async checkProxyStatus() {
                 try {
-                    const response = await fetch(`${this.customProxyUrl}/health`, {
+                    const response = await fetch(`https://polars-shack.vercel.app/api/proxy/health`, {
                         method: 'GET',
                         mode: 'cors',
                         timeout: 10000
@@ -702,10 +702,10 @@
 
                 if (this.customProxyOnline) {
                     try {
-                        const proxyUrl = `${this.customProxyUrl}/proxy?url=${encodeURIComponent(url)}`;
+                        const proxyUrl = `https://polars-shack.vercel.app/api/proxy?url=${encodeURIComponent(url)}`;
                         console.log('[v0] Opening with custom NGINX proxy:', proxyUrl);
                         
-                        const testResponse = await fetch(`${this.customProxyUrl}/health`);
+                        const testResponse = await fetch(`https://polars-shack.vercel.app/api/proxy/health`);
                         if (testResponse.ok) {
                             window.open(proxyUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=yes,menubar=yes,location=yes');
                             return;
@@ -775,7 +775,7 @@
                     switch(service) {
                         case 'custom':
                             if (this.customProxyOnline) {
-                                proxyUrl = `${this.customProxyUrl}/proxy?url=${encodeURIComponent(url)}`;
+                                proxyUrl = `https://polars-shack.vercel.app/api/proxy?url=${encodeURIComponent(url)}`;
                                 console.log('[v0] Using custom NGINX proxy:', proxyUrl);
                             } else {
                                 proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
