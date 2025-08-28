@@ -1025,6 +1025,10 @@ Strength: ${this.calculatePasswordStrength(password)}`;
                 document.getElementById("favicon").href = "../logo.png";
             }
         });
+
+        const maintenanceScript = document.createElement('script');
+        maintenanceScript.src = '../maintenance-mode.js';
+        document.head.appendChild(maintenanceScript);
     </script>
 </body>
 </html>
