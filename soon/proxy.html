@@ -516,8 +516,8 @@
                 <button class="launch-btn">launch proxy</button>
             </div>
 
-            <div class="proxy-card" onclick="useProxyService('croxyproxy')">
-                <h3><span class="status-indicator status-online"></span>croxyproxy</h3>
+            <div class="proxy-card" onclick="useProxyService('corsproxy')">
+                <h3><span class="status-indicator status-online"></span>corsproxy</h3>
                 <p>free web proxy with ssl support and high-speed browsing</p>
                 <button class="launch-btn">launch proxy</button>
             </div>
@@ -555,19 +555,20 @@
 
         class ProxyManager {
             constructor() {
-                this.customProxyUrl = 'https://proxy.polarsshack.com'; // Your deployed NGINX proxy server
+                this.customProxyUrl = 'https://polars-proxy-server.vercel.app'; // Your deployed NGINX proxy server
                 this.fallbackServices = {
                     custom: this.customProxyUrl,
+                    corsproxy: 'https://corsproxy.io/?',
+                    allorigins: 'https://api.allorigins.win/raw?url=',
+                    thingproxy: 'https://thingproxy.freeboard.io/fetch/',
                     croxyproxy: 'https://www.croxyproxy.com/',
                     proxysite: 'https://www.proxysite.com/',
-                    hideme: 'https://hide.me/en/proxy',
-                    filterbypass: 'https://www.filterbypass.me/',
-                    kproxy: 'https://www.kproxy.com/',
-                    plainproxies: 'https://plainproxies.com/'
+                    hideme: 'https://hide.me/en/proxy'
                 };
                 this.customProxyOnline = false;
                 this.setupEventListeners();
                 this.checkProxyStatus();
+                this.updateProxyRequestCount();
             }
 
             setupEventListeners() {
@@ -584,11 +585,12 @@
                     const response = await fetch(`${this.customProxyUrl}/health`, {
                         method: 'GET',
                         mode: 'cors',
-                        timeout: 5000
+                        timeout: 10000
                     });
                     
                     if (response.ok) {
-                        console.log('[v0] Custom NGINX proxy server online');
+                        const data = await response.json();
+                        console.log('[v0] Custom NGINX proxy server online:', data);
                         this.customProxyOnline = true;
                         this.updateProxyStatus('online');
                     } else {
@@ -598,7 +600,38 @@
                     console.log('[v0] Custom NGINX proxy server offline, using fallbacks:', error.message);
                     this.customProxyOnline = false;
                     this.updateProxyStatus('fallback');
+                    // Try fallback services
+                    this.testFallbackServices();
                 }
+            }
+
+            async testFallbackServices() {
+                const testUrl = 'https://httpbin.org/status/200';
+                const workingServices = [];
+                
+                for (const [name, url] of Object.entries(this.fallbackServices)) {
+                    if (name === 'custom') continue;
+                    
+                    try {
+                        const testEndpoint = name === 'corsproxy' ? `${url}${testUrl}` :
+                                           name === 'allorigins' ? `${url}${encodeURIComponent(testUrl)}` :
+                                           name === 'thingproxy' ? `${url}${testUrl}` : url;
+                        
+                        const response = await fetch(testEndpoint, { 
+                            method: 'GET', 
+                            timeout: 5000 
+                        });
+                        
+                        if (response.ok) {
+                            workingServices.push(name);
+                            console.log(`[v0] Fallback service ${name} is working`);
+                        }
+                    } catch (error) {
+                        console.log(`[v0] Fallback service ${name} failed:`, error.message);
+                    }
+                }
+                
+                this.workingFallbacks = workingServices;
             }
 
             updateProxyStatus(status) {
@@ -606,23 +639,19 @@
                 const customProxyCard = document.querySelector('.proxy-card');
                 
                 if (status === 'online') {
-                    // Update custom proxy status
                     if (customProxyCard) {
                         const customStatus = customProxyCard.querySelector('.status-indicator');
                         customStatus.className = 'status-indicator status-online';
                     }
                     
-                    // Update page header description
                     const pageDescription = document.querySelector('.page-header p');
                     pageDescription.textContent = 'unblocked web access through our custom NGINX proxy servers. bypass restrictions and access any website securely.';
                 } else {
-                    // Mark custom proxy as offline
                     if (customProxyCard) {
                         const customStatus = customProxyCard.querySelector('.status-indicator');
                         customStatus.className = 'status-indicator status-offline';
                     }
                     
-                    // Update page header description
                     const pageDescription = document.querySelector('.page-header p');
                     pageDescription.textContent = 'unblocked web access through working proxies. custom NGINX server offline, using fallback services.';
                 }
@@ -633,7 +662,6 @@
                 
                 url = url.trim();
                 
-                // Handle common shortcuts
                 const shortcuts = {
                     'google': 'https://www.google.com',
                     'youtube': 'https://www.youtube.com',
@@ -649,12 +677,10 @@
                     return shortcuts[url.toLowerCase()];
                 }
 
-                // Add protocol if missing
                 if (!url.startsWith('http://') && !url.startsWith('https://')) {
                     if (url.includes('.') && !url.includes(' ')) {
                         url = 'https://' + url;
                     } else {
-                        // Treat as search query
                         url = 'https://www.google.com/search?q=' + encodeURIComponent(url);
                     }
                 }
@@ -671,17 +697,19 @@
                     return;
                 }
 
-                // Save to recent sites
                 this.saveRecentSite(url);
+                this.updateProxyRequestCount();
 
                 if (this.customProxyOnline) {
                     try {
-                        // Use custom NGINX proxy with proper URL encoding
                         const proxyUrl = `${this.customProxyUrl}/proxy?url=${encodeURIComponent(url)}`;
                         console.log('[v0] Opening with custom NGINX proxy:', proxyUrl);
                         
-                        window.open(proxyUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=yes,menubar=yes,location=yes');
-                        return;
+                        const testResponse = await fetch(`${this.customProxyUrl}/health`);
+                        if (testResponse.ok) {
+                            window.open(proxyUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=yes,menubar=yes,location=yes');
+                            return;
+                        }
                     } catch (error) {
                         console.log('[v0] Custom NGINX proxy failed:', error.message);
                         this.customProxyOnline = false;
@@ -689,9 +717,28 @@
                     }
                 }
 
-                // Fallback to CroxyProxy
-                console.log('[v0] Using CroxyProxy fallback');
+                console.log('[v0] Using fallback proxy services');
+                
+                try {
+                    const corsproxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+                    console.log('[v0] Using corsproxy.io:', corsproxyUrl);
+                    window.open(corsproxyUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=yes,menubar=yes,location=yes');
+                    return;
+                } catch (error) {
+                    console.log('[v0] Corsproxy failed:', error.message);
+                }
+
+                try {
+                    const alloriginsUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+                    console.log('[v0] Using allorigins:', alloriginsUrl);
+                    window.open(alloriginsUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=yes,menubar=yes,location=yes');
+                    return;
+                } catch (error) {
+                    console.log('[v0] AllOrigins failed:', error.message);
+                }
+
                 const fallbackUrl = `https://www.croxyproxy.com/go.php?u=${encodeURIComponent(url)}&b=1`;
+                console.log('[v0] Using CroxyProxy as final fallback');
                 window.open(fallbackUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=yes,menubar=yes,location=yes');
             }
 
@@ -731,9 +778,8 @@
                                 proxyUrl = `${this.customProxyUrl}/proxy?url=${encodeURIComponent(url)}`;
                                 console.log('[v0] Using custom NGINX proxy:', proxyUrl);
                             } else {
-                                // Fallback to CroxyProxy if custom is offline
-                                proxyUrl = `https://www.croxyproxy.com/go.php?u=${encodeURIComponent(url)}&b=1`;
-                                console.log('[v0] Custom proxy offline, using CroxyProxy fallback');
+                                proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+                                console.log('[v0] Custom proxy offline, using corsproxy.io fallback');
                             }
                             break;
                         case 'croxyproxy':
@@ -750,10 +796,14 @@
                     }
                     
                     window.open(proxyUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+                    this.updateProxyRequestCount();
                 } else {
-                    // Open proxy service homepage if no URL provided
                     if (service === 'custom') {
-                        window.open(this.customProxyUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+                        if (this.customProxyOnline) {
+                            window.open(this.customProxyUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+                        } else {
+                            alert('Custom proxy server is currently offline. Please try again later.');
+                        }
                     } else {
                         window.open(this.fallbackServices[service], '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
                     }
@@ -769,15 +819,18 @@
                 let recent = JSON.parse(localStorage.getItem('recentSites') || '[]');
                 recent = recent.filter(site => site !== url);
                 recent.unshift(url);
-                recent = recent.slice(0, 10); // Keep only 10 recent sites
+                recent = recent.slice(0, 10);
                 localStorage.setItem('recentSites', JSON.stringify(recent));
+            }
+
+            updateProxyRequestCount() {
+                const currentCount = parseInt(localStorage.getItem('proxyRequests') || '0');
+                localStorage.setItem('proxyRequests', (currentCount + 1).toString());
             }
         }
 
-        // Initialize proxy manager
         const proxyManager = new ProxyManager();
 
-        // Global functions for UI interactions
         function openInProxy() {
             proxyManager.openInProxy();
         }
@@ -811,7 +864,6 @@
             }
         }
 
-        // Close mobile menu when clicking outside
         document.addEventListener('click', function(event) {
             const navbar = document.querySelector('.navbar');
             const mobileMenu = document.getElementById('mobileMenu');
@@ -821,7 +873,6 @@
             }
         });
 
-        // Handle URL parameters for app launches
         window.addEventListener('load', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const targetUrl = urlParams.get('url');
@@ -830,7 +881,6 @@
             if (targetUrl) {
                 document.getElementById('urlInput').value = decodeURIComponent(targetUrl);
                 if (appName) {
-                    // Auto-launch the app
                     setTimeout(() => {
                         proxyManager.openInProxy();
                     }, 500);
@@ -838,7 +888,6 @@
             }
         });
 
-        // Tab cloaking script
         document.addEventListener("visibilitychange", function () {
             if (document.hidden) {
                 document.title = "Dashboard";
