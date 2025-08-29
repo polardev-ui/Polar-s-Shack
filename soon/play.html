@@ -450,12 +450,12 @@
 
     <script>
         const firebaseConfig = {
-            apiKey: process.env.FIREBASE_API_KEY || "AIzaSyBqJJQqJQqJQqJQqJQqJQqJQqJQqJQqJQq",
-            authDomain: process.env.FIREBASE_AUTH_DOMAIN || "polars-shack.firebaseapp.com",
-            projectId: process.env.FIREBASE_PROJECT_ID || "polars-shack",
-            storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "polars-shack.appspot.com",
-            messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "123456789012",
-            appId: process.env.FIREBASE_APP_ID || "1:123456789012:web:abcdefghijklmnopqr"
+            apiKey: "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs",
+            authDomain: "polars-shack.firebaseapp.com",
+            projectId: "polars-shack",
+            storageBucket: "polars-shack.firebasestorage.app",
+            messagingSenderId: "205388124682",
+            appId: "1:205388124682:web:2b0b1605517e0c6c53c5f3"
         };
 
         firebase.initializeApp(firebaseConfig);
@@ -505,21 +505,35 @@
                 gameFrame.src = this.gameUrl;
 
                 gameFrame.onload = () => {
+                    console.log("[v0] Game loaded successfully");
                     setTimeout(() => {
                         loadingScreen.classList.add('hidden');
                     }, 1000);
                 };
 
                 gameFrame.onerror = () => {
-                    loadingScreen.innerHTML = `
-                        <div style="text-align: center;">
-                            <i class='bx bx-error' style="font-size: 3rem; color: #ff6666; margin-bottom: 1rem;"></i>
-                            <div style="color: #ff6666; font-size: 1.1rem; margin-bottom: 0.5rem;">failed to load game</div>
-                            <div style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;">the game server may be unavailable</div>
-                            <button onclick="window.location.reload()" style="background: #333; color: #00ff00; border: 1px solid #444; padding: 0.6rem 1.2rem; border-radius: 4px; cursor: pointer; font-family: 'JetBrains Mono', monospace;">retry</button>
-                        </div>
-                    `;
+                    console.error("[v0] Game failed to load");
+                    this.showGameError();
                 };
+
+                setTimeout(() => {
+                    if (!loadingScreen.classList.contains('hidden')) {
+                        console.log("[v0] Game load timeout, hiding loading screen");
+                        loadingScreen.classList.add('hidden');
+                    }
+                }, 10000);
+            }
+
+            showGameError() {
+                const loadingScreen = document.getElementById('loadingScreen');
+                loadingScreen.innerHTML = `
+                    <div style="text-align: center;">
+                        <i class='bx bx-error' style="font-size: 3rem; color: #ff6666; margin-bottom: 1rem;"></i>
+                        <div style="color: #ff6666; font-size: 1.1rem; margin-bottom: 0.5rem;">failed to load game</div>
+                        <div style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;">the game server may be unavailable</div>
+                        <button onclick="window.location.reload()" style="background: #333; color: #00ff00; border: 1px solid #444; padding: 0.6rem 1.2rem; border-radius: 4px; cursor: pointer; font-family: 'JetBrains Mono', monospace;">retry</button>
+                    </div>
+                `;
             }
 
             setupEventListeners() {
