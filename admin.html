@@ -1908,23 +1908,25 @@
 
         const adminPanel = new AdminPanel();
 
-        // Initialize admin panel when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('[v0] Admin panel initializing...')
-            
-            // Initialize admin panel
-            const adminPanelInstance = new AdminPanel();
-            adminPanelInstance.init();
-            
-            // Prevent form submission and handle login
-            const loginForm = document.getElementById('loginForm');
-            if (loginForm) {
-                loginForm.addEventListener('submit', function(event) {
-                    event.preventDefault();
-                    adminPanelInstance.handleLogin(event);
-                });
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            adminPanel.handleLogin(e);
+        });
+
+        const adminPanel = new AdminPanel();
+        adminPanel.init();
+
+        // All functions are now properly contained within the AdminPanel class
+
+        document.addEventListener("visibilitychange", function () {
+            if (document.hidden) {
+                document.title = "Dashboard";
+                document.getElementById("favicon").href = "https://s3.amazonaws.com/cdn.app.cte.virginia.edu/tools/images/XmeGg2PHFfRHaj3upWvncc2gmaG91fApdtDC8bdU.png";
+            } else {
+                document.title = "Polar's Shack - Admin";
+                document.getElementById("favicon").href = "logo.png";
             }
-        })
+        });
     </script>
 </body>
 </html>
