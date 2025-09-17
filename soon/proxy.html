@@ -773,11 +773,11 @@
                     switch(service) {
                         case 'custom':
                             if (this.customProxyOnline) {
-                                proxyUrl = `https://polars-shack.vercel.app/api/proxy?url=${encodeURIComponent(url)}`;
-                                console.log('[v0] Using Vercel proxy:', proxyUrl);
+                                proxyUrl = `${this.customProxyUrl}?url=${encodeURIComponent(url)}`;
+                                console.log('[polar] Using Render proxy:', proxyUrl);
                             } else {
                                 proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
-                                console.log('[v0] Vercel proxy offline, using corsproxy.io fallback');
+                                console.log('[polar] Render proxy offline, using corsproxy.io fallback');
                             }
                             break;
                         case 'croxyproxy':
