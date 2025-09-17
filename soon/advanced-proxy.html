@@ -349,11 +349,13 @@
                 this.history = [];
                 this.currentIndex = -1;
                 this.currentUrl = '';
-                this.customProxyUrl = 'https://polars-shack.vercel.app/api/proxy';
+                this.renderBase = 'https://render-proxy-6x2v.onrender.com';
+                this.customProxyUrl = `${this.renderBase}/proxy`;
+                this.healthUrl = `${this.renderBase}/healthz`;
                 this.proxyEndpoints = [
                     {
-                        name: 'Vercel Proxy',
-                        url: 'https://polars-shack.vercel.app/api/proxy?url=',
+                        name: 'Render Proxy',
+                        url: `${this.customProxyUrl}?url=`,
                         encode: true,
                         isCustom: true
                     },
@@ -381,7 +383,7 @@
 
             async checkCustomProxyStatus() {
                 try {
-                    const response = await fetch('https://polars-shack.vercel.app/api/proxy/health');
+                    const response = await fetch(this.healthUrl);
                     if (response.ok) {
                         this.customProxyAvailable = true;
                         this.updateProxyStatus('vercel proxy online');
@@ -512,7 +514,7 @@
                     
                     if (proxy.isCustom) {
                         try {
-                            const testResponse = await fetch(`${this.customProxyUrl}/proxy/status`);
+                            const testResponse = await fetch(this.healthUrl);
                             if (!testResponse.ok) {
                                 throw new Error('Vercel proxy server not responding');
                             }
