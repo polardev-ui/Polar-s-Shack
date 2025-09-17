@@ -2,6 +2,7 @@
 class ProxyService {
     constructor() {
         this.corsProxies = [
+            'https://render-proxy-6x2v.onrender.com/proxy?url=',
             'https://api.allorigins.win/raw?url=',
             'https://cors-anywhere.herokuapp.com/',
             'https://thingproxy.freeboard.io/fetch/',
