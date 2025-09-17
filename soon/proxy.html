@@ -555,7 +555,9 @@
 
         class ProxyManager {
             constructor() {
-                this.customProxyUrl = 'https://polars-shack.vercel.app/api/proxy'; // Your Vercel API endpoint
+                this.renderBase = 'https://render-proxy-6x2v.onrender.com';
+                this.customProxyUrl = `${this.renderBase}/proxy`;
+                this.healthUrl = `${this.renderBase}/healthz`;
                 this.fallbackServices = {
                     custom: this.customProxyUrl,
                     corsproxy: 'https://corsproxy.io/?',
@@ -582,14 +584,7 @@
 
             async checkProxyStatus() {
                 try {
-                    const response = await fetch(`https://polars-shack.vercel.app/api/proxy/health`, {
-                        method: 'GET',
-                        mode: 'cors',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        }
-                    });
+                    const response = await fetch(this.healthUrl, { method: 'GET' });
                     
                     if (response.ok) {
                         const data = await response.json();
@@ -705,10 +700,10 @@
 
                 if (this.customProxyOnline) {
                     try {
-                        const proxyUrl = `https://polars-shack.vercel.app/api/proxy?url=${encodeURIComponent(url)}`;
+                        const proxyUrl = `${this.customProxyUrl}?url=${encodeURIComponent(url)}`;
                         console.log('[v0] Opening with Vercel proxy:', proxyUrl);
                         
-                        const testResponse = await fetch(`https://polars-shack.vercel.app/api/proxy/health`);
+                        const testResponse = await fetch(this.healthUrl);
                         if (testResponse.ok) {
                             window.open(proxyUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=yes,menubar=yes,location=yes');
                             return;
@@ -778,11 +773,11 @@
                     switch(service) {
                         case 'custom':
                             if (this.customProxyOnline) {
-                                proxyUrl = `https://polars-shack.vercel.app/api/proxy?url=${encodeURIComponent(url)}`;
-                                console.log('[v0] Using Vercel proxy:', proxyUrl);
+                                proxyUrl = `${this.customProxyUrl}?url=${encodeURIComponent(url)}`;
+                                console.log('[polar] Using Render proxy:', proxyUrl);
                             } else {
                                 proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
-                                console.log('[v0] Vercel proxy offline, using corsproxy.io fallback');
+                                console.log('[polar] Render proxy offline, using corsproxy.io fallback');
                             }
                             break;
                         case 'croxyproxy':
