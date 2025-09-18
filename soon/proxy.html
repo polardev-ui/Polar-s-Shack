@@ -1,506 +1,442 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Polar's Shack</title>
-    <link id="favicon" rel="icon" href="../logo.png" type="image/png">
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'JetBrains Mono', 'Courier New', monospace;
-            background: #1a1a1a; color: #888; min-height: 100vh;
-        }
-        .navbar { background: #1a1a1a; padding: 1rem 2rem; position: fixed; top: 0; width: 100%; z-index: 1000; border-bottom: 1px solid #333; }
-        .nav-container { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; }
-        .logo-nav { display: flex; align-items: center; gap: 10px; }
-        .logo-nav img { width: 32px; height: 32px; border-radius: 4px; }
-        .logo-nav span { font-size: 1.2rem; font-weight: 500; color: #fff; }
-        .nav-links { display: flex; gap: 2rem; list-style: none; }
-        .nav-links a { color: #888; text-decoration: none; padding: 0.5rem 0; transition: all 0.3s ease; font-size: 0.9rem; }
-        .nav-links a:hover, .nav-links a.active { color: #00ff00; }
-        .mobile-menu-btn { display: none; background: none; border: none; color: #888; font-size: 1.5rem; cursor: pointer; padding: 0.5rem; }
-        .mobile-menu { display: none; position: absolute; top: 100%; left: 0; right: 0; background: #1a1a1a; border-bottom: 1px solid #333; padding: 1rem 2rem; }
-        .mobile-menu.active { display: block; }
-        .mobile-menu a { display: block; color: #888; text-decoration: none; padding: 0.8rem 0; border-bottom: 1px solid #333; transition: all 0.3s ease; }
-        .mobile-menu a:hover, .mobile-menu a.active { color: #00ff00; }
-        .mobile-menu a:last-child { border-bottom: none; }
-        .main-content { margin-top: 80px; padding: 2rem; max-width: 1200px; margin-left: auto; margin-right: auto; }
-        .page-header { margin-bottom: 3rem; }
-        .page-header h1 { font-size: clamp(2rem, 6vw, 2.5rem); font-weight: 400; margin-bottom: 1rem; color: #fff; position: relative; }
-        .page-header h1::after { content: '_'; color: #00ff00; animation: blink 1s infinite; margin-left: 2px; }
-        .page-header p { font-size: clamp(0.9rem, 2.5vw, 1rem); color: #666; max-width: 600px; }
-        .proxy-container { background: #2a2a2a; border-radius: 8px; padding: 2rem; border: 1px solid #333; margin-bottom: 3rem; }
-        .proxy-controls { margin-bottom: 2rem; }
-        .url-input-container { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
-        .url-input { flex: 1; min-width: 250px; padding: 1rem; background: #333; border: 1px solid #444; border-radius: 4px; color: #888; font-size: 0.9rem; outline: none; transition: all 0.3s ease; font-family: 'JetBrains Mono', monospace; }
-        .url-input:focus { border-color: #00ff00; box-shadow: 0 0 10px rgba(0, 255, 0, 0.2); }
-        .proxy-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; }
-        .proxy-btn { padding: 1rem 1.5rem; background: #333; color: #00ff00; border: 1px solid #444; border-radius: 4px; font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all 0.3s ease; font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
-        .proxy-btn:hover { background: #444; border-color: #00ff00; transform: translateY(-1px); }
-        .proxy-btn.primary { background: #00ff00; color: #1a1a1a; }
-        .proxy-btn.primary:hover { background: #00cc00; }
-        .proxy-info { background: #333; padding: 1.5rem; border-radius: 8px; border: 1px solid #444; margin-bottom: 2rem; }
-        .proxy-info h3 { color: #fff; margin-bottom: 1rem; font-size: 1.1rem; }
-        .proxy-info p { color: #666; line-height: 1.6; margin-bottom: 1rem; font-size: 0.9rem; }
-        .proxy-info ul { color: #666; margin-left: 1.5rem; font-size: 0.8rem; }
-        .proxy-info li { margin-bottom: 0.5rem; }
-        .proxy-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
-        .proxy-card { background: #2a2a2a; padding: 1.5rem; border-radius: 8px; border: 1px solid #333; transition: all 0.3s ease; cursor: pointer; text-align: center; }
-        .proxy-card:hover { border-color: #00ff00; box-shadow: 0 0 20px rgba(0, 255, 0, 0.1); transform: translateY(-2px); }
-        .proxy-card h3 { color: #fff; margin-bottom: 0.5rem; font-size: 1rem; }
-        .proxy-card p { color: #666; font-size: 0.8rem; margin-bottom: 1rem; }
-        .proxy-card .launch-btn { background: #333; color: #00ff00; border: 1px solid #444; padding: 0.5rem 1rem; border-radius: 4px; font-size: 0.8rem; cursor: pointer; transition: all 0.3s ease; width: 100%; font-family: 'JetBrains Mono', monospace; }
-        .proxy-card .launch-btn:hover { background: #444; border-color: #00ff00; }
-        .status-indicator { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 0.5rem; }
-        .status-online { background: #00ff00; animation: pulse 2s infinite; }
-        .status-offline { background: #ff6666; }
-        .recent-sites { background: #333; padding: 1.5rem; border-radius: 8px; border: 1px solid #444; margin-bottom: 2rem; }
-        .recent-sites h3 { color: #fff; margin-bottom: 1rem; font-size: 1rem; }
-        .recent-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-        .recent-item { background: #444; color: #888; padding: 0.3rem 0.8rem; border-radius: 3px; font-size: 0.7rem; cursor: pointer; transition: all 0.3s ease; }
-        .recent-item:hover { background: #555; color: #00ff00; }
-        @keyframes blink { 0%,50% {opacity:1;} 51%,100% {opacity:0;} }
-        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
-        @media (max-width: 768px) {
-            .nav-links { display: none; }
-            .mobile-menu-btn { display: block; }
-            .main-content { padding: 1rem; margin-top: 70px; }
-            .proxy-container { padding: 1rem; }
-            .url-input-container { flex-direction: column; }
-            .url-input { min-width: unset; }
-            .proxy-buttons { flex-direction: column; }
-            .proxy-btn { width: 100%; padding: 0.8rem 1rem; font-size: 0.7rem; }
-            .proxy-options { grid-template-columns: 1fr; gap: 1rem; }
-            .proxy-card { padding: 1rem; }
-        }
-        @media (max-width: 480px) {
-            .proxy-info { padding: 1rem; }
-            .recent-sites { padding: 1rem; }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Polar's Shack</title>
+  <link id="favicon" rel="icon" href="../logo.png" type="image/png">
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* --- your CSS unchanged --- */
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'JetBrains Mono','Courier New',monospace;background:#1a1a1a;color:#888;min-height:100vh}
+    .navbar{background:#1a1a1a;padding:1rem 2rem;position:fixed;top:0;width:100%;z-index:1000;border-bottom:1px solid #333}
+    .nav-container{display:flex;justify-content:space-between;align-items:center;max-width:1200px;margin:0 auto}
+    .logo-nav{display:flex;align-items:center;gap:10px}
+    .logo-nav img{width:32px;height:32px;border-radius:4px}
+    .logo-nav span{font-size:1.2rem;font-weight:500;color:#fff}
+    .nav-links{display:flex;gap:2rem;list-style:none}
+    .nav-links a{color:#888;text-decoration:none;padding:.5rem 0;transition:all .3s ease;font-size:.9rem}
+    .nav-links a:hover,.nav-links a.active{color:#00ff00}
+    .mobile-menu-btn{display:none;background:none;border:none;color:#888;font-size:1.5rem;cursor:pointer;padding:.5rem}
+    .mobile-menu{display:none;position:absolute;top:100%;left:0;right:0;background:#1a1a1a;border-bottom:1px solid #333;padding:1rem 2rem}
+    .mobile-menu.active{display:block}
+    .mobile-menu a{display:block;color:#888;text-decoration:none;padding:.8rem 0;border-bottom:1px solid #333;transition:all .3s ease}
+    .mobile-menu a:hover,.mobile-menu a.active{color:#00ff00}
+    .mobile-menu a:last-child{border-bottom:none}
+    .main-content{margin-top:80px;padding:2rem;max-width:1200px;margin-left:auto;margin-right:auto}
+    .page-header{margin-bottom:3rem}
+    .page-header h1{font-size:clamp(2rem,6vw,2.5rem);font-weight:400;margin-bottom:1rem;color:#fff;position:relative}
+    .page-header h1::after{content:'_';color:#00ff00;animation:blink 1s infinite;margin-left:2px}
+    .page-header p{font-size:clamp(.9rem,2.5vw,1rem);color:#666;max-width:600px}
+    .proxy-container{background:#2a2a2a;border-radius:8px;padding:2rem;border:1px solid #333;margin-bottom:3rem}
+    .proxy-controls{margin-bottom:2rem}
+    .url-input-container{display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap}
+    .url-input{flex:1;min-width:250px;padding:1rem;background:#333;border:1px solid #444;border-radius:4px;color:#888;font-size:.9rem;outline:none;transition:all .3s ease;font-family:'JetBrains Mono',monospace}
+    .url-input:focus{border-color:#00ff00;box-shadow:0 0 10px rgba(0,255,0,.2)}
+    .proxy-buttons{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center}
+    .proxy-btn{padding:1rem 1.5rem;background:#333;color:#00ff00;border:1px solid #444;border-radius:4px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .3s ease;font-family:'JetBrains Mono',monospace;white-space:nowrap}
+    .proxy-btn:hover{background:#444;border-color:#00ff00;transform:translateY(-1px)}
+    .proxy-btn.primary{background:#00ff00;color:#1a1a1a}
+    .proxy-btn.primary:hover{background:#00cc00}
+    .proxy-info{background:#333;padding:1.5rem;border-radius:8px;border:1px solid #444;margin-bottom:2rem}
+    .proxy-info h3{color:#fff;margin-bottom:1rem;font-size:1.1rem}
+    .proxy-info p{color:#666;line-height:1.6;margin-bottom:1rem;font-size:.9rem}
+    .proxy-info ul{color:#666;margin-left:1.5rem;font-size:.8rem}
+    .proxy-info li{margin-bottom:.5rem}
+    .proxy-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem;margin-bottom:3rem}
+    .proxy-card{background:#2a2a2a;padding:1.5rem;border-radius:8px;border:1px solid #333;transition:all .3s ease;cursor:pointer;text-align:center}
+    .proxy-card:hover{border-color:#00ff00;box-shadow:0 0 20px rgba(0,255,0,.1);transform:translateY(-2px)}
+    .proxy-card h3{color:#fff;margin-bottom:.5rem;font-size:1rem}
+    .proxy-card p{color:#666;font-size:.8rem;margin-bottom:1rem}
+    .proxy-card .launch-btn{background:#333;color:#00ff00;border:1px solid #444;padding:.5rem 1rem;border-radius:4px;font-size:.8rem;cursor:pointer;transition:all .3s ease;width:100%;font-family:'JetBrains Mono',monospace}
+    .proxy-card .launch-btn:hover{background:#444;border-color:#00ff00}
+    .status-indicator{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:.5rem}
+    .status-online{background:#00ff00;animation:pulse 2s infinite}
+    .status-offline{background:#ff6666}
+    .recent-sites{background:#333;padding:1.5rem;border-radius:8px;border:1px solid #444;margin-bottom:2rem}
+    .recent-sites h3{color:#fff;margin-bottom:1rem;font-size:1rem}
+    .recent-list{display:flex;flex-wrap:wrap;gap:.5rem}
+    .recent-item{background:#444;color:#888;padding:.3rem .8rem;border-radius:3px;font-size:.7rem;cursor:pointer;transition:all .3s ease}
+    .recent-item:hover{background:#555;color:#00ff00}
+    @keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+    @media (max-width:768px){
+      .nav-links{display:none}
+      .mobile-menu-btn{display:block}
+      .main-content{padding:1rem;margin-top:70px}
+      .proxy-container{padding:1rem}
+      .url-input-container{flex-direction:column}
+      .url-input{min-width:unset}
+      .proxy-buttons{flex-direction:column}
+      .proxy-btn{width:100%;padding:.8rem 1rem;font-size:.7rem}
+      .proxy-options{grid-template-columns:1fr;gap:1rem}
+      .proxy-card{padding:1rem}
+    }
+    @media (max-width:480px){
+      .proxy-info{padding:1rem}
+      .recent-sites{padding:1rem}
+    }
+  </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="logo-nav">
-                <img src="../logo.png" alt="Logo">
-                <span>polar's.shack</span>
-            </div>
-            <ul class="nav-links">
-                <li><a href="index.html">home</a></li>
-                <li><a href="osint.html">osint</a></li>
-                <li><a href="csint.html">csint</a></li>
-                <li><a href="tools.html">tools</a></li>
-                <li><a href="games.html">games</a></li>
-                <li><a href="apps.html">apps</a></li>
-                <li><a href="proxy.html" class="active">proxy</a></li>
-                <li><a href="chat.html">chat</a></li>
-            </ul>
-            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
-                <i class='bx bx-menu'></i>
-            </button>
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="logo-nav">
+        <img src="../logo.png" alt="Logo"><span>polar's.shack</span>
+      </div>
+      <ul class="nav-links">
+        <li><a href="index.html">home</a></li>
+        <li><a href="osint.html">osint</a></li>
+        <li><a href="csint.html">csint</a></li>
+        <li><a href="tools.html">tools</a></li>
+        <li><a href="games.html">games</a></li>
+        <li><a href="apps.html">apps</a></li>
+        <li><a href="proxy.html" class="active">proxy</a></li>
+        <li><a href="chat.html">chat</a></li>
+      </ul>
+      <button class="mobile-menu-btn" onclick="toggleMobileMenu()"><i class='bx bx-menu'></i></button>
+    </div>
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="index.html">home</a>
+      <a href="osint.html">osint</a>
+      <a href="csint.html">csint</a>
+      <a href="tools.html">tools</a>
+      <a href="games.html">games</a>
+      <a href="apps.html">apps</a>
+      <a href="proxy.html" class="active">proxy</a>
+      <a href="chat.html">chat</a>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <section class="page-header">
+      <h1>web proxy</h1>
+      <p>unblocked web access through our custom NGINX proxy servers. bypass restrictions and access any website securely.</p>
+    </section>
+
+    <div class="proxy-container">
+      <div class="proxy-controls">
+        <div class="url-input-container">
+          <input type="url" class="url-input" id="urlInput" placeholder="enter website url (e.g., google.com)">
         </div>
-        <div class="mobile-menu" id="mobileMenu">
-            <a href="index.html">home</a>
-            <a href="osint.html">osint</a>
-            <a href="csint.html">csint</a>
-            <a href="tools.html">tools</a>
-            <a href="games.html">games</a>
-            <a href="apps.html">apps</a>
-            <a href="proxy.html" class="active">proxy</a>
-            <a href="chat.html">chat</a>
+        <div class="proxy-buttons">
+          <button class="proxy-btn primary" onclick="openInProxy()">> open_in_proxy</button>
+          <button class="proxy-btn" onclick="openDirect()">> open_direct</button>
+          <button class="proxy-btn" onclick="openAdvanced()">> advanced_proxy</button>
         </div>
-    </nav>
+      </div>
+    </div>
 
-    <main class="main-content">
-        <section class="page-header">
-            <h1>web proxy</h1>
-            <p>unblocked web access through our custom NGINX proxy servers. bypass restrictions and access any website securely.</p>
-        </section>
+    <div class="proxy-info">
+      <h3>how it works</h3>
+      <p>our proxy system bypasses network restrictions by routing your traffic through secure servers. choose from multiple proxy methods:</p>
+      <ul>
+        <li><strong>proxy mode:</strong> opens sites in a new window through our proxy servers</li>
+        <li><strong>direct mode:</strong> attempts direct connection (may be blocked)</li>
+        <li><strong>advanced proxy:</strong> full browser-like experience with navigation controls</li>
+      </ul>
+    </div>
 
-        <div class="proxy-container">
-            <div class="proxy-controls">
-                <div class="url-input-container">
-                    <input type="url" class="url-input" id="urlInput" placeholder="enter website url (e.g., google.com)">
-                </div>
-                <div class="proxy-buttons">
-                    <button class="proxy-btn primary" onclick="openInProxy()">
-                        > open_in_proxy
-                    </button>
-                    <button class="proxy-btn" onclick="openDirect()">
-                        > open_direct
-                    </button>
-                    <button class="proxy-btn" onclick="openAdvanced()">
-                        > advanced_proxy
-                    </button>
-                </div>
-            </div>
-        </div>
+    <div class="recent-sites">
+      <h3>quick access</h3>
+      <div class="recent-list">
+        <div class="recent-item" onclick="quickAccess('google.com')">google</div>
+        <div class="recent-item" onclick="quickAccess('youtube.com')">youtube</div>
+        <div class="recent-item" onclick="quickAccess('discord.com')">discord</div>
+        <div class="recent-item" onclick="quickAccess('reddit.com')">reddit</div>
+        <div class="recent-item" onclick="quickAccess('twitter.com')">twitter</div>
+        <div class="recent-item" onclick="quickAccess('instagram.com')">instagram</div>
+        <div class="recent-item" onclick="quickAccess('tiktok.com')">tiktok</div>
+        <div class="recent-item" onclick="quickAccess('netflix.com')">netflix</div>
+      </div>
+    </div>
 
-        <div class="proxy-info">
-            <h3>how it works</h3>
-            <p>our proxy system bypasses network restrictions by routing your traffic through secure servers. choose from multiple proxy methods:</p>
-            <ul>
-                <li><strong>proxy mode:</strong> opens sites in a new window through our proxy servers</li>
-                <li><strong>direct mode:</strong> attempts direct connection (may be blocked)</li>
-                <li><strong>advanced proxy:</strong> full browser-like experience with navigation controls</li>
-            </ul>
-        </div>
+    <section class="proxy-options">
+      <div class="proxy-card" onclick="useProxyService('custom')">
+        <h3><span class="status-indicator status-online"></span>polar's proxy</h3>
+        <p>our custom NGINX-powered proxy server with high performance and reliability</p>
+        <button class="launch-btn">launch proxy</button>
+      </div>
 
-        <div class="recent-sites">
-            <h3>quick access</h3>
-            <div class="recent-list">
-                <div class="recent-item" onclick="quickAccess('google.com')">google</div>
-                <div class="recent-item" onclick="quickAccess('youtube.com')">youtube</div>
-                <div class="recent-item" onclick="quickAccess('discord.com')">discord</div>
-                <div class="recent-item" onclick="quickAccess('reddit.com')">reddit</div>
-                <div class="recent-item" onclick="quickAccess('twitter.com')">twitter</div>
-                <div class="recent-item" onclick="quickAccess('instagram.com')">instagram</div>
-                <div class="recent-item" onclick="quickAccess('tiktok.com')">tiktok</div>
-                <div class="recent-item" onclick="quickAccess('netflix.com')">netflix</div>
-            </div>
-        </div>
+      <div class="proxy-card" onclick="useProxyService('corsproxy')">
+        <h3><span class="status-indicator status-online"></span>corsproxy</h3>
+        <p>free web proxy with ssl support and high-speed browsing</p>
+        <button class="launch-btn">launch proxy</button>
+      </div>
 
-        <section class="proxy-options">
-            <div class="proxy-card" onclick="useProxyService('custom')">
-                <h3><span class="status-indicator status-online"></span>polar's proxy</h3>
-                <p>our custom NGINX-powered proxy server with high performance and reliability</p>
-                <button class="launch-btn">launch proxy</button>
-            </div>
+      <div class="proxy-card" onclick="useProxyService('proxysite')">
+        <h3><span class="status-indicator status-online"></span>proxysite</h3>
+        <p>anonymous web proxy for secure and private browsing</p>
+        <button class="launch-btn">launch proxy</button>
+      </div>
 
-            <div class="proxy-card" onclick="useProxyService('corsproxy')">
-                <h3><span class="status-indicator status-online"></span>corsproxy</h3>
-                <p>free web proxy with ssl support and high-speed browsing</p>
-                <button class="launch-btn">launch proxy</button>
-            </div>
+      <div class="proxy-card" onclick="useProxyService('hideme')">
+        <h3><span class="status-indicator status-online"></span>hide.me</h3>
+        <p>fast and secure web proxy with no logs policy</p>
+        <button class="launch-btn">launch proxy</button>
+      </div>
 
-            <div class="proxy-card" onclick="useProxyService('proxysite')">
-                <h3><span class="status-indicator status-online"></span>proxysite</h3>
-                <p>anonymous web proxy for secure and private browsing</p>
-                <button class="launch-btn">launch proxy</button>
-            </div>
+      <div class="proxy-card" onclick="useProxyService('filterbypass')">
+        <h3><span class="status-indicator status-online"></span>filterbypass</h3>
+        <p>bypass internet filters and access blocked websites</p>
+        <button class="launch-btn">launch proxy</button>
+      </div>
 
-            <div class="proxy-card" onclick="useProxyService('hideme')">
-                <h3><span class="status-indicator status-online"></span>hide.me</h3>
-                <p>fast and secure web proxy with no logs policy</p>
-                <button class="launch-btn">launch proxy</button>
-            </div>
+      <div class="proxy-card" onclick="useProxyService('kproxy')">
+        <h3><span class="status-indicator status-online"></span>kproxy</h3>
+        <p>free anonymous web proxy with multiple server locations</p>
+        <button class="launch-btn">launch proxy</button>
+      </div>
+    </section>
+  </main>
 
-            <div class="proxy-card" onclick="useProxyService('filterbypass')">
-                <h3><span class="status-indicator status-online"></span>filterbypass</h3>
-                <p>bypass internet filters and access blocked websites</p>
-                <button class="launch-btn">launch proxy</button>
-            </div>
+  <!-- Scramjet client -->
+  <script src="https://render-proxy-6x2v.onrender.com/scram/scramjet.all.js"></script>
 
-            <div class="proxy-card" onclick="useProxyService('kproxy')">
-                <h3><span class="status-indicator status-online"></span>kproxy</h3>
-                <p>free anonymous web proxy with multiple server locations</p>
-                <button class="launch-btn">launch proxy</button>
-            </div>
-        </section>
-    </main>
+  <script>
+    const maintenanceScript = document.createElement('script');
+    maintenanceScript.src = '../maintenance-mode.js';
+    document.head.appendChild(maintenanceScript);
 
-    <!-- Scramjet client bundle from your Render instance -->
-    <script src="https://render-proxy-6x2v.onrender.com/scram/scramjet.all.js"></script>
+    // If Scramjet loaded, expose a helper (advanced rewrite)
+    (async () => {
+      try {
+        if (typeof $scramjetLoadClient === 'function') {
+          const { ScramjetController } = await $scramjetLoadClient();
+          const sj = new ScramjetController({ bare: 'https://render-proxy-6x2v.onrender.com/bare/', prefix: 'https://render-proxy-6x2v.onrender.com/scram/' });
+          window.toProxyUrl = (url) => sj.createUrl(url);
+          window.sj = sj;
+        }
+      } catch (e) {
+        console.log('Scramjet not available:', e.message);
+      }
+    })();
 
-    <script>
-        const maintenanceScript = document.createElement('script');
-        maintenanceScript.src = '../maintenance-mode.js';
-        document.head.appendChild(maintenanceScript);
+    class ProxyManager {
+      constructor() {
+        this.renderBase = 'https://render-proxy-6x2v.onrender.com';
+        this.customProxyUrl = `${this.renderBase}/proxy`;
+        this.healthUrl = `${this.renderBase}/healthz`;
+        this.fallbackServices = {
+          custom: this.customProxyUrl,
+          corsproxy: 'https://corsproxy.io/?',
+          allorigins: 'https://api.allorigins.win/raw?url=',
+          thingproxy: 'https://thingproxy.freeboard.io/fetch/',
+          croxyproxy: 'https://www.croxyproxy.com/',
+          proxysite: 'https://www.proxysite.com/',
+          hideme: 'https://hide.me/en/proxy'
+        };
+        this.customProxyOnline = false;
+        this.setupEventListeners();
+        this.checkProxyStatus();
+        this.updateProxyRequestCount();
+      }
 
-        // ===== Scramjet init (Render) =====
-        const RENDER_BASE = 'https://render-proxy-6x2v.onrender.com';
-        const HEALTH_URL  = RENDER_BASE + '/healthz';
-        window.__renderProxyOnline = false;
-        (async () => {
+      setupEventListeners() {
+        const urlInput = document.getElementById('urlInput');
+        urlInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') this.openInProxy();
+        });
+      }
+
+      async checkProxyStatus() {
+        // If Scramjet client loaded, just mark online
+        if (window.sj || window.toProxyUrl) {
+          this.customProxyOnline = true;
+          this.updateProxyStatus('online');
+          return;
+        }
+        // Try healthz (but don't mark offline if CORS blocks)
+        try {
+          const response = await fetch(this.healthUrl, { cache: 'no-store', mode: 'cors' });
+          this.customProxyOnline = response.ok;
+        } catch {
+          // CORS error or network: still treat as available (opening new tab doesn't need CORS)
+          this.customProxyOnline = true;
+        }
+        this.updateProxyStatus(this.customProxyOnline ? 'online' : 'fallback');
+        if (!this.customProxyOnline) this.testFallbackServices();
+      }
+
+      async testFallbackServices() {
+        const testUrl = 'https://httpbin.org/status/200';
+        const workingServices = [];
+        for (const [name, url] of Object.entries(this.fallbackServices)) {
+          if (name === 'custom') continue;
           try {
-            // Create Scramjet controller aimed at Render origin
-            const { ScramjetController } = await $scramjetLoadClient();
-            window.sj = new ScramjetController({
-              bare:   RENDER_BASE + '/bare/',
-              prefix: RENDER_BASE + '/scram/',
-            });
-            window.toProxyUrl = (url) => window.sj.createUrl(url);
+            const testEndpoint = name === 'corsproxy' ? `${url}${testUrl}` :
+                                 name === 'allorigins' ? `${url}${encodeURIComponent(testUrl)}` :
+                                 name === 'thingproxy' ? `${url}${testUrl}` : url;
+            const response = await fetch(testEndpoint, { method: 'GET' });
+            if (response.ok) workingServices.push(name);
+          } catch {}
+        }
+        this.workingFallbacks = workingServices;
+      }
 
-            // Health check to reflect real status in UI
-            const ok = await fetch(HEALTH_URL, { cache: 'no-store' });
-            window.__renderProxyOnline = ok && ok.ok;
-          } catch (e) {
-            console.warn('Scramjet init failed:', e);
-            window.__renderProxyOnline = false;
+      updateProxyStatus(status) {
+        const customProxyCard = document.querySelector('.proxy-card');
+        if (status === 'online') {
+          const customStatus = customProxyCard.querySelector('.status-indicator');
+          customStatus.className = 'status-indicator status-online';
+          document.querySelector('.page-header p').textContent =
+            'unblocked web access through our custom NGINX proxy servers. bypass restrictions and access any website securely.';
+        } else {
+          const customStatus = customProxyCard.querySelector('.status-indicator');
+          customStatus.className = 'status-indicator status-offline';
+          document.querySelector('.page-header p').textContent =
+            'unblocked web access through working proxies. custom NGINX server offline, using fallback services.';
+        }
+      }
+
+      normalizeUrl(url) {
+        if (!url) return '';
+        url = url.trim();
+        const shortcuts = {
+          google:'https://www.google.com', youtube:'https://www.youtube.com',
+          discord:'https://discord.com', reddit:'https://www.reddit.com',
+          twitter:'https://twitter.com', instagram:'https://www.instagram.com',
+          tiktok:'https://www.tiktok.com', netflix:'https://www.netflix.com'
+        };
+        if (shortcuts[url.toLowerCase()]) return shortcuts[url.toLowerCase()];
+        if (!/^https?:\/\//i.test(url)) {
+          if (url.includes('.') && !url.includes(' ')) url = 'https://' + url;
+          else url = 'https://www.google.com/search?q=' + encodeURIComponent(url);
+        }
+        return url;
+      }
+
+      async openInProxy() {
+        const urlInput = document.getElementById('urlInput');
+        const url = this.normalizeUrl(urlInput.value);
+        if (!url) return alert('please enter a valid url');
+
+        this.saveRecentSite(url);
+        this.updateProxyRequestCount();
+
+        // Prefer Scramjet full rewrite if available
+        if (window.toProxyUrl) {
+          const proxied = window.toProxyUrl(url);
+          window.open(proxied, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=yes,menubar=yes,location=yes');
+          return;
+        }
+
+        // Else open our /proxy (new window avoids CORS checks)
+        const proxyUrl = `${this.customProxyUrl}?url=${encodeURIComponent(url)}`;
+        window.open(proxyUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=yes,menubar=yes,location=yes');
+      }
+
+      openDirect() {
+        const urlInput = document.getElementById('urlInput');
+        const url = this.normalizeUrl(urlInput.value);
+        if (!url) return alert('please enter a valid url');
+        window.open(url, '_blank');
+      }
+
+      openAdvanced() {
+        const urlInput = document.getElementById('urlInput');
+        const url = this.normalizeUrl(urlInput.value);
+        if (url) window.open(`advanced-proxy.html?url=${encodeURIComponent(url)}`, '_blank', 'width=1400,height=900,scrollbars=yes,resizable=yes');
+        else window.open('advanced-proxy.html', '_blank', 'width=1400,height=900,scrollbars=yes,resizable=yes');
+      }
+
+      async useProxyService(service) {
+        const urlInput = document.getElementById('urlInput');
+        const url = this.normalizeUrl(urlInput.value);
+        if (url) {
+          let proxyUrl;
+          switch(service) {
+            case 'custom':
+              if (this.customProxyOnline) {
+                proxyUrl = `${this.customProxyUrl}?url=${encodeURIComponent(url)}`;
+                console.log('[polar] Using Render proxy:', proxyUrl);
+              } else {
+                proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+                console.log('[polar] Render proxy offline, using corsproxy.io fallback');
+              }
+              break;
+            case 'croxyproxy':
+              proxyUrl = `https://www.croxyproxy.com/go.php?u=${encodeURIComponent(url)}&b=1`; break;
+            case 'proxysite':
+              proxyUrl = `https://www.proxysite.com/`; break;
+            case 'hideme':
+              proxyUrl = `https://hide.me/en/proxy`; break;
+            default:
+              proxyUrl = this.fallbackServices[service];
           }
-        })();
-
-        class ProxyManager {
-            constructor() {
-                this.renderBase = RENDER_BASE;
-                this.customProxyUrl = `${this.renderBase}/proxy`;
-                this.healthUrl = HEALTH_URL;
-                this.fallbackServices = {
-                    custom: this.customProxyUrl,
-                    corsproxy: 'https://corsproxy.io/?',
-                    allorigins: 'https://api.allorigins.win/raw?url=',
-                    thingproxy: 'https://thingproxy.freeboard.io/fetch/',
-                    croxyproxy: 'https://www.croxyproxy.com/',
-                    proxysite: 'https://www.proxysite.com/',
-                    hideme: 'https://hide.me/en/proxy'
-                };
-                this.customProxyOnline = false;
-                this.setupEventListeners();
-                this.checkProxyStatus();
-                this.updateProxyRequestCount();
-            }
-
-            setupEventListeners() {
-                const urlInput = document.getElementById('urlInput');
-                urlInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        this.openInProxy();
-                    }
-                });
-            }
-
-            async checkProxyStatus() {
-                try {
-                    const response = await fetch(this.healthUrl, { method: 'GET', cache: 'no-store' });
-                    if (response.ok) {
-                        this.customProxyOnline = true;
-                        this.updateProxyStatus('online');
-                    } else {
-                        throw new Error(`Proxy server responded with status: ${response.status}`);
-                    }
-                } catch (error) {
-                    console.log('[polar] render proxy offline, using fallbacks:', error.message);
-                    this.customProxyOnline = false;
-                    this.updateProxyStatus('fallback');
-                    this.testFallbackServices();
-                }
-            }
-
-            async testFallbackServices() {
-                const testUrl = 'https://httpbin.org/status/200';
-                const workingServices = [];
-                for (const [name, url] of Object.entries(this.fallbackServices)) {
-                    if (name === 'custom') continue;
-                    try {
-                        const testEndpoint = name === 'corsproxy' ? `${url}${testUrl}`
-                                           : name === 'allorigins' ? `${url}${encodeURIComponent(testUrl)}`
-                                           : name === 'thingproxy' ? `${url}${testUrl}`
-                                           : url;
-                        const response = await fetch(testEndpoint, { method: 'GET' });
-                        if (response.ok) {
-                            workingServices.push(name);
-                            console.log(`[polar] Fallback service ${name} is working`);
-                        }
-                    } catch (error) {
-                        console.log(`[polar] Fallback service ${name} failed:`, error.message);
-                    }
-                }
-                this.workingFallbacks = workingServices;
-            }
-
-            updateProxyStatus(status) {
-                const customProxyCard = document.querySelector('.proxy-card');
-                if (status === 'online') {
-                    if (customProxyCard) {
-                        const customStatus = customProxyCard.querySelector('.status-indicator');
-                        if (customStatus) customStatus.className = 'status-indicator status-online';
-                    }
-                    const pageDescription = document.querySelector('.page-header p');
-                    if (pageDescription) pageDescription.textContent = 'unblocked web access via Render Scramjet proxy.';
-                } else {
-                    if (customProxyCard) {
-                        const customStatus = customProxyCard.querySelector('.status-indicator');
-                        if (customStatus) customStatus.className = 'status-indicator status-offline';
-                    }
-                    const pageDescription = document.querySelector('.page-header p');
-                    if (pageDescription) pageDescription.textContent = 'unblocked web access through working proxies. custom server offline, using fallbacks.';
-                }
-            }
-
-            normalizeUrl(url) {
-                if (!url) return '';
-                url = url.trim();
-                const shortcuts = {
-                    'google': 'https://www.google.com',
-                    'youtube': 'https://www.youtube.com',
-                    'discord': 'https://discord.com',
-                    'reddit': 'https://www.reddit.com',
-                    'twitter': 'https://twitter.com',
-                    'instagram': 'https://www.instagram.com',
-                    'tiktok': 'https://www.tiktok.com',
-                    'netflix': 'https://www.netflix.com'
-                };
-                if (shortcuts[url.toLowerCase()]) return shortcuts[url.toLowerCase()];
-                if (!/^https?:\/\//i.test(url)) {
-                    if (url.includes('.') && !url.includes(' ')) url = 'https://' + url;
-                    else url = 'https://www.google.com/search?q=' + encodeURIComponent(url);
-                }
-                return url;
-            }
-
-            async openInProxy() {
-                const urlInput = document.getElementById('urlInput');
-                const url = this.normalizeUrl(urlInput.value);
-                if (!url) return alert('please enter a valid url');
-
-                this.saveRecentSite(url);
-                this.updateProxyRequestCount();
-
-                // Prefer Scramjet/Bare (Render) when available
-                if (window.toProxyUrl && (this.customProxyOnline || window.__renderProxyOnline)) {
-                    const proxied = window.toProxyUrl(url);
-                    console.log('[polar] opening via Scramjet:', proxied);
-                    window.open(proxied, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=yes,menubar=yes,location=yes');
-                    return;
-                }
-
-                // Fallback: simple passthrough
-                if (this.customProxyOnline) {
-                    const proxyUrl = `${this.customProxyUrl}?url=${encodeURIComponent(url)}`;
-                    console.log('[polar] opening via /proxy passthrough:', proxyUrl);
-                    window.open(proxyUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=yes,menubar=yes,location=yes');
-                    return;
-                }
-
-                // Last resorts
-                try {
-                    const corsproxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
-                    console.log('[polar] using corsproxy.io:', corsproxyUrl);
-                    window.open(corsproxyUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=yes,menubar=yes,location=yes');
-                    return;
-                } catch {}
-                const fallbackUrl = `https://www.croxyproxy.com/go.php?u=${encodeURIComponent(url)}&b=1`;
-                console.log('[polar] using CroxyProxy fallback');
-                window.open(fallbackUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=yes,menubar=yes,location=yes');
-            }
-
-            openDirect() {
-                const urlInput = document.getElementById('urlInput');
-                const url = this.normalizeUrl(urlInput.value);
-                if (!url) return alert('please enter a valid url');
-                window.open(url, '_blank');
-            }
-
-            openAdvanced() {
-                const urlInput = document.getElementById('urlInput');
-                const url = this.normalizeUrl(urlInput.value);
-                if (url) {
-                    window.open(`advanced-proxy.html?url=${encodeURIComponent(url)}`, '_blank', 'width=1400,height=900,scrollbars=yes,resizable=yes');
-                } else {
-                    window.open('advanced-proxy.html', '_blank', 'width=1400,height=900,scrollbars=yes,resizable=yes');
-                }
-            }
-
-            async useProxyService(service) {
-                const urlInput = document.getElementById('urlInput');
-                const url = this.normalizeUrl(urlInput.value);
-                if (!url) {
-                    if (service === 'custom') {
-                        if (this.customProxyOnline) window.open(this.customProxyUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
-                        else alert('Render proxy server is currently offline. Please try again later.');
-                    } else {
-                        window.open(this.fallbackServices[service], '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
-                    }
-                    return;
-                }
-
-                let proxyUrl;
-                switch(service) {
-                    case 'custom':
-                        if (window.toProxyUrl && (this.customProxyOnline || window.__renderProxyOnline)) {
-                            proxyUrl = window.toProxyUrl(url);
-                            console.log('[polar] using Scramjet URL:', proxyUrl);
-                        } else if (this.customProxyOnline) {
-                            proxyUrl = `${this.customProxyUrl}?url=${encodeURIComponent(url)}`;
-                            console.log('[polar] using /proxy passthrough:', proxyUrl);
-                        } else {
-                            proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
-                            console.log('[polar] Render proxy offline, using corsproxy.io fallback');
-                        }
-                        break;
-                    case 'croxyproxy':
-                        proxyUrl = `https://www.croxyproxy.com/go.php?u=${encodeURIComponent(url)}&b=1`;
-                        break;
-                    case 'proxysite':
-                        proxyUrl = `https://www.proxysite.com/`;
-                        break;
-                    case 'hideme':
-                        proxyUrl = `https://hide.me/en/proxy`;
-                        break;
-                    default:
-                        proxyUrl = this.fallbackServices[service];
-                }
-                window.open(proxyUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
-                this.updateProxyRequestCount();
-            }
-
-            quickAccess(site) {
-                document.getElementById('urlInput').value = site;
-                this.openInProxy();
-            }
-
-            saveRecentSite(url) {
-                let recent = JSON.parse(localStorage.getItem('recentSites') || '[]');
-                recent = recent.filter(site => site !== url);
-                recent.unshift(url);
-                recent = recent.slice(0, 10);
-                localStorage.setItem('recentSites', JSON.stringify(recent));
-            }
-
-            updateProxyRequestCount() {
-                const currentCount = parseInt(localStorage.getItem('proxyRequests') || '0');
-                localStorage.setItem('proxyRequests', (currentCount + 1).toString());
-            }
+          window.open(proxyUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=yes,menubar=yes,location=yes');
+          this.updateProxyRequestCount();
+        } else {
+          if (service === 'custom') {
+            if (this.customProxyOnline) window.open(this.customProxyUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=yes,menubar=yes,location=yes');
+            else alert('Proxy server is currently offline. Please try again later.');
+          } else {
+            window.open(this.fallbackServices[service], '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=yes,menubar=yes,location=yes');
+          }
         }
+      }
 
-        const proxyManager = new ProxyManager();
+      quickAccess(site) {
+        document.getElementById('urlInput').value = site;
+        this.openInProxy();
+      }
 
-        function openInProxy() { proxyManager.openInProxy(); }
-        function openDirect()   { proxyManager.openDirect(); }
-        function openAdvanced() { proxyManager.openAdvanced(); }
-        function useProxyService(service) { proxyManager.useProxyService(service); }
-        function quickAccess(site) { proxyManager.quickAccess(site); }
+      saveRecentSite(url) {
+        let recent = JSON.parse(localStorage.getItem('recentSites') || '[]');
+        recent = recent.filter(site => site !== url);
+        recent.unshift(url);
+        recent = recent.slice(0, 10);
+        localStorage.setItem('recentSites', JSON.stringify(recent));
+      }
 
-        function toggleMobileMenu() {
-            const mobileMenu = document.getElementById('mobileMenu');
-            const menuBtn = document.querySelector('.mobile-menu-btn i');
-            mobileMenu.classList.toggle('active');
-            menuBtn.className = mobileMenu.classList.contains('active') ? 'bx bx-x' : 'bx bx-menu';
-        }
+      updateProxyRequestCount() {
+        const currentCount = parseInt(localStorage.getItem('proxyRequests') || '0');
+        localStorage.setItem('proxyRequests', (currentCount + 1).toString());
+      }
+    }
 
-        document.addEventListener('click', function(event) {
-            const navbar = document.querySelector('.navbar');
-            const mobileMenu = document.getElementById('mobileMenu');
-            if (!navbar.contains(event.target) && mobileMenu.classList.contains('active')) {
-                toggleMobileMenu();
-            }
-        });
+    const proxyManager = new ProxyManager();
 
-        window.addEventListener('load', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const targetUrl = urlParams.get('url');
-            const appName = urlParams.get('app');
-            if (targetUrl) {
-                document.getElementById('urlInput').value = decodeURIComponent(targetUrl);
-                if (appName) {
-                    setTimeout(() => { proxyManager.openInProxy(); }, 500);
-                }
-            }
-        });
+    function openInProxy(){ proxyManager.openInProxy(); }
+    function openDirect(){ proxyManager.openDirect(); }
+    function openAdvanced(){ proxyManager.openAdvanced(); }
+    function useProxyService(service){ proxyManager.useProxyService(service); }
+    function quickAccess(site){ proxyManager.quickAccess(site); }
 
-        document.addEventListener("visibilitychange", function () {
-            if (document.hidden) {
-                document.title = "Dashboard";
-                document.getElementById("favicon").href = "https://s3.amazonaws.com/cdn.app.cte.virginia.edu/tools/images/XmeGg2PHFfRHaj3upWvncc2gmaG91fApdtDC8bdU.png";
-            } else {
-                document.title = "Polar's Shack";
-                document.getElementById("favicon").href = "../logo.png";
-            }
-        });
-    </script>
+    function toggleMobileMenu() {
+      const mobileMenu = document.getElementById('mobileMenu');
+      const menuBtn = document.querySelector('.mobile-menu-btn i');
+      mobileMenu.classList.toggle('active');
+      menuBtn.className = mobileMenu.classList.contains('active') ? 'bx bx-x' : 'bx bx-menu';
+    }
+
+    document.addEventListener('click', function(event) {
+      const navbar = document.querySelector('.navbar');
+      const mobileMenu = document.getElementById('mobileMenu');
+      if (!navbar.contains(event.target) && mobileMenu.classList.contains('active')) toggleMobileMenu();
+    });
+
+    window.addEventListener('load', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const targetUrl = urlParams.get('url');
+      const appName = urlParams.get('app');
+      if (targetUrl) {
+        document.getElementById('urlInput').value = decodeURIComponent(targetUrl);
+        if (appName) setTimeout(() => proxyManager.openInProxy(), 500);
+      }
+    });
+
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) {
+        document.title = "Dashboard";
+        document.getElementById("favicon").href = "https://s3.amazonaws.com/cdn.app.cte.virginia.edu/tools/images/XmeGg2PHFfRHaj3upWvncc2gmaG91fApdtDC8bdU.png";
+      } else {
+        document.title = "Polar's Shack";
+        document.getElementById("favicon").href = "../logo.png";
+      }
+    });
+  </script>
 </body>
 </html>
