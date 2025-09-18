@@ -339,6 +339,35 @@
         </div>
     </div>
 
+<script src="https://render-proxy-6x2v.onrender.com/scram/scramjet.all.js"></script>
+<script>
+(async () => {
+  // Register SW on Vercel. The file /proxy-sw.js must be in project (public/).
+  await navigator.serviceWorker.register('/proxy-sw.js', { scope: '/' });
+
+  const { ScramjetController } = await $scramjetLoadClient();
+
+  const sj = new ScramjetController({
+    bare: 'https://render-proxy-6x2v.onrender.com/bare/',
+    prefix: 'https://render-proxy-6x2v.onrender.com/scram/',
+  });
+
+  // helper
+  window.toProxyUrl = (url) => sj.createUrl(url);
+
+  // Keep clicks inside the proxy (optional—Scramjet also rewrites a lot on its own)
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('a[href]');
+    if (!a) return;
+    const url = a.getAttribute('href');
+    if (!/^https?:\/\//i.test(url)) return; // let in-page anchors be
+    e.preventDefault();
+    const frame = document.getElementById('contentFrame');
+    frame.src = toProxyUrl(url);
+  });
+})();
+</script>
+
     <script>
         const maintenanceScript = document.createElement('script');
         maintenanceScript.src = '../maintenance-mode.js';
@@ -386,15 +415,15 @@
                     const response = await fetch(this.healthUrl);
                     if (response.ok) {
                         this.customProxyAvailable = true;
-                        this.updateProxyStatus('vercel proxy online');
-                        console.log('[v0] Vercel proxy server available');
+                        this.updateProxyStatus('render proxy online');
+                        console.log('[polar] Render proxy server available');
                     } else {
-                        throw new Error('Vercel proxy not responding');
+                        throw new Error('Render proxy not responding');
                     }
                 } catch (error) {
                     this.customProxyAvailable = false;
                     this.updateProxyStatus('fallback proxies');
-                    console.log('[v0] Vercel proxy unavailable, using fallbacks:', error.message);
+                    console.log('[polar] Render proxy unavailable, using fallbacks:', error.message);
                     this.proxyEndpoints = this.proxyEndpoints.filter(p => !p.isCustom);
                 }
             }
@@ -510,33 +539,33 @@
                 const contentFrame = document.getElementById('contentFrame');
                 
                 try {
-                    console.log(`[v0] Trying proxy ${proxy.name}: ${proxyUrl}`);
+                    console.log(`[polar] Trying proxy ${proxy.name}: ${proxyUrl}`);
                     
                     if (proxy.isCustom) {
                         try {
                             const testResponse = await fetch(this.healthUrl);
                             if (!testResponse.ok) {
-                                throw new Error('Vercel proxy server not responding');
+                                throw new Error('Render proxy server not responding');
                             }
                         } catch (error) {
-                            console.log(`[v0] Vercel proxy test failed: ${error.message}, trying next proxy...`);
+                            console.log(`[polar] Render proxy test failed: ${error.message}, trying next proxy...`);
                             this.loadWithProxy(url, proxyIndex + 1);
                             return;
                         }
                     }
                     
-                    contentFrame.src = proxyUrl;
+                    contentFrame.src = window.toProxyUrl(url);
                     
                     const timeout = proxy.isCustom ? 15000 : 10000;
                     setTimeout(() => {
                         if (!document.getElementById('loadingScreen').classList.contains('hidden')) {
-                            console.log(`[v0] Proxy ${proxy.name} timeout, trying next...`);
+                            console.log(`[polar] Proxy ${proxy.name} timeout, trying next...`);
                             this.loadWithProxy(url, proxyIndex + 1);
                         }
                     }, timeout);
 
                 } catch (error) {
-                    console.error(`[v0] Error with proxy ${proxy.name}:`, error);
+                    console.error(`[polar] Error with proxy ${proxy.name}:`, error);
                     this.loadWithProxy(url, proxyIndex + 1);
                 }
             }
