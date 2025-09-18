@@ -1,5 +1,5 @@
 class ProxyClient {
-  constructor(serverUrl = "http://localhost:3001") {
+  constructor(serverUrl = "https://render-proxy-6x2v.onrender.com") {
     this.serverUrl = serverUrl
     this.isOnline = false
     this.stats = null
@@ -13,7 +13,7 @@ class ProxyClient {
 
   async checkStatus() {
     try {
-      const response = await fetch(`${this.serverUrl}/health`)
+      const response = await fetch(`${this.serverUrl}/healthz`)
       if (response.ok) {
         this.isOnline = true
         console.log("[ProxyClient] Server online")
@@ -28,7 +28,7 @@ class ProxyClient {
 
   async getProxyStatus() {
     try {
-      const response = await fetch(`${this.serverUrl}/proxy/status`)
+      const response = await fetch(`${this.serverUrl}/proxy`)
       if (response.ok) {
         this.stats = await response.json()
         return this.stats
