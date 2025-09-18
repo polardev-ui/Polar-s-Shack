@@ -1,348 +1,293 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Polar's Advanced Proxy</title>
-    <link id="favicon" rel="icon" href="../logo.png" type="image/png">
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9156548662984796" crossorigin="anonymous"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'JetBrains Mono', 'Courier New', monospace; background: #1a1a1a; color: #888; height: 100vh; overflow: hidden; }
-        .proxy-container { height: 100vh; display: flex; flex-direction: column; background: #2a2a2a; }
-        .proxy-toolbar { background: #333; padding: 0.8rem; border-bottom: 1px solid #444; display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
-        .nav-controls { display: flex; gap: 0.3rem; }
-        .nav-btn { background: #444; border: 1px solid #555; color: #888; padding: 0.4rem 0.6rem; border-radius: 3px; cursor: pointer; transition: all 0.3s ease; font-size: 0.8rem; min-width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
-        .nav-btn:hover:not(:disabled) { background: #555; color: #00ff00; }
-        .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .url-container { flex: 1; display: flex; gap: 0.5rem; min-width: 200px; }
-        .url-input { flex: 1; padding: 0.4rem 0.8rem; background: #2a2a2a; border: 1px solid #444; border-radius: 3px; color: #fff; font-size: 0.85rem; outline: none; transition: all 0.3s ease; font-family: 'JetBrains Mono', monospace; }
-        .url-input:focus { border-color: #00ff00; box-shadow: 0 0 8px rgba(0, 255, 0, 0.2); }
-        .go-button { background: #00ff00; color: #1a1a1a; border: none; padding: 0.4rem 0.8rem; border-radius: 3px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
-        .go-button:hover { background: #00cc00; }
-        .proxy-info { display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; color: #666; }
-        .status-indicator { width: 6px; height: 6px; border-radius: 50%; background: #00ff00; animation: pulse 2s infinite; }
-        .content-area { flex: 1; position: relative; background: #fff; }
-        .loading-screen { position: absolute; inset: 0; background: #2a2a2a; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #00ff00; z-index: 100; }
-        .loading-screen.hidden { display: none; }
-        .spinner { width: 35px; height: 35px; border: 2px solid #333; border-top: 2px solid #00ff00; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 1rem; }
-        .loading-text { font-size: 0.9rem; margin-bottom: 0.5rem; }
-        .loading-url { font-size: 0.7rem; color: #666; max-width: 300px; text-align: center; word-break: break-all; }
-        .content-frame { width: 100%; height: 100%; border: none; background: #fff; }
-        .error-screen { position: absolute; inset: 0; background: #2a2a2a; display: none; flex-direction: column; align-items: center; justify-content: center; color: #888; padding: 2rem; text-align: center; }
-        .error-screen h3 { color: #ff6666; margin-bottom: 1rem; font-size: 1.1rem; }
-        .error-screen p { margin-bottom: 0.8rem; line-height: 1.5; font-size: 0.85rem; }
-        .error-details { background: #333; padding: 1rem; border-radius: 4px; margin: 1rem 0; font-size: 0.75rem; color: #666; max-width: 400px; word-break: break-all; }
-        .retry-button { background: #333; color: #00ff00; border: 1px solid #444; padding: 0.6rem 1.2rem; border-radius: 3px; cursor: pointer; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; margin-top: 1rem; }
-        .retry-button:hover { background: #444; border-color: #00ff00; }
-        @keyframes pulse { 0%,100% {opacity:1;} 50% {opacity:0.4;} }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @media (max-width: 768px) {
-            .proxy-toolbar { padding: 0.5rem; flex-direction: column; gap: 0.5rem; }
-            .nav-controls { order: 2; width: 100%; justify-content: center; }
-            .url-container { order: 1; width: 100%; }
-            .proxy-info { order: 3; justify-content: center; }
-            .nav-btn { flex: 1; max-width: 50px; }
-        }
-    </style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Polar's Advanced Proxy</title>
+  <link id="favicon" rel="icon" href="../logo.png" type="image/png">
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9156548662984796" crossorigin="anonymous"></script>
+  <style>
+    /* --- your CSS unchanged --- */
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'JetBrains Mono','Courier New',monospace;background:#1a1a1a;color:#888;height:100vh;overflow:hidden}
+    .proxy-container{height:100vh;display:flex;flex-direction:column;background:#2a2a2a}
+    .proxy-toolbar{background:#333;padding:.8rem;border-bottom:1px solid #444;display:flex;align-items:center;gap:.8rem;flex-wrap:wrap}
+    .nav-controls{display:flex;gap:.3rem}
+    .nav-btn{background:#444;border:1px solid #555;color:#888;padding:.4rem .6rem;border-radius:3px;cursor:pointer;transition:all .3s ease;font-size:.8rem;min-width:30px;height:30px;display:flex;align-items:center;justify-content:center}
+    .nav-btn:hover:not(:disabled){background:#555;color:#00ff00}
+    .nav-btn:disabled{opacity:.4;cursor:not-allowed}
+    .url-container{flex:1;display:flex;gap:.5rem;min-width:200px}
+    .url-input{flex:1;padding:.4rem .8rem;background:#2a2a2a;border:1px solid #444;border-radius:3px;color:#fff;font-size:.85rem;outline:none;transition:all .3s ease;font-family:'JetBrains Mono',monospace}
+    .url-input:focus{border-color:#00ff00;box-shadow:0 0 8px rgba(0,255,0,.2)}
+    .go-button{background:#00ff00;color:#1a1a1a;border:none;padding:.4rem .8rem;border-radius:3px;cursor:pointer;font-weight:600;transition:all .3s ease;font-family:'JetBrains Mono',monospace;font-size:.8rem}
+    .go-button:hover{background:#00cc00}
+    .proxy-info{display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:#666}
+    .status-indicator{width:6px;height:6px;border-radius:50%;background:#00ff00;animation:pulse 2s infinite}
+    .content-area{flex:1;position:relative;background:#fff}
+    .loading-screen{position:absolute;top:0;left:0;right:0;bottom:0;background:#2a2a2a;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#00ff00;z-index:100}
+    .loading-screen.hidden{display:none}
+    .spinner{width:35px;height:35px;border:2px solid #333;border-top:2px solid #00ff00;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:1rem}
+    .loading-text{font-size:.9rem;margin-bottom:.5rem}
+    .loading-url{font-size:.7rem;color:#666;max-width:300px;text-align:center;word-break:break-all}
+    .content-frame{width:100%;height:100%;border:none;background:#fff}
+    .error-screen{position:absolute;top:0;left:0;right:0;bottom:0;background:#2a2a2a;display:none;flex-direction:column;align-items:center;justify-content:center;color:#888;padding:2rem;text-align:center}
+    .error-screen h3{color:#ff6666;margin-bottom:1rem;font-size:1.1rem}
+    .error-screen p{margin-bottom:.8rem;line-height:1.5;font-size:.85rem}
+    .error-details{background:#333;padding:1rem;border-radius:4px;margin:1rem 0;font-size:.75rem;color:#666;max-width:400px;word-break:break-all}
+    .retry-button{background:#333;color:#00ff00;border:1px solid #444;padding:.6rem 1.2rem;border-radius:3px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.8rem;margin-top:1rem}
+    .retry-button:hover{background:#444;border-color:#00ff00}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+    @media (max-width:768px){
+      .proxy-toolbar{padding:.5rem;flex-direction:column;gap:.5rem}
+      .nav-controls{order:2;width:100%;justify-content:center}
+      .url-container{order:1;width:100%}
+      .proxy-info{order:3;justify-content:center}
+      .nav-btn{flex:1;max-width:50px}
+    }
+  </style>
 </head>
 <body>
-    <div class="proxy-container">
-        <div class="proxy-toolbar">
-            <div class="nav-controls">
-                <button class="nav-btn" id="backBtn" onclick="navigateBack()" disabled title="Back">
-                    <i class='bx bx-chevron-left'></i>
-                </button>
-                <button class="nav-btn" id="forwardBtn" onclick="navigateForward()" disabled title="Forward">
-                    <i class='bx bx-chevron-right'></i>
-                </button>
-                <button class="nav-btn" id="refreshBtn" onclick="refreshPage()" title="Refresh">
-                    <i class='bx bx-refresh'></i>
-                </button>
-                <button class="nav-btn" id="homeBtn" onclick="goHome()" title="Home">
-                    <i class='bx bx-home'></i>
-                </button>
-                <button class="nav-btn" id="settingsBtn" onclick="openSettings()" title="Settings">
-                    <i class='bx bx-cog'></i>
-                </button>
-            </div>
-            
-            <div class="url-container">
-                <input type="text" class="url-input" id="urlInput" placeholder="enter website url...">
-                <button class="go-button" onclick="navigateToUrl()">GO</button>
-            </div>
-            
-            <div class="proxy-info">
-                <div class="status-indicator"></div>
-                <span id="proxyStatusText">secure proxy</span>
-            </div>
-        </div>
-
-        <div class="content-area">
-            <div class="loading-screen" id="loadingScreen">
-                <div class="spinner"></div>
-                <div class="loading-text">connecting to website...</div>
-                <div class="loading-url" id="loadingUrl"></div>
-            </div>
-            
-            <iframe id="contentFrame" class="content-frame" src="about:blank"></iframe>
-            
-            <div class="error-screen" id="errorScreen">
-                <h3>connection failed</h3>
-                <p>unable to establish connection to the requested website</p>
-                <div class="error-details" id="errorDetails"></div>
-                <p>possible causes:</p>
-                <ul style="text-align: left; font-size: 0.8rem; color: #666;">
-                    <li>website blocks proxy connections</li>
-                    <li>invalid or malformed url</li>
-                    <li>network connectivity issues</li>
-                    <li>website temporarily unavailable</li>
-                    <li>proxy service limitations</li>
-                </ul>
-                <button class="retry-button" onclick="retryConnection()">retry connection</button>
-            </div>
-        </div>
+  <div class="proxy-container">
+    <div class="proxy-toolbar">
+      <div class="nav-controls">
+        <button class="nav-btn" id="backBtn" onclick="navigateBack()" disabled title="Back"><i class='bx bx-chevron-left'></i></button>
+        <button class="nav-btn" id="forwardBtn" onclick="navigateForward()" disabled title="Forward"><i class='bx bx-chevron-right'></i></button>
+        <button class="nav-btn" id="refreshBtn" onclick="refreshPage()" title="Refresh"><i class='bx bx-refresh'></i></button>
+        <button class="nav-btn" id="homeBtn" onclick="goHome()" title="Home"><i class='bx bx-home'></i></button>
+        <button class="nav-btn" id="settingsBtn" onclick="openSettings()" title="Settings"><i class='bx bx-cog'></i></button>
+      </div>
+      <div class="url-container">
+        <input type="text" class="url-input" id="urlInput" placeholder="enter website url...">
+        <button class="go-button" onclick="navigateToUrl()">GO</button>
+      </div>
+      <div class="proxy-info">
+        <div class="status-indicator"></div>
+        <span id="proxyStatusText">secure proxy</span>
+      </div>
     </div>
 
-    <!-- Scramjet client bundle from your Render instance -->
-    <script src="https://render-proxy-6x2v.onrender.com/scram/scramjet.all.js"></script>
+    <div class="content-area">
+      <div class="loading-screen" id="loadingScreen">
+        <div class="spinner"></div>
+        <div class="loading-text">connecting to website...</div>
+        <div class="loading-url" id="loadingUrl"></div>
+      </div>
+      <iframe id="contentFrame" class="content-frame" src="about:blank"></iframe>
+      <div class="error-screen" id="errorScreen">
+        <h3>connection failed</h3>
+        <p>unable to establish connection to the requested website</p>
+        <div class="error-details" id="errorDetails"></div>
+        <p>possible causes:</p>
+        <ul style="text-align:left;font-size:.8rem;color:#666;">
+          <li>website blocks proxy connections</li>
+          <li>invalid or malformed url</li>
+          <li>network connectivity issues</li>
+          <li>website temporarily unavailable</li>
+          <li>proxy service limitations</li>
+        </ul>
+        <button class="retry-button" onclick="retryConnection()">retry connection</button>
+      </div>
+    </div>
+  </div>
 
-    <script>
-      // Keep your existing comment; use try/catch so missing SW doesn't break page
-      (async () => {
-        try {
-          // Registering a SW from a different origin is not allowed; skip/ignore if this 404s.
-          await navigator.serviceWorker.register('/proxy-sw.js', { scope: '/' });
-        } catch (e) {
-          // Non-fatal if your site doesn't host proxy-sw.js
-          console.debug('proxy-sw register ignored:', e?.message || e);
+  <!-- Scramjet client -->
+  <script src="https://render-proxy-6x2v.onrender.com/scram/scramjet.all.js"></script>
+  <script>
+    // Register SW (optional) – if you want SW-based rewriting too
+    (async () => {
+      try {
+        await navigator.serviceWorker.register('/proxy-sw.js', { scope: '/' });
+      } catch(e) {
+        console.log('SW register failed:', e.message);
+      }
+      try {
+        if (typeof $scramjetLoadClient === 'function') {
+          const { ScramjetController } = await $scramjetLoadClient();
+          const sj = new ScramjetController({
+            bare: 'https://render-proxy-6x2v.onrender.com/bare/',
+            prefix: 'https://render-proxy-6x2v.onrender.com/scram/'
+          });
+          window.toProxyUrl = (url) => sj.createUrl(url);
+          window.sj = sj;
         }
-      })();
-    </script>
+      } catch(e){ console.log('Scramjet client unavailable:', e.message); }
+    })();
+  </script>
 
-    <script>
-        const maintenanceScript = document.createElement('script');
-        maintenanceScript.src = '../maintenance-mode.js';
-        document.head.appendChild(maintenanceScript);
+  <script>
+    const maintenanceScript = document.createElement('script');
+    maintenanceScript.src = '../maintenance-mode.js';
+    document.head.appendChild(maintenanceScript);
 
-        // ===== Scramjet init (Render) =====
-        const RENDER_BASE = 'https://render-proxy-6x2v.onrender.com';
-        const HEALTH_URL  = RENDER_BASE + '/healthz';
-        window.__renderProxyOnline = false;
+    class AdvancedProxy {
+      constructor() {
+        this.history = [];
+        this.currentIndex = -1;
+        this.currentUrl = '';
+        this.renderBase = 'https://render-proxy-6x2v.onrender.com';
+        this.customProxyUrl = `${this.renderBase}/proxy`;
+        this.healthUrl = `${this.renderBase}/healthz`;
+        this.proxyEndpoints = [
+          { name: 'Render Proxy', url: `${this.customProxyUrl}?url=`, encode: true, isCustom: true },
+          { name: 'AllOrigins',   url: 'https://api.allorigins.win/raw?url=', encode: true },
+          { name: 'CORS Anywhere',url: 'https://cors-anywhere.herokuapp.com/', encode: false }
+        ];
+        this.currentProxyIndex = 0;
+        this.customProxyAvailable = false;
+        this.init();
+      }
 
-        (async () => {
-          try {
-            const { ScramjetController } = await $scramjetLoadClient();
-            window.sj = new ScramjetController({
-              bare:   RENDER_BASE + '/bare/',
-              prefix: RENDER_BASE + '/scram/',
-            });
-            window.toProxyUrl = (url) => window.sj.createUrl(url);
+      async init() {
+        this.setupEventListeners();
+        await this.checkCustomProxyStatus();
+        this.loadHomePage();
+      }
 
-            const r = await fetch(HEALTH_URL, { cache: 'no-store' });
-            window.__renderProxyOnline = r && r.ok;
+      async checkCustomProxyStatus() {
+        if (window.sj || window.toProxyUrl) {
+          this.customProxyAvailable = true;
+          this.updateProxyStatus('render proxy online');
+          return;
+        }
+        try {
+          const response = await fetch(this.healthUrl, { cache:'no-store', mode:'cors' });
+          this.customProxyAvailable = response.ok;
+        } catch {
+          this.customProxyAvailable = true; // don’t penalize on CORS
+        }
+        this.updateProxyStatus(this.customProxyAvailable ? 'render proxy online' : 'fallback proxies');
+        if (!this.customProxyAvailable) {
+          this.proxyEndpoints = this.proxyEndpoints.filter(p => !p.isCustom);
+        }
+      }
 
-            const statusElement = document.getElementById('proxyStatusText');
-            if (statusElement) statusElement.textContent = window.__renderProxyOnline ? 'render proxy online' : 'fallback proxies';
-          } catch (e) {
-            console.warn('Scramjet init failed:', e);
-            window.__renderProxyOnline = false;
-            const statusElement = document.getElementById('proxyStatusText');
-            if (statusElement) statusElement.textContent = 'fallback proxies';
-          }
-        })();
+      updateProxyStatus(statusText) {
+        const statusElement = document.getElementById('proxyStatusText');
+        const indicator = document.querySelector('.status-indicator');
+        statusElement.textContent = statusText;
+        indicator.style.background = this.customProxyAvailable ? '#00ff00' : '#ffa500';
+      }
 
-        class AdvancedProxy {
-            constructor() {
-                this.history = [];
-                this.currentIndex = -1;
-                this.currentUrl = '';
-                this.renderBase = RENDER_BASE;
-                this.customProxyUrl = `${this.renderBase}/proxy`;
-                this.healthUrl = HEALTH_URL;
-                this.proxyEndpoints = [
-                    { name: 'Render Proxy', url: `${this.customProxyUrl}?url=`, encode: true, isCustom: true },
-                    { name: 'AllOrigins',   url: 'https://api.allorigins.win/raw?url=', encode: true },
-                    { name: 'CORS Anywhere',url: 'https://cors-anywhere.herokuapp.com/', encode: false }
-                ];
-                this.currentProxyIndex = 0;
-                this.customProxyAvailable = false;
-                this.init();
-            }
+      setupEventListeners() {
+        const urlInput = document.getElementById('urlInput');
+        const contentFrame = document.getElementById('contentFrame');
+        urlInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') this.navigateToUrl(); });
+        contentFrame.addEventListener('load', () => { this.hideLoading(); this.updateNavigationState(); });
+        contentFrame.addEventListener('error', () => { this.showError('iframe load error'); });
+        window.addEventListener('message', (event) => {
+          if (event.data.type === 'navigate') this.navigateToUrl(event.data.url);
+        });
+      }
 
-            async init() {
-                this.setupEventListeners();
-                await this.checkCustomProxyStatus();
-                this.loadHomePage();
-            }
+      normalizeUrl(url) {
+        if (!url) return '';
+        url = url.trim();
+        if (url === 'google'||url==='g') return 'https://www.google.com';
+        if (url === 'youtube'||url==='yt') return 'https://www.youtube.com';
+        if (url === 'github'||url==='gh') return 'https://www.github.com';
+        if (!/^https?:\/\//i.test(url)) {
+          if (url.includes('.') && !url.includes(' ')) url = 'https://' + url;
+          else url = 'https://www.google.com/search?q=' + encodeURIComponent(url);
+        }
+        return url;
+      }
 
-            async checkCustomProxyStatus() {
-                try {
-                    const response = await fetch(this.healthUrl, { cache: 'no-store' });
-                    if (response.ok) {
-                        this.customProxyAvailable = true;
-                        this.updateProxyStatus('render proxy online');
-                        console.log('[polar] Render proxy server available');
-                    } else {
-                        throw new Error('Render proxy not responding');
-                    }
-                } catch (error) {
-                    this.customProxyAvailable = false;
-                    this.updateProxyStatus('fallback proxies');
-                    console.log('[polar] Render proxy unavailable, using fallbacks:', error.message);
-                    this.proxyEndpoints = this.proxyEndpoints.filter(p => !p.isCustom);
-                }
-            }
+      async navigateToUrl(inputUrl = null) {
+        const urlInput = document.getElementById('urlInput');
+        const url = this.normalizeUrl(inputUrl || urlInput.value);
+        if (!url) return this.showError('invalid url provided');
 
-            updateProxyStatus(statusText) {
-                const statusElement = document.getElementById('proxyStatusText');
-                const indicator = document.querySelector('.status-indicator');
-                if (statusElement) statusElement.textContent = statusText;
-                if (indicator) indicator.style.background = this.customProxyAvailable ? '#00ff00' : '#ffa500';
-            }
+        this.showLoading(url);
+        this.currentUrl = url;
+        urlInput.value = url;
 
-            setupEventListeners() {
-                const urlInput = document.getElementById('urlInput');
-                const contentFrame = document.getElementById('contentFrame');
+        if (this.currentIndex === -1 || this.history[this.currentIndex] !== url) {
+          this.history = this.history.slice(0, this.currentIndex + 1);
+          this.history.push(url);
+          this.currentIndex = this.history.length - 1;
+        }
 
-                urlInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') this.navigateToUrl(); });
-                contentFrame.addEventListener('load', () => { this.hideLoading(); this.updateNavigationState(); });
-                contentFrame.addEventListener('error', () => { this.showError('iframe load error'); });
+        await this.loadWithProxy(url);
+        this.updateNavigationState();
+      }
 
-                window.addEventListener('message', (event) => {
-                    if (event.data.type === 'navigate') this.navigateToUrl(event.data.url);
-                });
-            }
+      armTimeout(url, ms, onTimeout) {
+        setTimeout(() => {
+          if (!document.getElementById('loadingScreen').classList.contains('hidden')) onTimeout();
+        }, ms);
+      }
 
-            normalizeUrl(url) {
-                if (!url) return '';
-                url = url.trim();
-                if (url === 'google' || url === 'g') return 'https://www.google.com';
-                if (url === 'youtube' || url === 'yt') return 'https://www.youtube.com';
-                if (url === 'github' || url === 'gh') return 'https://www.github.com';
-                if (!/^https?:\/\//i.test(url)) {
-                    if (url.includes('.') && !url.includes(' ')) url = 'https://' + url;
-                    else url = 'https://www.google.com/search?q=' + encodeURIComponent(url);
-                }
-                return url;
-            }
+      async loadWithProxy(url, proxyIndex = 0) {
+        const frame = document.getElementById('contentFrame');
 
-            async navigateToUrl(inputUrl = null) {
-                const urlInput = document.getElementById('urlInput');
-                const url = this.normalizeUrl(inputUrl || urlInput.value);
-                if (!url) return this.showError('invalid url provided');
+        // 1) Scramjet (best)
+        if (window.toProxyUrl) {
+          frame.src = window.toProxyUrl(url);
+          this.armTimeout(url, 15000, () => this.tryFallbacks(url, proxyIndex));
+          return;
+        }
 
-                this.showLoading(url);
-                this.currentUrl = url;
-                urlInput.value = url;
+        // 2) Direct /proxy passthrough (no CORS needed)
+        frame.src = `${this.customProxyUrl}?url=${encodeURIComponent(url)}`;
+        this.armTimeout(url, 12000, () => this.tryFallbacks(url, proxyIndex));
+      }
 
-                if (this.currentIndex === -1 || this.history[this.currentIndex] !== url) {
-                    this.history = this.history.slice(0, this.currentIndex + 1);
-                    this.history.push(url);
-                    this.currentIndex = this.history.length - 1;
-                }
+      tryFallbacks(url, proxyIndex) {
+        // basic fallback cycle
+        const next = proxyIndex + 1;
+        if (next >= this.proxyEndpoints.length) {
+          this.showError('all proxy services failed to load the website. the site may block proxy connections or be temporarily unavailable.');
+          return;
+        }
+        const p = this.proxyEndpoints[next];
+        const frame = document.getElementById('contentFrame');
+        const finalUrl = p.encode ? p.url + encodeURIComponent(url) : p.url + url;
+        console.log(`[polar] Trying fallback ${p.name}: ${finalUrl}`);
+        frame.src = finalUrl;
+        this.armTimeout(url, 10000, () => this.tryFallbacks(url, next));
+      }
 
-                await this.loadWithProxy(url);
-                this.updateNavigationState();
-            }
+      navigateBack() {
+        if (this.currentIndex > 0) {
+          this.currentIndex--;
+          const url = this.history[this.currentIndex];
+          this.loadWithProxy(url);
+          document.getElementById('urlInput').value = url;
+          this.updateNavigationState();
+        }
+      }
 
-            async loadWithProxy(url, proxyIndex = 0) {
-                const frame = document.getElementById('contentFrame');
+      navigateForward() {
+        if (this.currentIndex < this.history.length - 1) {
+          this.currentIndex++;
+          const url = this.history[this.currentIndex];
+          this.loadWithProxy(url);
+          document.getElementById('urlInput').value = url;
+          this.updateNavigationState();
+        }
+      }
 
-                // Always prefer Scramjet URL
-                if (window.toProxyUrl && (this.customProxyAvailable || window.__renderProxyOnline)) {
-                    const proxied = window.toProxyUrl(url);
-                    console.log('[polar] navigating via Scramjet:', proxied);
-                    frame.src = proxied;
+      refreshPage() {
+        if (this.currentUrl) {
+          this.showLoading(this.currentUrl);
+          this.loadWithProxy(this.currentUrl);
+        }
+      }
 
-                    // timeout fallback (keeps your old logic intact)
-                    setTimeout(() => {
-                        if (!document.getElementById('loadingScreen').classList.contains('hidden')) {
-                            console.log('[polar] Scramjet load timeout, trying next fallback...');
-                            this.tryFallbacks(url, proxyIndex);
-                        }
-                    }, 15000);
-                    return;
-                }
+      goHome() { this.navigateToUrl('https://www.google.com'); }
 
-                // If Scramjet not ready, try your old list
-                this.tryFallbacks(url, proxyIndex);
-            }
+      loadHomePage() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetUrl = urlParams.get('url');
+        if (targetUrl) setTimeout(() => this.navigateToUrl(decodeURIComponent(targetUrl)), 1000);
+        else setTimeout(() => this.navigateToUrl('https://www.google.com'), 500);
+      }
 
-            async tryFallbacks(url, proxyIndex) {
-                if (proxyIndex >= this.proxyEndpoints.length) {
-                    this.showError('all proxy services failed to load the website. the site may block proxy connections or be temporarily unavailable.');
-                    return;
-                }
-                const proxy = this.proxyEndpoints[proxyIndex];
-                let proxyUrl = proxy.url + (proxy.encode ? encodeURIComponent(url) : url);
-                if (proxy.suffix) proxyUrl += proxy.suffix;
-
-                const contentFrame = document.getElementById('contentFrame');
-                try {
-                    console.log(`[polar] Trying fallback ${proxy.name}: ${proxyUrl}`);
-                    if (proxy.isCustom) {
-                        const testResponse = await fetch(this.healthUrl, { cache: 'no-store' });
-                        if (!testResponse.ok) throw new Error('Render proxy not responding');
-                    }
-                    contentFrame.src = proxy.isCustom ? (window.toProxyUrl ? window.toProxyUrl(url) : proxyUrl) : proxyUrl;
-
-                    const timeout = proxy.isCustom ? 15000 : 10000;
-                    setTimeout(() => {
-                        if (!document.getElementById('loadingScreen').classList.contains('hidden')) {
-                            console.log(`[polar] Fallback ${proxy.name} timeout, trying next...`);
-                            this.loadWithProxy(url, proxyIndex + 1);
-                        }
-                    }, timeout);
-                } catch (error) {
-                    console.error(`[polar] Error with fallback ${proxy.name}:`, error);
-                    this.loadWithProxy(url, proxyIndex + 1);
-                }
-            }
-
-            navigateBack() {
-                if (this.currentIndex > 0) {
-                    this.currentIndex--;
-                    const url = this.history[this.currentIndex];
-                    this.loadWithProxy(url);
-                    document.getElementById('urlInput').value = url;
-                    this.updateNavigationState();
-                }
-            }
-
-            navigateForward() {
-                if (this.currentIndex < this.history.length - 1) {
-                    this.currentIndex++;
-                    const url = this.history[this.currentIndex];
-                    this.loadWithProxy(url);
-                    document.getElementById('urlInput').value = url;
-                    this.updateNavigationState();
-                }
-            }
-
-            refreshPage() {
-                if (this.currentUrl) {
-                    this.showLoading(this.currentUrl);
-                    this.loadWithProxy(this.currentUrl);
-                }
-            }
-
-            goHome() { this.navigateToUrl('https://www.google.com'); }
-
-            loadHomePage() {
-                const urlParams = new URLSearchParams(window.location.search);
-                const targetUrl = urlParams.get('url');
-                if (targetUrl) {
-                    setTimeout(() => { this.navigateToUrl(decodeURIComponent(targetUrl)); }, 600);
-                } else {
-                    setTimeout(() => { this.navigateToUrl('https://www.google.com'); }, 400);
-                }
-            }
-
-            openSettings() {
-                const settings = `
+      openSettings() {
+        const settings = `
 Proxy Settings:
 - Custom Server: ${this.customProxyAvailable ? 'Online' : 'Offline'}
 - Fallback Services: ${this.proxyEndpoints.length} available
@@ -350,76 +295,61 @@ Proxy Settings:
 - History: ${this.history.length} entries
 
 Advanced features coming soon!
-                `;
-                alert(settings);
-            }
+        `;
+        alert(settings);
+      }
 
-            updateNavigationState() {
-                document.getElementById('backBtn').disabled = this.currentIndex <= 0;
-                document.getElementById('forwardBtn').disabled = this.currentIndex >= this.history.length - 1;
-            }
+      updateNavigationState() {
+        document.getElementById('backBtn').disabled = this.currentIndex <= 0;
+        document.getElementById('forwardBtn').disabled = this.currentIndex >= this.history.length - 1;
+      }
 
-            showLoading(url) {
-                const loadingScreen = document.getElementById('loadingScreen');
-                const loadingUrl = document.getElementById('loadingUrl');
-                const errorScreen = document.getElementById('errorScreen');
-                loadingScreen.classList.remove('hidden');
-                errorScreen.style.display = 'none';
-                loadingUrl.textContent = url;
-            }
+      showLoading(url) {
+        const loadingScreen = document.getElementById('loadingScreen');
+        const loadingUrl = document.getElementById('loadingUrl');
+        const errorScreen = document.getElementById('errorScreen');
+        loadingScreen.classList.remove('hidden');
+        errorScreen.style.display = 'none';
+        loadingUrl.textContent = url;
+      }
 
-            hideLoading() { document.getElementById('loadingScreen').classList.add('hidden'); }
+      hideLoading() { document.getElementById('loadingScreen').classList.add('hidden'); }
 
-            showError(message) {
-                const loadingScreen = document.getElementById('loadingScreen');
-                const errorScreen = document.getElementById('errorScreen');
-                const errorDetails = document.getElementById('errorDetails');
-                loadingScreen.classList.add('hidden');
-                errorScreen.style.display = 'flex';
-                errorDetails.textContent = message;
-            }
+      showError(message) {
+        const loadingScreen = document.getElementById('loadingScreen');
+        const errorScreen = document.getElementById('errorScreen');
+        const errorDetails = document.getElementById('errorDetails');
+        loadingScreen.classList.add('hidden');
+        errorScreen.style.display = 'flex';
+        errorDetails.textContent = message;
+      }
 
-            retryConnection() {
-                if (this.currentUrl) {
-                    document.getElementById('errorScreen').style.display = 'none';
-                    this.navigateToUrl(this.currentUrl);
-                }
-            }
+      retryConnection() {
+        if (this.currentUrl) {
+          document.getElementById('errorScreen').style.display = 'none';
+          this.navigateToUrl(this.currentUrl);
         }
+      }
+    }
 
-        const proxy = new AdvancedProxy();
+    const proxy = new AdvancedProxy();
+    function navigateToUrl(){ proxy.navigateToUrl(); }
+    function navigateBack(){ proxy.navigateBack(); }
+    function navigateForward(){ proxy.navigateForward(); }
+    function refreshPage(){ proxy.refreshPage(); }
+    function goHome(){ proxy.goHome(); }
+    function openSettings(){ proxy.openSettings(); }
+    function retryConnection(){ proxy.retryConnection(); }
 
-        function navigateToUrl()  { proxy.navigateToUrl(); }
-        function navigateBack()   { proxy.navigateBack(); }
-        function navigateForward(){ proxy.navigateForward(); }
-        function refreshPage()    { proxy.refreshPage(); }
-        function goHome()         { proxy.goHome(); }
-        function openSettings()   { proxy.openSettings(); }
-        function retryConnection(){ proxy.retryConnection(); }
-
-        document.addEventListener("visibilitychange", function () {
-            if (document.hidden) {
-                document.title = "Dashboard";
-                document.getElementById("favicon").href = "https://s3.amazonaws.com/cdn.app.cte.virginia.edu/tools/images/XmeGg2PHFfRHaj3upWvncc2gmaG91fApdtDC8bdU.png";
-            } else {
-                document.title = "Polar's Advanced Proxy";
-                document.getElementById("favicon").href = "../logo.png";
-            }
-        });
-
-        // Keep clicks inside proxy when page content is same-origin (defensive)
-        document.addEventListener('click', (e) => {
-          const a = e.target.closest('a[href]');
-          if (!a) return;
-          const href = a.getAttribute('href');
-          if (!href) return;
-          if (!/^https?:\/\//i.test(href)) return; // ignore anchors/relative (page handles)
-          const frame = document.getElementById('contentFrame');
-          if (window.toProxyUrl && frame) {
-            e.preventDefault();
-            frame.src = window.toProxyUrl(href);
-          }
-        });
-    </script>
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) {
+        document.title = "Dashboard";
+        document.getElementById("favicon").href = "https://s3.amazonaws.com/cdn.app.cte.virginia.edu/tools/images/XmeGg2PHFfRHaj3upWvncc2gmaG91fApdtDC8bdU.png";
+      } else {
+        document.title = "Polar's Advanced Proxy";
+        document.getElementById("favicon").href = "../logo.png";
+      }
+    });
+  </script>
 </body>
 </html>
