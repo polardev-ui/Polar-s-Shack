@@ -344,12 +344,10 @@
     </div>
 
     <script>
-        // Load maintenance mode system
         const maintenanceScript = document.createElement('script');
         maintenanceScript.src = 'maintenance-mode.js';
         document.head.appendChild(maintenanceScript);
 
-        // Matrix background animation
         function createMatrixEffect() {
             const container = document.getElementById('matrixBg');
             const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
@@ -369,19 +367,15 @@
                 }, 5000);
             }
             
-            // Create initial characters
             for (let i = 0; i < 50; i++) {
                 setTimeout(createChar, Math.random() * 2000);
             }
             
-            // Continue creating characters
             setInterval(createChar, 200);
         }
 
-        // Initialize matrix effect
         createMatrixEffect();
 
-        // Tab cloaking
         document.addEventListener("visibilitychange", function () {
             if (document.hidden) {
                 document.title = "Dashboard";
@@ -392,7 +386,6 @@
             }
         });
 
-        // Smooth entrance animation
         window.addEventListener('load', () => {
             document.body.style.opacity = '0';
             document.body.style.transition = 'opacity 0.5s ease';
