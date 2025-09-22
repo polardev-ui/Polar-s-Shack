@@ -19,7 +19,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/polars-shack.git"
+    "url": "https://github.com/polardev-ui/Polars-Shack.git"
   },
   "engines": {
     "node": ">=16.0.0"
@@ -28,6 +28,7 @@
     "express": "^4.18.2",
     "http-proxy-middleware": "^2.0.6",
     "cors": "^2.8.5"
+    "@vercel/analytics": "latest"
   },
   "devDependencies": {
     "nodemon": "^2.0.22"
