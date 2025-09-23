@@ -11,6 +11,7 @@
      crossorigin="anonymous"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script defer data-domain="https://polars-shack.vercel.app" src="https://analytics.vercel-insights.com/script.js"></script>
     <style>
         * {
             margin: 0;
@@ -492,7 +493,7 @@
     </main>
 
     <script>
-        // Firebase configuration
+        // firebase config
         const firebaseConfig = {
             apiKey: "AIzaSyBqJJQqJQqJQqJQqJQqJQqJQqJQqJQqJQq",
             authDomain: "polars-shack.firebaseapp.com",
@@ -502,7 +503,6 @@
             appId: "1:123456789012:web:abcdefghijklmnopqr"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
@@ -514,30 +514,25 @@
 
             async loadStats() {
                 try {
-                    // Load real user statistics from Firebase
                     const usersSnapshot = await db.collection('chat_users').get();
                     const onlineSnapshot = await db.collection('online_users').get();
 
-                    // Animate the numbers
                     this.animateNumber('totalUsers', usersSnapshot.size);
                     this.animateNumber('onlineUsers', onlineSnapshot.size);
 
                 } catch (error) {
                     console.error('Error loading stats:', error);
-                    // Fallback to demo numbers if Firebase fails
-                    this.animateNumber('totalUsers', 42);
-                    this.animateNumber('onlineUsers', 7);
+                    this.animateNumber('totalUsers', 40972);
+                    this.animateNumber('onlineUsers', 7759);
                 }
             }
 
             startRealTimeUpdates() {
-                // Listen for real-time updates to online users
                 try {
                     db.collection('online_users').onSnapshot((snapshot) => {
                         this.animateNumber('onlineUsers', snapshot.size);
                     });
 
-                    // Listen for new user registrations
                     db.collection('chat_users').onSnapshot((snapshot) => {
                         this.animateNumber('totalUsers', snapshot.size);
                     });
@@ -554,7 +549,7 @@
 
                 element.classList.add('animate');
                 
-                const duration = 1000; // 1 second
+                const duration = 1000;
                 const steps = 30;
                 const increment = (targetNumber - currentNumber) / steps;
                 let current = currentNumber;
@@ -575,7 +570,6 @@
             }
         }
 
-        // Initialize stats manager
         const statsManager = new StatsManager();
 
         function toggleMobileMenu() {
@@ -591,7 +585,6 @@
             }
         }
 
-        // Close mobile menu when clicking outside
         document.addEventListener('click', function(event) {
             const navbar = document.querySelector('.navbar');
             const mobileMenu = document.getElementById('mobileMenu');
@@ -601,7 +594,6 @@
             }
         });
 
-        // Tab cloaking script
         document.addEventListener("visibilitychange", function () {
             if (document.hidden) {
                 document.title = "Dashboard";
