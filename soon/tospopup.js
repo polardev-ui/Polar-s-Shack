@@ -11,8 +11,8 @@ document.addEventListener("DOMContentLoaded", function () {
       <h2>New TOS and Privacy Policy</h2>
       <p>
         We have updated our 
-        <a href="tos.html" target="_blank">Terms of Service</a> and 
-        <a href="privacy.html" target="_blank">Privacy Policy</a>. 
+        <a href="/tos.html" target="_blank">Terms of Service</a> and 
+        <a href="/privacy.html" target="_blank">Privacy Policy</a>. 
         These changes will take effect on 
         <strong>September 27th, 2025</strong>. 
         By continuing, you agree to the new policies.
