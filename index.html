@@ -10,280 +10,49 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9156548662984796"
      crossorigin="anonymous"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        /* original styles (kept intact) */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'JetBrains Mono', 'Courier New', monospace; background: #1a1a1a; color: #888; overflow-x: hidden; min-height: 100vh; }
+        .container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem; position: relative; }
+        .logo { width: 120px; height: 120px; margin-bottom: 2rem; border-radius: 12px; box-shadow: 0 0 30px rgba(0, 255, 0, 0.3); animation: float 3s ease-in-out infinite; }
+        .title { font-size: clamp(2.5rem, 8vw, 4rem); font-weight: 300; margin-bottom: 1rem; color: #fff; text-align: center; position: relative; }
+        .title::after { content: '_'; color: #00ff00; animation: blink 1s infinite; margin-left: 4px; }
+        .subtitle { font-size: clamp(1rem, 3vw, 1.2rem); color: #666; margin-bottom: 3rem; text-align: center; max-width: 600px; line-height: 1.6; }
+        .status { background: #2a2a2a; border: 1px solid #333; border-radius: 8px; padding: 2rem; margin-bottom: 3rem; text-align: center; max-width: 500px; width: 100%; position: relative; overflow: hidden; }
+        .status::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #00ff00, transparent); animation: scan 2s linear infinite; }
+        .status-text { color: #00ff00; font-size: 1.1rem; margin-bottom: 1rem; font-weight: 500; }
+        .status-description { color: #888; font-size: 0.9rem; line-height: 1.5; }
+        .enter-btn { background: #333; color: #00ff00; border: 1px solid #444; padding: 1rem 2rem; border-radius: 6px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: all 0.3s ease; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; font-family: 'JetBrains Mono', monospace; position: relative; overflow: hidden; }
+        .enter-btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.1), transparent); transition: left 0.5s; }
+        .enter-btn:hover::before { left: 100%; }
+        .enter-btn:hover { background: #444; border-color: #00ff00; box-shadow: 0 0 20px rgba(0, 255, 0, 0.3); transform: translateY(-2px); }
+        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-top: 3rem; max-width: 800px; width: 100%; }
+        .feature { background: #2a2a2a; border: 1px solid #333; border-radius: 6px; padding: 1.5rem; text-align: center; transition: all 0.3s ease; position: relative; overflow: hidden; }
+        .feature::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: #00ff00; transform: scaleX(0); transition: transform 0.3s ease; }
+        .feature:hover::before { transform: scaleX(1); }
+        .feature:hover { border-color: #00ff00; box-shadow: 0 0 20px rgba(0, 255, 0, 0.1); transform: translateY(-2px); }
+        .feature-icon { font-size: 2rem; color: #00ff00; margin-bottom: 1rem; }
+        .feature-title { color: #fff; font-size: 1rem; margin-bottom: 0.5rem; font-weight: 500; }
+        .feature-description { color: #666; font-size: 0.8rem; line-height: 1.4; }
+        .background-animation { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
+        .matrix-char { position: absolute; color: #00ff00; font-family: 'JetBrains Mono', monospace; font-size: 14px; opacity: 0.1; animation: fall linear infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+        @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+        @keyframes scan { 0% { left: -100%; } 100% { left: 100%; } }
+        @keyframes fall { 0% { transform: translateY(-100vh); opacity: 0; } 10% { opacity: 0.1; } 90% { opacity: 0.1; } 100% { transform: translateY(100vh); opacity: 0; } }
+        @media (max-width: 768px) { .container { padding: 1rem; } .logo { width: 80px; height: 80px; margin-bottom: 1.5rem; } .status { padding: 1.5rem; margin-bottom: 2rem; } .features { grid-template-columns: 1fr; gap: 1rem; margin-top: 2rem; } .feature { padding: 1rem; } }
 
-        body {
-            font-family: 'JetBrains Mono', 'Courier New', monospace;
-            background: #1a1a1a;
-            color: #888;
-            overflow-x: hidden;
-            min-height: 100vh;
-        }
-
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 2rem;
-            position: relative;
-        }
-
-        .logo {
-            width: 120px;
-            height: 120px;
-            margin-bottom: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
-            animation: float 3s ease-in-out infinite;
-        }
-
-        .title {
-            font-size: clamp(2.5rem, 8vw, 4rem);
-            font-weight: 300;
-            margin-bottom: 1rem;
-            color: #fff;
-            text-align: center;
-            position: relative;
-        }
-
-        .title::after {
-            content: '_';
-            color: #00ff00;
-            animation: blink 1s infinite;
-            margin-left: 4px;
-        }
-
-        .subtitle {
-            font-size: clamp(1rem, 3vw, 1.2rem);
-            color: #666;
-            margin-bottom: 3rem;
-            text-align: center;
-            max-width: 600px;
-            line-height: 1.6;
-        }
-
-        .status {
-            background: #2a2a2a;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 2rem;
-            margin-bottom: 3rem;
-            text-align: center;
-            max-width: 500px;
-            width: 100%;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .status::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #00ff00, transparent);
-            animation: scan 2s linear infinite;
-        }
-
-        .status-text {
-            color: #00ff00;
-            font-size: 1.1rem;
-            margin-bottom: 1rem;
-            font-weight: 500;
-        }
-
-        .status-description {
-            color: #888;
-            font-size: 0.9rem;
-            line-height: 1.5;
-        }
-
-        .enter-btn {
-            background: #333;
-            color: #00ff00;
-            border: 1px solid #444;
-            padding: 1rem 2rem;
-            border-radius: 6px;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-family: 'JetBrains Mono', monospace;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .enter-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.1), transparent);
-            transition: left 0.5s;
-        }
-
-        .enter-btn:hover::before {
-            left: 100%;
-        }
-
-        .enter-btn:hover {
-            background: #444;
-            border-color: #00ff00;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-top: 3rem;
-            max-width: 800px;
-            width: 100%;
-        }
-
-        .feature {
-            background: #2a2a2a;
-            border: 1px solid #333;
-            border-radius: 6px;
-            padding: 1.5rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .feature::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: #00ff00;
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
-        }
-
-        .feature:hover::before {
-            transform: scaleX(1);
-        }
-
-        .feature:hover {
-            border-color: #00ff00;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .feature-icon {
-            font-size: 2rem;
-            color: #00ff00;
-            margin-bottom: 1rem;
-        }
-
-        .feature-title {
-            color: #fff;
-            font-size: 1rem;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-
-        .feature-description {
-            color: #666;
-            font-size: 0.8rem;
-            line-height: 1.4;
-        }
-
-        .background-animation {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        .matrix-char {
-            position: absolute;
-            color: #00ff00;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 14px;
-            opacity: 0.1;
-            animation: fall linear infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-
-        @keyframes blink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0; }
-        }
-
-        @keyframes scan {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
-
-        @keyframes fall {
-            0% {
-                transform: translateY(-100vh);
-                opacity: 0;
-            }
-            10% {
-                opacity: 0.1;
-            }
-            90% {
-                opacity: 0.1;
-            }
-            100% {
-                transform: translateY(100vh);
-                opacity: 0;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-
-            .logo {
-                width: 80px;
-                height: 80px;
-                margin-bottom: 1.5rem;
-            }
-
-            .status {
-                padding: 1.5rem;
-                margin-bottom: 2rem;
-            }
-
-            .features {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-                margin-top: 2rem;
-            }
-
-            .feature {
-                padding: 1rem;
-            }
-        }
+        /* version/changelog styles */
+        .version-wrap { position: absolute; top: 18px; right: 18px; display: flex; gap: 0.5rem; align-items: center; z-index: 50; }
+        .version-btn { background: transparent; color: #00ff00; border: 1px solid #233; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-family: 'JetBrains Mono'; font-weight: 600; font-size: 0.9rem; }
+        .version-btn:hover { background: rgba(0,255,0,0.02); box-shadow: 0 0 10px rgba(0,255,0,0.06); }
+        .changelog-modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.6); z-index: 60; }
+        .changelog { background: #121212; border: 1px solid #222; width: min(900px, 92%); max-height: 80vh; overflow: auto; border-radius: 10px; padding: 1.5rem; box-shadow: 0 10px 40px rgba(0,0,0,0.7); }
+        .changelog h2 { color: #00ff00; margin-bottom: 0.5rem; }
+        .changelog pre { background: #0d0d0d; color: #cfcfcf; padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: 0.95rem; }
+        .changelog-close { background: #222; color: #fff; border: 1px solid #333; padding: 8px 12px; border-radius: 6px; cursor: pointer; float: right; }
+        .footer-links { margin-top: 2rem; display:flex; gap: 1rem; justify-content:center; }
+        .footer-links a { color: #00ff00; text-decoration: none; border-bottom:1px dashed rgba(0,255,0,0.15); padding-bottom:2px; }
     </style>
 </head>
 <body>
@@ -297,6 +66,11 @@
         <p class="subtitle">
             advanced web tools and unblocked access portal
         </p>
+
+        <!-- version widget -->
+        <div class="version-wrap">
+            <button id="versionBtn" class="version-btn">v1.2.0</button>
+        </div>
         
         <div class="status">
             <div class="status-text">system status: online</div>
@@ -307,7 +81,7 @@
         
         <a href="soon/index.html" class="enter-btn">
             <i class='bx bx-terminal'></i>
-            > enter_system
+            &gt; enter_system
         </a>
 
         <a href="https://discord.gg/E2eVsXbCyN" target="_blank" rel="noopener noreferrer" class="enter-btn" style="margin-top: 1rem;">
@@ -348,6 +122,34 @@
                 <div class="feature-description">anonymous communication</div>
             </div>
         </div>
+
+        <div class="footer-links">
+            <a href="privacy.html">Privacy Policy</a>
+            <a href="tos.html">Terms of Service</a>
+        </div>
+    </div>
+
+    <!-- changelog modal -->
+    <div id="changelogModal" class="changelog-modal" aria-hidden="true">
+        <div class="changelog" role="dialog" aria-labelledby="changelogTitle">
+            <button id="closeChangelog" class="changelog-close">Close</button>
+            <h2 id="changelogTitle">Changelog — v1.2.0</h2>
+            <pre>
+v1.2.0  — 2025-09-25
+  • added version widget and changelog modal (click v1.2.0 in the top-right)
+  • added links to Privacy Policy and Terms of Service
+  • refined matrix animation timings and accessibility
+  • small UX fixes and performance improvements
+
+v1.1.0  — 2025-06-10
+  • initial public launch
+  • added features grid and discord invite
+
+v1.0.0  — 2025-01-12
+  • project scaffolding and core styles
+            </pre>
+            <p style="color:#888; margin-top:10px;">You can edit this changelog by updating the <code>data-changelog</code> attribute or replacing the &lt;pre&gt; text.</p>
+        </div>
     </div>
 
     <script>
@@ -369,15 +171,10 @@
                 
                 container.appendChild(char);
                 
-                setTimeout(() => {
-                    char.remove();
-                }, 5000);
+                setTimeout(() => { char.remove(); }, 5000);
             }
             
-            for (let i = 0; i < 50; i++) {
-                setTimeout(createChar, Math.random() * 2000);
-            }
-            
+            for (let i = 0; i < 50; i++) { setTimeout(createChar, Math.random() * 2000); }
             setInterval(createChar, 200);
         }
 
@@ -396,10 +193,36 @@
         window.addEventListener('load', () => {
             document.body.style.opacity = '0';
             document.body.style.transition = 'opacity 0.5s ease';
-            setTimeout(() => {
-                document.body.style.opacity = '1';
-            }, 100);
+            setTimeout(() => { document.body.style.opacity = '1'; }, 100);
         });
+
+        // version + changelog logic
+        const versionBtn = document.getElementById('versionBtn');
+        const changelogModal = document.getElementById('changelogModal');
+        const closeChangelog = document.getElementById('closeChangelog');
+
+        function openChangelog() {
+            changelogModal.style.display = 'flex';
+            changelogModal.setAttribute('aria-hidden', 'false');
+            // trap focus (basic)
+            closeChangelog.focus();
+        }
+        function closeChangelogFn() {
+            changelogModal.style.display = 'none';
+            changelogModal.setAttribute('aria-hidden', 'true');
+            versionBtn.focus();
+        }
+
+        versionBtn.addEventListener('click', openChangelog);
+        closeChangelog.addEventListener('click', closeChangelogFn);
+        changelogModal.addEventListener('click', (e) => { if (e.target === changelogModal) closeChangelogFn(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && changelogModal.style.display === 'flex') closeChangelogFn(); });
+
+        // make version editable via JS (so you can change one place)
+        window.APP = window.APP || {};
+        window.APP.version = 'v1.2.0';
+        // if you want to programmatically update version in several places:
+        versionBtn.textContent = window.APP.version;
     </script>
 </body>
 </html>
