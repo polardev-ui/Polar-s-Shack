@@ -41,8 +41,18 @@
   line-height: 1.6;
   margin-bottom: 1.5rem;
 }
+.tos-popup a {
+  color: #00ff00;
+  text-decoration: underline;
+}
+.tos-popup a:hover {
+  color: #55ff55;
+}
 .tos-btn {
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px; /* <-- gives space between text & spinner */
   background: #00ff00;
   color: #000;
   border: none;
@@ -51,7 +61,6 @@
   cursor: pointer;
   font-weight: 600;
   float: right;
-  overflow: hidden;
   transition: background 0.3s ease, color 0.3s ease;
 }
 .tos-btn.loading {
@@ -67,15 +76,11 @@
   border-top: 2px solid #fff;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
 }
 .tos-btn.loading .spinner {
   display: inline-block;
 }
 @keyframes spin {
-  0% { transform: translateY(-50%) rotate(0deg); }
-  100% { transform: translateY(-50%) rotate(360deg); }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
