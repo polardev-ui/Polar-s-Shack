@@ -1,364 +1,257 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Polar's Shack Chat</title>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Polar's Shack - Chat</title>
+  <link id="favicon" rel="icon" href="../logo.png" type="image/png">
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Firebase compat SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <link rel="stylesheet" href="tospopup.css">
+  <script src="tospopup.js" defer></script>
+
   <style>
     body {
-      margin: 0;
       font-family: 'JetBrains Mono', monospace;
-      background: #181818;
+      background: #1a1a1a;
       color: #eee;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-    /* navbar */
-    nav {
-      background: #202020;
-      border-bottom: 1px solid #333;
-      padding: 0.8rem 1.2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    nav .logo {
-      color: #00ff00;
-      font-weight: bold;
-      font-size: 1.1rem;
-    }
-    nav .nav-links {
-      display: flex;
-      gap: 1rem;
-    }
-    nav .nav-links a {
-      color: #eee;
-      text-decoration: none;
-    }
-    nav .nav-links a:hover {
-      color: #00ff00;
-    }
-    /* chat container */
-    .chat-container {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
-    .sidebar {
-      width: 240px;
-      background: #202020;
-      border-right: 1px solid #333;
-      padding: 1rem;
-      overflow-y: auto;
-    }
-    .sidebar h2 {
-      font-size: 1rem;
-      margin-bottom: 0.8rem;
-      color: #00ff00;
-    }
-    .sidebar ul {
-      list-style: none;
-      padding: 0;
       margin: 0;
+      padding: 0;
     }
-    .sidebar li {
-      padding: 0.4rem 0.6rem;
-      border-radius: 4px;
-      transition: background 0.2s;
-    }
-    .sidebar li:hover {
-      background: #2a2a2a;
-    }
-    .chat-main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-    .chat-messages {
-      flex: 1;
-      padding: 1rem;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 0.6rem;
-    }
-    .message {
-      padding: 0.8rem 1rem;
-      border-radius: 8px;
-      max-width: 70%;
-      line-height: 1.4;
-      animation: fadeIn 0.2s ease;
-    }
-    .message.own {
-      background: #00ff00;
-      color: #000;
-      align-self: flex-end;
-    }
-    .message.other {
-      background: #2a2a2a;
-      color: #eee;
-      align-self: flex-start;
-    }
-    .message.admin {
-      border-left: 3px solid #00ff00;
-    }
-    .message.system {
-      align-self: center;
-      font-style: italic;
-      color: #888;
-      background: none;
-      padding: 0.3rem;
-    }
-    .message-header {
-      font-size: 0.8rem;
-      margin-bottom: 0.2rem;
-      opacity: 0.7;
-    }
-    .chat-footer {
-      display: flex;
-      padding: 1rem;
-      border-top: 1px solid #333;
-      background: #202020;
-    }
-    #chatInput {
-      flex: 1;
-      padding: 1rem;
-      border: none;
-      border-radius: 6px;
-      background: #2a2a2a;
-      color: #eee;
-      font-size: 1rem;
-    }
-    #sendBtn {
-      margin-left: 0.6rem;
-      padding: 1rem 1.6rem;
-      background: #00ff00;
-      border: none;
-      border-radius: 6px;
-      font-weight: bold;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-    #sendBtn:hover {
-      background: #44ff44;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(5px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    /* tos popup */
-    .tos-popup-overlay {
+
+    /* navbar same as index.html */
+    .navbar {
+      background: #1a1a1a;
+      padding: 1rem 2rem;
       position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.7);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 3000;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.4s ease;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+      border-bottom: 1px solid #333;
     }
-    .tos-popup-overlay.active {
-      opacity: 1;
-      pointer-events: auto;
+    .nav-container { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; }
+    .logo-nav { display: flex; align-items: center; gap: 10px; }
+    .logo-nav img { width: 32px; height: 32px; border-radius: 4px; }
+    .logo-nav span { font-size: 1.2rem; font-weight: 500; color: #fff; }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a { color: #888; text-decoration: none; transition: all 0.3s; }
+    .nav-links a:hover, .nav-links a.active { color: #00ff00; }
+
+    .main-content {
+      margin-top: 90px;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+      padding: 1rem;
     }
-    .tos-popup {
-      background: #121212;
+
+    /* Chat UI */
+    .chat-box {
+      background: #222;
       border: 1px solid #333;
-      padding: 2rem;
-      border-radius: 10px;
-      max-width: 500px;
-      width: 90%;
-      color: #cfcfcf;
-      opacity: 0;
-      transform: translateY(20px);
-      transition: all 0.4s ease;
-    }
-    .tos-popup.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    .tos-popup h2 {
-      color: #00ff00;
+      border-radius: 6px;
+      height: 500px;
+      overflow-y: auto;
+      padding: 1rem;
       margin-bottom: 1rem;
     }
-    .tos-btn {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: #00ff00;
-      color: #000;
+    .chat-message {
+      margin-bottom: .8rem;
+    }
+    .chat-message span.user {
+      font-weight: 600;
+      color: #00ff00;
+    }
+    .chat-message span.text {
+      color: #ccc;
+      margin-left: .5rem;
+    }
+
+    .chat-input-container {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .chat-input {
+      flex: 1;
+      padding: 1rem;
+      border-radius: 4px;
       border: none;
-      padding: 0.9rem 1.6rem;
+      font-family: inherit;
+      font-size: 1rem;
+      background: #333;
+      color: #fff;
+    }
+    .send-btn {
+      background: #00ff00;
+      border: none;
+      padding: 0 1.5rem;
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .send-btn:hover {
+      background: #00cc00;
+    }
+
+    /* auth box */
+    .auth-box {
+      background: #2a2a2a;
+      padding: 1rem;
       border-radius: 6px;
+      margin-bottom: 1rem;
+    }
+    .auth-box input {
+      width: 100%;
+      padding: 0.7rem;
+      margin: 0.5rem 0;
+      border-radius: 4px;
+      border: none;
+      background: #333;
+      color: #fff;
+    }
+    .auth-box button {
+      background: #00ff00;
+      border: none;
+      padding: 0.7rem 1rem;
+      margin-top: 0.5rem;
+      border-radius: 4px;
       cursor: pointer;
       font-weight: 600;
-      float: right;
     }
-    .tos-btn.loading {
-      background: #555;
+    .auth-box button:hover { background: #00cc00; }
+
+    .online-users {
+      margin-top: 1rem;
       color: #aaa;
-      pointer-events: none;
-    }
-    .tos-btn .spinner {
-      display: none;
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top: 2px solid #fff;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-    .tos-btn.loading .spinner {
-      display: inline-block;
-    }
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
-  <nav>
-    <div class="logo">Polar's Shack</div>
-    <div class="nav-links">
-      <a href="index.html">Home</a>
-      <a href="chat.html">Chat</a>
-      <a href="tos.html">TOS</a>
-      <a href="privacy.html">Privacy</a>
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="logo-nav">
+        <img src="../logo.png" alt="Logo">
+        <span>polar's.shack</span>
+      </div>
+      <ul class="nav-links">
+        <li><a href="index.html">home</a></li>
+        <li><a href="osint.html">osint</a></li>
+        <li><a href="csint.html">csint</a></li>
+        <li><a href="tools.html">tools</a></li>
+        <li><a href="games.html">games</a></li>
+        <li><a href="apps.html">apps</a></li>
+        <li><a href="proxy.html">proxy</a></li>
+        <li><a href="chat.html" class="active">chat</a></li>
+      </ul>
     </div>
   </nav>
 
-  <div class="chat-container">
-    <aside class="sidebar">
-      <h2>Online Users</h2>
-      <ul id="onlineUsers"></ul>
-    </aside>
+  <main class="main-content">
+    <div class="auth-box" id="authBox">
+      <input type="email" id="email" placeholder="Email" />
+      <input type="password" id="password" placeholder="Password" />
+      <button onclick="signUp()">Sign Up</button>
+      <button onclick="signIn()">Login</button>
+      <button onclick="signOut()">Logout</button>
+    </div>
 
-    <main class="chat-main">
-      <div id="chatMessages" class="chat-messages"></div>
-      <footer class="chat-footer">
-        <input type="text" id="chatInput" placeholder="Type a message..." autocomplete="off">
-        <button id="sendBtn">Send</button>
-      </footer>
-    </main>
-  </div>
+    <div class="online-users">Online Users: <span id="onlineCount">0</span></div>
 
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+    <div class="chat-box" id="chatBox"></div>
 
-  <!-- Inject env vars -->
-  <script>
-    window.env = {
-      apiKey: "${FIREBASE_API_KEY}",
-      authDomain: "${FIREBASE_AUTH_DOMAIN}",
-      projectId: "${FIREBASE_PROJECT_ID}",
-      storageBucket: "${FIREBASE_STORAGE_BUCKET}",
-      messagingSenderId: "${FIREBASE_MESSAGING_SENDER_ID}",
-      appId: "${FIREBASE_APP_ID}",
-    };
-  </script>
+    <div class="chat-input-container">
+      <input class="chat-input" id="chatInput" placeholder="Type a message..."/>
+      <button class="send-btn" onclick="sendMessage()">Send</button>
+    </div>
+  </main>
 
   <script>
-    // init firebase with env vars
+    // 🔹 Firebase config (replace with env values in prod)
     const firebaseConfig = {
-      apiKey: window.env.apiKey,
-      authDomain: window.env.authDomain,
-      projectId: window.env.projectId,
-      storageBucket: window.env.storageBucket,
-      messagingSenderId: window.env.messagingSenderId,
-      appId: window.env.appId
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
     };
-    const app = firebase.initializeApp(firebaseConfig);
+
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const auth = firebase.auth();
 
-    const chatMessages = document.getElementById("chatMessages");
-    const chatInput = document.getElementById("chatInput");
-    const sendBtn = document.getElementById("sendBtn");
+    const chatBox = document.getElementById('chatBox');
+    const chatInput = document.getElementById('chatInput');
+    const onlineCount = document.getElementById('onlineCount');
 
-    // ask for username (basic auth substitute for now)
-    const username = prompt("Enter a username:");
-    const user = { username, isAdmin: false };
-
-    // render message
-    function renderMessage(data) {
-      const msg = document.createElement("div");
-      msg.classList.add("message");
-      if (data.username === user.username) {
-        msg.classList.add("own");
-      } else {
-        msg.classList.add("other");
-      }
-      if (data.isAdmin) msg.classList.add("admin");
-      msg.innerHTML = `
-        <div class="message-header">
-          <span>${data.username}</span>
-          <span>${new Date(data.timestamp?.toDate?.() || Date.now()).toLocaleTimeString()}</span>
-        </div>
-        <div>${data.message}</div>
-      `;
-      chatMessages.appendChild(msg);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
+    // 🔹 Auth functions
+    function signUp() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      auth.createUserWithEmailAndPassword(email, password).catch(alert);
+    }
+    function signIn() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      auth.signInWithEmailAndPassword(email, password).catch(alert);
+    }
+    function signOut() {
+      auth.signOut();
     }
 
-    // listen for messages
-    db.collection("chat_messages").orderBy("timestamp")
-      .onSnapshot(snapshot => {
-        chatMessages.innerHTML = "";
-        snapshot.forEach(doc => renderMessage(doc.data()));
-      });
+    // 🔹 Track online users
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        const userRef = db.collection('online_users').doc(user.uid);
+        userRef.set({ email: user.email }, { merge: true });
+        userRef.onSnapshot(() => {
+          db.collection('online_users').get().then(snap => {
+            onlineCount.textContent = snap.size;
+          });
+        });
+        window.addEventListener('beforeunload', () => userRef.delete());
+      }
+    });
 
-    // send message
-    sendBtn.addEventListener("click", () => {
-      if (!chatInput.value.trim()) return;
-      db.collection("chat_messages").add({
-        username: user.username,
-        message: chatInput.value,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        isAdmin: user.isAdmin
+    // 🔹 Send message
+    function sendMessage() {
+      const text = chatInput.value.trim();
+      if (!text) return;
+      const user = auth.currentUser;
+      if (!user) return alert("Login first!");
+
+      db.collection('messages').add({
+        text,
+        uid: user.uid,
+        email: user.email,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
       chatInput.value = "";
-    });
+    }
 
-    // TOS popup
-    document.addEventListener("DOMContentLoaded", function () {
-      if (localStorage.getItem("tosAccepted_2025_09_27")) return;
-      const overlay = document.createElement("div");
-      overlay.className = "tos-popup-overlay";
-      overlay.innerHTML = `
-        <div class="tos-popup">
-          <h2>New TOS and Privacy Policy</h2>
-          <p>
-            We have updated our 
-            <a href="tos.html" target="_blank">Terms of Service</a> and 
-            <a href="privacy.html" target="_blank">Privacy Policy</a>.
-            Effective <strong>September 27th, 2025</strong>.
-          </p>
-          <button class="tos-btn">
-            <span class="btn-text">Agree and Continue</span>
-            <span class="spinner"></span>
-          </button>
-        </div>
-      `;
-      document.body.appendChild(overlay);
-      const popup = overlay.querySelector(".tos-popup");
-      const btn = overlay.querySelector(".tos-btn");
-      requestAnimationFrame(() => overlay.classList.add("active"));
-      setTimeout(() => popup.classList.add("show"), 50);
-      btn.addEventListener("click", () => {
-        btn.classList.add("loading");
-        setTimeout(() => {
-          overlay.remove();
-          localStorage.setItem("tosAccepted_2025_09_27", "true");
-        }, 2000);
+    // 🔹 Display messages
+    db.collection('messages')
+      .orderBy('createdAt')
+      .limit(50)
+      .onSnapshot(snapshot => {
+        chatBox.innerHTML = "";
+        snapshot.forEach(doc => {
+          const msg = doc.data();
+          const div = document.createElement('div');
+          div.className = 'chat-message';
+          div.innerHTML = `<span class="user">${msg.email}</span><span class="text">${msg.text}</span>`;
+          chatBox.appendChild(div);
+        });
+        chatBox.scrollTop = chatBox.scrollHeight;
       });
-    });
   </script>
 </body>
 </html>
