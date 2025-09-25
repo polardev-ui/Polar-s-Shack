@@ -1,1193 +1,362 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Polar's Shack</title>
-    <link id="favicon" rel="icon" href="../logo.png" type="image/png">
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9156548662984796"
-     crossorigin="anonymous"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'JetBrains Mono', 'Courier New', monospace;
-            background: #1a1a1a;
-            color: #888;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .navbar {
-            background: #1a1a1a;
-            padding: 1rem 2rem;
-            border-bottom: 1px solid #333;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        .nav-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .logo-nav {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .logo-nav img {
-            width: 32px;
-            height: 32px;
-            border-radius: 4px;
-        }
-
-        .logo-nav span {
-            font-size: 1.2rem;
-            font-weight: 500;
-            color: #fff;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-            list-style: none;
-        }
-
-        .nav-links a {
-            color: #888;
-            text-decoration: none;
-            padding: 0.5rem 0;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-        }
-
-        .nav-links a:hover, .nav-links a.active {
-            color: #00ff00;
-        }
-
-        .mobile-menu-btn {
-            display: none;
-            background: none;
-            border: none;
-            color: #888;
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 0.5rem;
-        }
-
-        .mobile-menu {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: #1a1a1a;
-            border-bottom: 1px solid #333;
-            padding: 1rem 2rem;
-        }
-
-        .mobile-menu.active {
-            display: block;
-        }
-
-        .mobile-menu a {
-            display: block;
-            color: #888;
-            text-decoration: none;
-            padding: 0.8rem 0;
-            border-bottom: 1px solid #333;
-            transition: all 0.3s ease;
-        }
-
-        .mobile-menu a:hover, .mobile-menu a.active {
-            color: #00ff00;
-        }
-
-        .mobile-menu a:last-child {
-            border-bottom: none;
-        }
-
-        /* Login/Signup Screen */
-        .auth-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex: 1;
-            padding: 2rem;
-        }
-
-        .auth-card {
-            background: #2a2a2a;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 2rem;
-            max-width: 400px;
-            width: 100%;
-        }
-
-        .auth-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .auth-header h1 {
-            color: #fff;
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .auth-header p {
-            color: #666;
-            font-size: 0.8rem;
-        }
-
-        .auth-tabs {
-            display: flex;
-            margin-bottom: 2rem;
-            border-bottom: 1px solid #333;
-        }
-
-        .auth-tab {
-            flex: 1;
-            padding: 1rem;
-            background: none;
-            border: none;
-            color: #888;
-            cursor: pointer;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            border-bottom: 2px solid transparent;
-        }
-
-        .auth-tab.active {
-            color: #00ff00;
-            border-bottom-color: #00ff00;
-        }
-
-        .auth-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group label {
-            color: #888;
-            font-size: 0.8rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .form-group input {
-            padding: 0.8rem;
-            background: #333;
-            border: 1px solid #444;
-            border-radius: 4px;
-            color: #888;
-            font-size: 0.9rem;
-            outline: none;
-            transition: all 0.3s ease;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .form-group input:focus {
-            border-color: #00ff00;
-            box-shadow: 0 0 8px rgba(0, 255, 0, 0.2);
-        }
-
-        .auth-btn {
-            background: #00ff00;
-            color: #1a1a1a;
-            border: 1px solid #00ff00;
-            padding: 0.8rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .auth-btn:hover {
-            background: #00cc00;
-        }
-
-        .auth-btn:disabled {
-            background: #333;
-            color: #666;
-            border-color: #333;
-            cursor: not-allowed;
-        }
-
-        .error-message {
-            color: #ff6666;
-            font-size: 0.8rem;
-            text-align: center;
-            margin-top: 0.5rem;
-        }
-
-        .success-message {
-            color: #00ff00;
-            font-size: 0.8rem;
-            text-align: center;
-            margin-top: 0.5rem;
-        }
-
-        /* Chat Interface */
-        .chat-container {
-            display: none;
-            flex: 1;
-            flex-direction: column;
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
-            padding: 2rem;
-        }
-
-        .chat-header {
-            background: #2a2a2a;
-            border: 1px solid #333;
-            border-radius: 8px 8px 0 0;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .chat-title {
-            color: #fff;
-            font-size: 1.2rem;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .username-display {
-            color: #00ff00;
-            font-size: 0.9rem;
-        }
-
-        .logout-btn {
-            background: #ff4444;
-            color: #fff;
-            border: 1px solid #ff4444;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            transition: all 0.3s ease;
-        }
-
-        .logout-btn:hover {
-            background: #ff6666;
-        }
-
-        .chat-messages {
-            background: #2a2a2a;
-            border-left: 1px solid #333;
-            border-right: 1px solid #333;
-            flex: 1;
-            padding: 1rem;
-            overflow-y: auto;
-            max-height: 400px;
-            min-height: 300px;
-        }
-
-        .message {
-            margin-bottom: 1rem;
-            padding: 0.8rem;
-            background: #333;
-            border-radius: 4px;
-            border-left: 3px solid #444;
-        }
-
-        .message.admin {
-            border-left-color: #ff6666;
-        }
-
-        .message.own {
-            border-left-color: #00ff00;
-            background: #2d3d2d;
-        }
-
-        .message-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-
-        .message-username {
-            color: #00ff00;
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-
-        .message-username.admin {
-            color: #ff6666;
-        }
-
-        .message-time {
-            color: #666;
-            font-size: 0.7rem;
-        }
-
-        .message-content {
-            color: #888;
-            font-size: 0.9rem;
-            line-height: 1.4;
-            word-wrap: break-word;
-        }
-
-        .chat-input-container {
-            background: #2a2a2a;
-            border: 1px solid #333;
-            border-radius: 0 0 8px 8px;
-            padding: 1rem;
-            display: flex;
-            gap: 1rem;
-        }
-
-        .chat-input {
-            flex: 1;
-            padding: 0.8rem;
-            background: #333;
-            border: 1px solid #444;
-            border-radius: 4px;
-            color: #888;
-            font-size: 0.9rem;
-            outline: none;
-            transition: all 0.3s ease;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .chat-input:focus {
-            border-color: #00ff00;
-            box-shadow: 0 0 8px rgba(0, 255, 0, 0.2);
-        }
-
-        .send-btn {
-            background: #00ff00;
-            color: #1a1a1a;
-            border: 1px solid #00ff00;
-            padding: 0.8rem 1.5rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .send-btn:hover {
-            background: #00cc00;
-        }
-
-        .send-btn:disabled {
-            background: #333;
-            color: #666;
-            border-color: #333;
-            cursor: not-allowed;
-        }
-
-        .online-users {
-            background: #2a2a2a;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-top: 1rem;
-        }
-
-        .online-users h3 {
-            color: #fff;
-            font-size: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .user-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        .user-tag {
-            background: #333;
-            color: #888;
-            padding: 0.3rem 0.6rem;
-            border-radius: 3px;
-            font-size: 0.8rem;
-            border: 1px solid #444;
-        }
-
-        .user-tag.admin {
-            color: #ff6666;
-            border-color: #ff6666;
-        }
-
-        .user-tag.own {
-            color: #00ff00;
-            border-color: #00ff00;
-        }
-
-        @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-            
-            .mobile-menu-btn {
-                display: block;
-            }
-
-            .chat-container {
-                padding: 1rem;
-            }
-
-            .chat-header {
-                flex-direction: column;
-                gap: 1rem;
-                text-align: center;
-            }
-
-            .chat-input-container {
-                flex-direction: column;
-            }
-
-            .send-btn {
-                width: 100%;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Polar's Shack Chat</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'JetBrains Mono', monospace;
+      background: #181818;
+      color: #eee;
+      height: 100vh;
+      display: flex;
+    }
+    .chat-container {
+      display: flex;
+      flex: 1;
+    }
+    .sidebar {
+      width: 220px;
+      background: #202020;
+      border-right: 1px solid #333;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+    .sidebar h2 {
+      margin-bottom: 1rem;
+      font-size: 1rem;
+      color: #00ff00;
+    }
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .sidebar li {
+      padding: 0.5rem;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    .sidebar li:hover {
+      background: #2a2a2a;
+    }
+    .chat-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .chat-header {
+      padding: 1rem;
+      border-bottom: 1px solid #333;
+      background: #202020;
+    }
+    .chat-header h1 {
+      font-size: 1.2rem;
+      color: #00ff00;
+    }
+    .chat-messages {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .message {
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      max-width: 70%;
+      line-height: 1.4;
+      animation: fadeIn 0.2s ease;
+    }
+    .message.own {
+      background: #00ff00;
+      color: #000;
+      align-self: flex-end;
+    }
+    .message.other {
+      background: #2a2a2a;
+      color: #eee;
+      align-self: flex-start;
+    }
+    .message.admin {
+      border-left: 3px solid #00ff00;
+    }
+    .message.system {
+      align-self: center;
+      font-style: italic;
+      color: #888;
+      background: none;
+      padding: 0.3rem;
+    }
+    .message-header {
+      font-size: 0.8rem;
+      margin-bottom: 0.2rem;
+      opacity: 0.7;
+    }
+    .chat-footer {
+      display: flex;
+      padding: 1rem;
+      border-top: 1px solid #333;
+      background: #202020;
+    }
+    #chatInput {
+      flex: 1;
+      padding: 0.6rem;
+      border: none;
+      border-radius: 6px;
+      background: #2a2a2a;
+      color: #eee;
+    }
+    #sendBtn {
+      margin-left: 0.5rem;
+      padding: 0.6rem 1.2rem;
+      background: #00ff00;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #sendBtn:hover {
+      background: #44ff44;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .ban-popup {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+    .ban-card {
+      background: #2a2a2a;
+      border: 1px solid #ff4444;
+      border-radius: 8px;
+      padding: 2rem;
+      text-align: center;
+      color: #fff;
+    }
+    .ban-card h2 {
+      color: #ff6666;
+      margin-bottom: 1rem;
+    }
+    /* tos popup */
+    .tos-popup-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 3000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+    .tos-popup-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .tos-popup {
+      background: #121212;
+      border: 1px solid #333;
+      padding: 2rem;
+      border-radius: 10px;
+      max-width: 500px;
+      width: 90%;
+      color: #cfcfcf;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.4s ease;
+    }
+    .tos-popup.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .tos-popup h2 {
+      color: #00ff00;
+      margin-bottom: 1rem;
+    }
+    .tos-popup p {
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+    .tos-popup a {
+      color: #00ff00;
+      text-decoration: underline;
+    }
+    .tos-popup a:hover {
+      color: #55ff55;
+    }
+    .tos-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #00ff00;
+      color: #000;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      float: right;
+    }
+    .tos-btn.loading {
+      background: #555;
+      color: #aaa;
+      pointer-events: none;
+    }
+    .tos-btn .spinner {
+      display: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top: 2px solid #fff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    .tos-btn.loading .spinner {
+      display: inline-block;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
-    <link rel="stylesheet" href="tospopup.css">
-<script src="tospopup.js" defer></script>
+  <div class="chat-container">
+    <aside class="sidebar">
+      <h2>Online Users</h2>
+      <ul id="onlineUsers"></ul>
+    </aside>
 
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="logo-nav">
-                <img src="../logo.png" alt="Logo">
-                <span>polar's.shack</span>
-            </div>
-            <ul class="nav-links">
-                <li><a href="index.html">home</a></li>
-                <li><a href="osint.html">osint</a></li>
-                <li><a href="csint.html">csint</a></li>
-                <li><a href="tools.html">tools</a></li>
-                <li><a href="games.html">games</a></li>
-                <li><a href="apps.html">apps</a></li>
-                <li><a href="proxy.html">proxy</a></li>
-                <li><a href="chat.html" class="active">chat</a></li>
-            </ul>
-            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
-                <i class='bx bx-menu'></i>
-            </button>
+    <main class="chat-main">
+      <header class="chat-header">
+        <h1>Polar's Shack Chat</h1>
+      </header>
+
+      <div id="chatMessages" class="chat-messages"></div>
+
+      <footer class="chat-footer">
+        <input type="text" id="chatInput" placeholder="Type a message..." autocomplete="off">
+        <button id="sendBtn">Send</button>
+      </footer>
+    </main>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+
+  <script>
+    // ===== firebase setup (replace with your keys) =====
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+    };
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const chatMessages = document.getElementById("chatMessages");
+    const chatInput = document.getElementById("chatInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const onlineUsers = document.getElementById("onlineUsers");
+
+    // basic user setup
+    const username = prompt("Enter a username:");
+    const user = { username, isAdmin: false };
+
+    // ===== display message =====
+    function displayMessage(data) {
+      const msg = document.createElement("div");
+      msg.classList.add("message");
+
+      if (data.username === "system") {
+        msg.classList.add("system");
+        msg.textContent = data.message;
+      } else {
+        msg.classList.add(data.username === user.username ? "own" : "other");
+        if (data.isAdmin) msg.classList.add("admin");
+        msg.innerHTML = `
+          <div class="message-header">
+            <span>${data.username}</span>
+            <span>${new Date(data.timestamp?.toDate?.() || Date.now()).toLocaleTimeString()}</span>
+          </div>
+          <div class="message-content">${data.message}</div>
+        `;
+      }
+      chatMessages.appendChild(msg);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // ===== listen to messages =====
+    db.collection("chat_messages").orderBy("timestamp")
+      .onSnapshot(snapshot => {
+        chatMessages.innerHTML = "";
+        snapshot.forEach(doc => displayMessage(doc.data()));
+      });
+
+    // ===== send message =====
+    sendBtn.addEventListener("click", () => {
+      if (!chatInput.value.trim()) return;
+      db.collection("chat_messages").add({
+        username: user.username,
+        message: chatInput.value,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        isAdmin: user.isAdmin
+      });
+      chatInput.value = "";
+    });
+
+    // ===== TOS popup =====
+    document.addEventListener("DOMContentLoaded", function () {
+      if (localStorage.getItem("tosAccepted_2025_09_27")) return;
+
+      const overlay = document.createElement("div");
+      overlay.className = "tos-popup-overlay";
+      overlay.innerHTML = `
+        <div class="tos-popup">
+          <h2>New TOS and Privacy Policy</h2>
+          <p>
+            We have updated our 
+            <a href="tos.html" target="_blank">Terms of Service</a> and 
+            <a href="privacy.html" target="_blank">Privacy Policy</a>. 
+            These changes will take effect on 
+            <strong>September 27th, 2025</strong>.
+          </p>
+          <button class="tos-btn">
+            <span class="btn-text">Agree and Continue</span>
+            <span class="spinner"></span>
+          </button>
         </div>
-        <div class="mobile-menu" id="mobileMenu">
-            <a href="index.html">home</a>
-            <a href="osint.html">osint</a>
-            <a href="csint.html">csint</a>
-            <a href="tools.html">tools</a>
-            <a href="games.html">games</a>
-            <a href="apps.html">apps</a>
-            <a href="proxy.html">proxy</a>
-            <a href="chat.html" class="active">chat</a>
-        </div>
-    </nav>
-
-    <!-- Authentication Screen -->
-    <div class="auth-container" id="authContainer">
-        <div class="auth-card">
-            <div class="auth-header">
-                <h1>join the chat</h1>
-                <p>create an account or login to start chatting</p>
-            </div>
-            
-            <div class="auth-tabs">
-                <button class="auth-tab active" onclick="switchTab('login')">login</button>
-                <button class="auth-tab" onclick="switchTab('signup')">sign up</button>
-            </div>
-
-            <!-- Login Form -->
-            <form class="auth-form" id="loginForm">
-                <div class="form-group">
-                    <label for="loginUsername">username:</label>
-                    <input type="text" id="loginUsername" required>
-                </div>
-                <div class="form-group">
-                    <label for="loginPassword">password:</label>
-                    <input type="password" id="loginPassword" required>
-                </div>
-                <button type="submit" class="auth-btn" id="loginBtn">login</button>
-                <div class="error-message" id="loginError" style="display: none;"></div>
-            </form>
-
-            <!-- Signup Form -->
-            <form class="auth-form" id="signupForm" style="display: none;">
-                <div class="form-group">
-                    <label for="signupUsername">username:</label>
-                    <input type="text" id="signupUsername" required minlength="3" maxlength="20">
-                </div>
-                <div class="form-group">
-                    <label for="signupPassword">password:</label>
-                    <input type="password" id="signupPassword" required minlength="6">
-                </div>
-                <div class="form-group">
-                    <label for="confirmPassword">confirm password:</label>
-                    <input type="password" id="confirmPassword" required>
-                </div>
-                <button type="submit" class="auth-btn" id="signupBtn">create account</button>
-                <div class="error-message" id="signupError" style="display: none;"></div>
-                <div class="success-message" id="signupSuccess" style="display: none;"></div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Chat Interface -->
-    <div class="chat-container" id="chatContainer">
-        <div class="chat-header">
-            <div class="chat-title">polar's chat</div>
-            <div class="user-info">
-                <span class="username-display" id="usernameDisplay"></span>
-                <button class="logout-btn" onclick="logout()">
-                    <i class='bx bx-log-out'></i> logout
-                </button>
-            </div>
-        </div>
-
-        <div class="chat-messages" id="chatMessages">
-            <!-- Messages will be populated here -->
-        </div>
-
-        <div class="chat-input-container">
-            <input type="text" class="chat-input" id="chatInput" placeholder="type your message..." maxlength="500">
-            <button class="send-btn" id="sendBtn" onclick="sendMessage()">
-                <i class='bx bx-send'></i> send
-            </button>
-        </div>
-
-        <div class="online-users">
-            <h3>online users (<span id="onlineCount">0</span>)</h3>
-            <div class="user-list" id="userList">
-                <!-- Online users will be populated here -->
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyBqJJQqJQqJQqJQqJQqJQqJQqJQqJQqJQq",
-            authDomain: "polars-shack.firebaseapp.com",
-            projectId: "polars-shack",
-            storageBucket: "polars-shack.appspot.com",
-            messagingSenderId: "123456789012",
-            appId: "1:123456789012:web:abcdefghijklmnopqr"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
-        class ChatApp {
-            constructor() {
-                this.currentUser = null;
-                this.isAdmin = false;
-                this.messagesListener = null;
-                this.onlineUsersListener = null;
-                this.adminPassword = "admin123";
-                this.init();
-            }
-
-            init() {
-                this.setupEventListeners();
-                this.checkAutoLogin();
-            }
-
-            setupEventListeners() {
-                // Login form
-                document.getElementById('loginForm').addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    this.handleLogin();
-                });
-
-                // Signup form
-                document.getElementById('signupForm').addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    this.handleSignup();
-                });
-
-                // Chat input
-                document.getElementById('chatInput').addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        this.sendMessage();
-                    }
-                });
-
-                // Auto-scroll chat messages
-                const chatMessages = document.getElementById('chatMessages');
-                chatMessages.addEventListener('DOMNodeInserted', () => {
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                });
-            }
-
-            async checkAutoLogin() {
-                const savedUser = localStorage.getItem('chatUser');
-                if (savedUser) {
-                    try {
-                        const userData = JSON.parse(savedUser);
-                        // Verify the user still exists and password is correct
-                        const userDoc = await db.collection('chat_users').doc(userData.username.toLowerCase()).get();
-                        
-                        if (userDoc.exists) {
-                            const storedData = userDoc.data();
-                            // Verify the stored password hash matches
-                            if (storedData.passwordHash === userData.passwordHash) {
-                                this.currentUser = userData.username;
-                                this.isAdmin = userData.isAdmin || false;
-                                this.showChatInterface();
-                                this.joinChat();
-                                return;
-                            }
-                        }
-                    } catch (error) {
-                        console.error('Auto-login failed:', error);
-                    }
-                    // Clear invalid saved data
-                    localStorage.removeItem('chatUser');
-                }
-            }
-
-            async handleLogin() {
-                const username = document.getElementById('loginUsername').value.trim();
-                const password = document.getElementById('loginPassword').value;
-                const errorDiv = document.getElementById('loginError');
-                const loginBtn = document.getElementById('loginBtn');
-
-                if (!username || !password) {
-                    this.showError('loginError', 'please fill in all fields');
-                    return;
-                }
-
-                loginBtn.disabled = true;
-                loginBtn.textContent = 'logging in...';
-
-                try {
-                    // Check if user exists
-                    const userDoc = await db.collection('chat_users').doc(username.toLowerCase()).get();
-                    
-                    if (!userDoc.exists) {
-                        this.showError('loginError', 'user not found. please sign up first.');
-                        return;
-                    }
-
-                    const userData = userDoc.data();
-                    const passwordHash = await this.hashPassword(password);
-
-                    // Verify password
-                    if (userData.passwordHash !== passwordHash) {
-                        this.showError('loginError', 'incorrect password');
-                        return;
-                    }
-
-                    // Check if user is banned
-                    const bannedDoc = await db.collection('banned_users').doc(username.toLowerCase()).get();
-                    if (bannedDoc.exists) {
-                        this.showError('loginError', 'your account has been banned');
-                        return;
-                    }
-
-                    // Successful login
-                    this.currentUser = username;
-                    this.isAdmin = userData.isAdmin || false;
-
-                    // Save login info to localStorage
-                    const userInfo = {
-                        username: username,
-                        passwordHash: passwordHash,
-                        isAdmin: this.isAdmin
-                    };
-                    localStorage.setItem('chatUser', JSON.stringify(userInfo));
-
-                    // Update last seen
-                    await db.collection('chat_users').doc(username.toLowerCase()).update({
-                        lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-
-                    this.showChatInterface();
-                    this.joinChat();
-
-                } catch (error) {
-                    console.error('Login error:', error);
-                    this.showError('loginError', 'login failed. please try again.');
-                } finally {
-                    loginBtn.disabled = false;
-                    loginBtn.textContent = 'login';
-                }
-            }
-
-            async handleSignup() {
-                const username = document.getElementById('signupUsername').value.trim();
-                const password = document.getElementById('signupPassword').value;
-                const confirmPassword = document.getElementById('confirmPassword').value;
-                const signupBtn = document.getElementById('signupBtn');
-
-                // Validation
-                if (!username || !password || !confirmPassword) {
-                    this.showError('signupError', 'please fill in all fields');
-                    return;
-                }
-
-                if (username.length < 3 || username.length > 20) {
-                    this.showError('signupError', 'username must be 3-20 characters');
-                    return;
-                }
-
-                if (password.length < 6) {
-                    this.showError('signupError', 'password must be at least 6 characters');
-                    return;
-                }
-
-                if (password !== confirmPassword) {
-                    this.showError('signupError', 'passwords do not match');
-                    return;
-                }
-
-                // Check for invalid characters
-                if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
-                    this.showError('signupError', 'username can only contain letters, numbers, _ and -');
-                    return;
-                }
-
-                signupBtn.disabled = true;
-                signupBtn.textContent = 'creating account...';
-
-                try {
-                    // Check if username already exists
-                    const existingUser = await db.collection('chat_users').doc(username.toLowerCase()).get();
-                    if (existingUser.exists) {
-                        this.showError('signupError', 'username already taken');
-                        return;
-                    }
-
-                    // Hash password
-                    const passwordHash = await this.hashPassword(password);
-
-                    // Check if this is admin signup
-                    const isAdmin = password === this.adminPassword;
-
-                    // Create user account
-                    await db.collection('chat_users').doc(username.toLowerCase()).set({
-                        username: username,
-                        passwordHash: passwordHash,
-                        isAdmin: isAdmin,
-                        joinedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-
-                    // Show success message
-                    document.getElementById('signupSuccess').textContent = 'account created successfully! you can now login.';
-                    document.getElementById('signupSuccess').style.display = 'block';
-                    document.getElementById('signupError').style.display = 'none';
-
-                    // Clear form
-                    document.getElementById('signupForm').reset();
-
-                    // Switch to login tab after 2 seconds
-                    setTimeout(() => {
-                        this.switchTab('login');
-                        document.getElementById('loginUsername').value = username;
-                    }, 2000);
-
-                } catch (error) {
-                    console.error('Signup error:', error);
-                    this.showError('signupError', 'failed to create account. please try again.');
-                } finally {
-                    signupBtn.disabled = false;
-                    signupBtn.textContent = 'create account';
-                }
-            }
-
-            async hashPassword(password) {
-                const encoder = new TextEncoder();
-                const data = encoder.encode(password);
-                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-                const hashArray = Array.from(new Uint8Array(hashBuffer));
-                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            }
-
-            showError(elementId, message) {
-                const errorDiv = document.getElementById(elementId);
-                errorDiv.textContent = message;
-                errorDiv.style.display = 'block';
-                
-                // Hide success message if showing error
-                if (elementId === 'signupError') {
-                    document.getElementById('signupSuccess').style.display = 'none';
-                }
-            }
-
-            switchTab(tab) {
-                const loginForm = document.getElementById('loginForm');
-                const signupForm = document.getElementById('signupForm');
-                const loginTab = document.querySelector('.auth-tab:first-child');
-                const signupTab = document.querySelector('.auth-tab:last-child');
-
-                // Hide all error/success messages
-                document.getElementById('loginError').style.display = 'none';
-                document.getElementById('signupError').style.display = 'none';
-                document.getElementById('signupSuccess').style.display = 'none';
-
-                if (tab === 'login') {
-                    loginForm.style.display = 'flex';
-                    signupForm.style.display = 'none';
-                    loginTab.classList.add('active');
-                    signupTab.classList.remove('active');
-                } else {
-                    loginForm.style.display = 'none';
-                    signupForm.style.display = 'flex';
-                    loginTab.classList.remove('active');
-                    signupTab.classList.add('active');
-                }
-            }
-
-            showChatInterface() {
-                document.getElementById('authContainer').style.display = 'none';
-                document.getElementById('chatContainer').style.display = 'flex';
-                document.getElementById('usernameDisplay').textContent = this.currentUser;
-                
-                if (this.isAdmin) {
-                    document.getElementById('usernameDisplay').style.color = '#ff6666';
-                    document.getElementById('usernameDisplay').textContent += ' (admin)';
-                }
-            }
-
-            async joinChat() {
-                try {
-                    // Add user to online users
-                    await db.collection('online_users').doc(this.currentUser).set({
-                        username: this.currentUser,
-                        isAdmin: this.isAdmin,
-                        joinedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-
-                    // Start listening for messages
-                    this.startMessageListener();
-                    this.startOnlineUsersListener();
-
-                    // Send join message
-                    await this.addSystemMessage(`${this.currentUser} joined the chat`);
-
-                } catch (error) {
-                    console.error('Error joining chat:', error);
-                }
-            }
-
-            startMessageListener() {
-                this.messagesListener = db.collection('chat_messages')
-                    .orderBy('timestamp', 'asc')
-                    .limit(50)
-                    .onSnapshot((snapshot) => {
-                        const messagesContainer = document.getElementById('chatMessages');
-                        messagesContainer.innerHTML = '';
-
-                        snapshot.docs.forEach(doc => {
-                            const messageData = doc.data();
-                            this.displayMessage(messageData);
-                        });
-
-                        // Scroll to bottom
-                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                    });
-            }
-
-            startOnlineUsersListener() {
-                this.onlineUsersListener = db.collection('online_users')
-                    .onSnapshot((snapshot) => {
-                        const userList = document.getElementById('userList');
-                        const onlineCount = document.getElementById('onlineCount');
-                        
-                        userList.innerHTML = '';
-                        onlineCount.textContent = snapshot.size;
-
-                        snapshot.docs.forEach(doc => {
-                            const userData = doc.data();
-                            const userTag = document.createElement('div');
-                            userTag.className = 'user-tag';
-                            
-                            if (userData.isAdmin) {
-                                userTag.classList.add('admin');
-                            }
-                            
-                            if (userData.username === this.currentUser) {
-                                userTag.classList.add('own');
-                            }
-                            
-                            userTag.textContent = userData.username + (userData.isAdmin ? ' (admin)' : '');
-                            userList.appendChild(userTag);
-                        });
-                    });
-            }
-
-            displayMessage(messageData) {
-                const messagesContainer = document.getElementById('chatMessages');
-                const messageDiv = document.createElement('div');
-                messageDiv.className = 'message';
-
-                if (messageData.isAdmin) {
-                    messageDiv.classList.add('admin');
-                }
-
-                if (messageData.username === this.currentUser) {
-                    messageDiv.classList.add('own');
-                }
-
-                const timestamp = messageData.timestamp ? 
-                    new Date(messageData.timestamp.toDate()).toLocaleTimeString() : 
-                    new Date().toLocaleTimeString();
-
-                messageDiv.innerHTML = `
-                    <div class="message-header">
-                        <span class="message-username ${messageData.isAdmin ? 'admin' : ''}">${messageData.username}</span>
-                        <span class="message-time">${timestamp}</span>
-                    </div>
-                    <div class="message-content">${this.escapeHtml(messageData.message)}</div>
-                `;
-
-                messagesContainer.appendChild(messageDiv);
-            }
-
-            async sendMessage() {
-                const input = document.getElementById('chatInput');
-                const message = input.value.trim();
-                const sendBtn = document.getElementById('sendBtn');
-
-                if (!message) return;
-
-                sendBtn.disabled = true;
-                input.disabled = true;
-
-                try {
-                    // Check for admin commands
-                    if (this.isAdmin && message.startsWith('/')) {
-                        await this.handleAdminCommand(message);
-                    } else {
-                        // Send regular message
-                        await db.collection('chat_messages').add({
-                            username: this.currentUser,
-                            message: message,
-                            isAdmin: this.isAdmin,
-                            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    }
-
-                    input.value = '';
-
-                } catch (error) {
-                    console.error('Error sending message:', error);
-                    alert('failed to send message');
-                } finally {
-                    sendBtn.disabled = false;
-                    input.disabled = false;
-                    input.focus();
-                }
-            }
-
-            async handleAdminCommand(command) {
-                const parts = command.split(' ');
-                const cmd = parts[0].toLowerCase();
-                const target = parts[1];
-
-                switch (cmd) {
-                    case '/ban':
-                        if (target) {
-                            await this.banUser(target);
-                        } else {
-                            await this.addSystemMessage('usage: /ban <username>');
-                        }
-                        break;
-                    case '/unban':
-                        if (target) {
-                            await this.unbanUser(target);
-                        } else {
-                            await this.addSystemMessage('usage: /unban <username>');
-                        }
-                        break;
-                    case '/clear':
-                        await this.clearChat();
-                        break;
-                    default:
-                        await this.addSystemMessage('unknown command. available: /ban, /unban, /clear');
-                }
-            }
-
-            async banUser(username) {
-                try {
-                    await db.collection('banned_users').doc(username.toLowerCase()).set({
-                        username: username,
-                        bannedBy: this.currentUser,
-                        bannedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-
-                    // Remove from online users
-                    await db.collection('online_users').doc(username).delete();
-
-                    await this.addSystemMessage(`${username} has been banned by ${this.currentUser}`);
-                } catch (error) {
-                    console.error('Error banning user:', error);
-                }
-            }
-
-            async unbanUser(username) {
-                try {
-                    await db.collection('banned_users').doc(username.toLowerCase()).delete();
-                    await this.addSystemMessage(`${username} has been unbanned by ${this.currentUser}`);
-                } catch (error) {
-                    console.error('Error unbanning user:', error);
-                }
-            }
-
-            async clearChat() {
-                try {
-                    const messages = await db.collection('chat_messages').get();
-                    const batch = db.batch();
-                    
-                    messages.docs.forEach(doc => {
-                        batch.delete(doc.ref);
-                    });
-
-                    await batch.commit();
-                    await this.addSystemMessage(`Chat cleared by ${this.currentUser}`);
-                } catch (error) {
-                    console.error('Error clearing chat:', error);
-                }
-            }
-
-            async addSystemMessage(message) {
-                await db.collection('chat_messages').add({
-                    username: 'system',
-                    message: message,
-                    isAdmin: true,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            }
-
-            escapeHtml(text) {
-                const div = document.createElement('div');
-                div.textContent = text;
-                return div.innerHTML;
-            }
-
-            async logout() {
-                if (confirm('are you sure you want to logout?')) {
-                    try {
-                        // Remove from online users
-                        await db.collection('online_users').doc(this.currentUser).delete();
-                        
-                        // Send leave message
-                        await this.addSystemMessage(`${this.currentUser} left the chat`);
-
-                        // Stop listeners
-                        if (this.messagesListener) this.messagesListener();
-                        if (this.onlineUsersListener) this.onlineUsersListener();
-
-                        // Clear local storage
-                        localStorage.removeItem('chatUser');
-
-                        // Reset state
-                        this.currentUser = null;
-                        this.isAdmin = false;
-
-                        // Show auth screen
-                        document.getElementById('chatContainer').style.display = 'none';
-                        document.getElementById('authContainer').style.display = 'flex';
-
-                        // Clear forms
-                        document.getElementById('loginForm').reset();
-                        document.getElementById('signupForm').reset();
-
-                    } catch (error) {
-                        console.error('Error logging out:', error);
-                    }
-                }
-            }
-        }
-
-        // Initialize chat app
-        const chatApp = new ChatApp();
-
-        // Global functions for UI interactions
-        function switchTab(tab) {
-            chatApp.switchTab(tab);
-        }
-
-        function sendMessage() {
-            chatApp.sendMessage();
-        }
-
-        function logout() {
-            chatApp.logout();
-        }
-
-        function toggleMobileMenu() {
-            const mobileMenu = document.getElementById('mobileMenu');
-            const menuBtn = document.querySelector('.mobile-menu-btn i');
-            
-            mobileMenu.classList.toggle('active');
-            
-            if (mobileMenu.classList.contains('active')) {
-                menuBtn.className = 'bx bx-x';
-            } else {
-                menuBtn.className = 'bx bx-menu';
-            }
-        }
-
-        // Close mobile menu when clicking outside
-        document.addEventListener('click', function(event) {
-            const navbar = document.querySelector('.navbar');
-            const mobileMenu = document.getElementById('mobileMenu');
-            
-            if (!navbar.contains(event.target) && mobileMenu.classList.contains('active')) {
-                toggleMobileMenu();
-            }
-        });
-
-        // Tab cloaking script
-        document.addEventListener("visibilitychange", function () {
-            if (document.hidden) {
-                document.title = "Dashboard";
-                document.getElementById("favicon").href = "https://s3.amazonaws.com/cdn.app.cte.virginia.edu/tools/images/XmeGg2PHFfRHaj3upWvncc2gmaG91fApdtDC8bdU.png";
-            } else {
-                document.title = "Polar's Shack";
-                document.getElementById("favicon").href = "../logo.png";
-            }
-        });
-
-        const maintenanceScript = document.createElement('script');
-        maintenanceScript.src = '../maintenance-mode.js';
-        document.head.appendChild(maintenanceScript);
-    </script>
+      `;
+      document.body.appendChild(overlay);
+
+      const popup = overlay.querySelector(".tos-popup");
+      const btn = overlay.querySelector(".tos-btn");
+
+      requestAnimationFrame(() => overlay.classList.add("active"));
+      setTimeout(() => popup.classList.add("show"), 50);
+
+      btn.addEventListener("click", () => {
+        btn.classList.add("loading");
+        setTimeout(() => {
+          overlay.remove();
+          localStorage.setItem("tosAccepted_2025_09_27", "true");
+        }, 2000);
+      });
+    });
+  </script>
 </body>
 </html>
