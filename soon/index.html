@@ -1,19 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Polar's Shack</title>
-    <link id="favicon" rel="icon" href="../logo.png" type="image/png">
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9156548662984796"
-     crossorigin="anonymous"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script defer data-domain="https://polars-shack.vercel.app" src="https://analytics.vercel-insights.com/script.js"></script>
-    <style>
-        * {
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Polar's Shack</title>
+  <link id="favicon" rel="icon" href="../logo.png" type="image/png">
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9156548662984796"
+   crossorigin="anonymous"></script>
+
+  <!-- Firebase (new modular + compat for RTDB) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+  <script defer data-domain="https://polars-shack.vercel.app" src="https://analytics.vercel-insights.com/script.js"></script>
+  <style>
+            * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -371,73 +374,73 @@
                 max-width: 300px;
             }
         }
-    </style>
+  </style>
 </head>
 <body>
-    <link rel="stylesheet" href="tospopup.css">
-<script src="tospopup.js" defer></script>
+  <link rel="stylesheet" href="tospopup.css">
+  <script src="tospopup.js" defer></script>
 
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="logo-nav">
-                <img src="../logo.png" alt="Logo">
-                <span>polar's.shack</span>
-            </div>
-            <ul class="nav-links">
-                <li><a href="index.html" class="active">home</a></li>
-                <li><a href="osint.html">osint</a></li>
-                <li><a href="csint.html">csint</a></li>
-                <li><a href="tools.html">tools</a></li>
-                <li><a href="games.html">games</a></li>
-                <li><a href="apps.html">apps</a></li>
-                <li><a href="proxy.html">proxy</a></li>
-                <li><a href="chat.html">chat</a></li>
-            </ul>
-            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
-                <i class='bx bx-menu'></i>
-            </button>
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="logo-nav">
+        <img src="../logo.png" alt="Logo">
+        <span>polar's.shack</span>
+      </div>
+      <ul class="nav-links">
+        <li><a href="index.html" class="active">home</a></li>
+        <li><a href="osint.html">osint</a></li>
+        <li><a href="csint.html">csint</a></li>
+        <li><a href="tools.html">tools</a></li>
+        <li><a href="games.html">games</a></li>
+        <li><a href="apps.html">apps</a></li>
+        <li><a href="proxy.html">proxy</a></li>
+        <li><a href="chat.html">chat</a></li>
+      </ul>
+      <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+        <i class='bx bx-menu'></i>
+      </button>
+    </div>
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="index.html" class="active">home</a>
+      <a href="osint.html">osint</a>
+      <a href="csint.html">csint</a>
+      <a href="tools.html">tools</a>
+      <a href="games.html">games</a>
+      <a href="apps.html">apps</a>
+      <a href="proxy.html">proxy</a>
+      <a href="chat.html">chat</a>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <section class="hero-section">
+      <h1 class="hero-title">polar's shack</h1>
+      <p class="hero-subtitle">your ultimate destination for games, tools, and digital exploration</p>
+    </section>
+
+    <section class="stats-section">
+      <h2 class="stats-title">live statistics</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number" id="totalUsers">0</div>
+          <div class="stat-label">total visits</div>
         </div>
-        <div class="mobile-menu" id="mobileMenu">
-            <a href="index.html" class="active">home</a>
-            <a href="osint.html">osint</a>
-            <a href="csint.html">csint</a>
-            <a href="tools.html">tools</a>
-            <a href="games.html">games</a>
-            <a href="apps.html">apps</a>
-            <a href="proxy.html">proxy</a>
-            <a href="chat.html">chat</a>
+        <div class="stat-card">
+          <div class="stat-number" id="onlineUsers">0</div>
+          <div class="stat-label">online users</div>
         </div>
-    </nav>
+        <div class="stat-card">
+          <div class="stat-number" id="totalGames">120+</div>
+          <div class="stat-label">games available</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="totalTools">25+</div>
+          <div class="stat-label">tools & utilities</div>
+        </div>
+      </div>
+    </section>
 
-    <main class="main-content">
-        <section class="hero-section">
-            <h1 class="hero-title">polar's shack</h1>
-            <p class="hero-subtitle">your ultimate destination for games, tools, and digital exploration</p>
-        </section>
-
-        <section class="stats-section">
-            <h2 class="stats-title">live statistics</h2>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-number" id="totalUsers">0</div>
-                    <div class="stat-label">total users</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="onlineUsers">0</div>
-                    <div class="stat-label">online users</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="totalGames">120+</div>
-                    <div class="stat-label">games available</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="totalTools">25+</div>
-                    <div class="stat-label">tools & utilities</div>
-                </div>
-            </div>
-        </section>
-
-        <section class="features-section">
+            <section class="features-section">
             <h2 class="features-title">what we offer</h2>
             <div class="features-grid">
                 <div class="feature-card">
@@ -495,117 +498,94 @@
         </section>
     </main>
 
-    <script>
-        // firebase config totally real guys
-        const firebaseConfig = {
-            apiKey: "AIzaSyBqJJQqJQqJQqJQqJQqJQqJQqJQqJQqJQq",
-            authDomain: "polars-shack.firebaseapp.com",
-            projectId: "polars-shack",
-            storageBucket: "polars-shack.appspot.com",
-            messagingSenderId: "123456789012",
-            appId: "1:123456789012:web:abcdefghijklmnopqr"
-        };
+  <script>
+    // --- Firebase Config ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyBqJJQqJQqJQqJQqJQqJQqJQqJQqJQqJQq",
+      authDomain: "polars-shack.firebaseapp.com",
+      databaseURL: "https://polars-shack-default-rtdb.firebaseio.com", // IMPORTANT for RTDB
+      projectId: "polars-shack",
+      storageBucket: "polars-shack.appspot.com",
+      messagingSenderId: "123456789012",
+      appId: "1:123456789012:web:abcdefghijklmnopqr"
+    };
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-        class StatsManager {
-            constructor() {
-                this.loadStats();
-                this.startRealTimeUpdates();
-            }
+    // --- Online Users + Visits ---
+    const sessionRef = db.ref("onlineUsers").push();
+    sessionRef.set({ joined: Date.now() });
+    sessionRef.onDisconnect().remove();
 
-            async loadStats() {
-                try {
-                    const usersSnapshot = await db.collection('chat_users').get();
-                    const onlineSnapshot = await db.collection('online_users').get();
+    // increment visits
+    const visitsRef = db.ref("stats/visits");
+    visitsRef.transaction(current => (current || 0) + 1);
 
-                    this.animateNumber('totalUsers', usersSnapshot.size);
-                    this.animateNumber('onlineUsers', onlineSnapshot.size);
+    // show online users
+    db.ref("onlineUsers").on("value", snap => {
+      const count = snap.exists() ? Object.keys(snap.val()).length : 0;
+      animateNumber("onlineUsers", count);
+    });
 
-                } catch (error) {
-                    console.error('Error loading stats:', error);
-                    this.animateNumber('totalUsers', 40972);
-                    this.animateNumber('onlineUsers', 7759);
-                }
-            }
+    // show total visits
+    visitsRef.on("value", snap => {
+      if (snap.exists()) animateNumber("totalUsers", snap.val());
+    });
 
-            startRealTimeUpdates() {
-                try {
-                    db.collection('online_users').onSnapshot((snapshot) => {
-                        this.animateNumber('onlineUsers', snapshot.size);
-                    });
+    function animateNumber(elementId, targetNumber) {
+      const element = document.getElementById(elementId);
+      const currentNumber = parseInt(element.textContent) || 0;
 
-                    db.collection('chat_users').onSnapshot((snapshot) => {
-                        this.animateNumber('totalUsers', snapshot.size);
-                    });
-                } catch (error) {
-                    console.error('Error setting up real-time updates:', error);
-                }
-            }
+      if (currentNumber === targetNumber) return;
 
-            animateNumber(elementId, targetNumber) {
-                const element = document.getElementById(elementId);
-                const currentNumber = parseInt(element.textContent) || 0;
-                
-                if (currentNumber === targetNumber) return;
+      element.classList.add("animate");
 
-                element.classList.add('animate');
-                
-                const duration = 1000;
-                const steps = 30;
-                const increment = (targetNumber - currentNumber) / steps;
-                let current = currentNumber;
-                let step = 0;
+      const duration = 1000;
+      const steps = 30;
+      const increment = (targetNumber - currentNumber) / steps;
+      let current = currentNumber;
+      let step = 0;
 
-                const timer = setInterval(() => {
-                    step++;
-                    current += increment;
-                    
-                    if (step >= steps) {
-                        element.textContent = targetNumber;
-                        clearInterval(timer);
-                        setTimeout(() => element.classList.remove('animate'), 100);
-                    } else {
-                        element.textContent = Math.round(current);
-                    }
-                }, duration / steps);
-            }
+      const timer = setInterval(() => {
+        step++;
+        current += increment;
+        if (step >= steps) {
+          element.textContent = targetNumber;
+          clearInterval(timer);
+          setTimeout(() => element.classList.remove("animate"), 100);
+        } else {
+          element.textContent = Math.round(current);
         }
+      }, duration / steps);
+    }
 
-        const statsManager = new StatsManager();
+    function toggleMobileMenu() {
+      const mobileMenu = document.getElementById("mobileMenu");
+      const menuBtn = document.querySelector(".mobile-menu-btn i");
 
-        function toggleMobileMenu() {
-            const mobileMenu = document.getElementById('mobileMenu');
-            const menuBtn = document.querySelector('.mobile-menu-btn i');
-            
-            mobileMenu.classList.toggle('active');
-            
-            if (mobileMenu.classList.contains('active')) {
-                menuBtn.className = 'bx bx-x';
-            } else {
-                menuBtn.className = 'bx bx-menu';
-            }
-        }
+      mobileMenu.classList.toggle("active");
+      menuBtn.className = mobileMenu.classList.contains("active") ? "bx bx-x" : "bx bx-menu";
+    }
 
-        document.addEventListener('click', function(event) {
-            const navbar = document.querySelector('.navbar');
-            const mobileMenu = document.getElementById('mobileMenu');
-            
-            if (!navbar.contains(event.target) && mobileMenu.classList.contains('active')) {
-                toggleMobileMenu();
-            }
-        });
+    document.addEventListener("click", function(event) {
+      const navbar = document.querySelector(".navbar");
+      const mobileMenu = document.getElementById("mobileMenu");
 
-        document.addEventListener("visibilitychange", function () {
-            if (document.hidden) {
-                document.title = "Dashboard";
-                document.getElementById("favicon").href = "https://s3.amazonaws.com/cdn.app.cte.virginia.edu/tools/images/XmeGg2PHFfRHaj3upWvncc2gmaG91fApdtDC8bdU.png";
-            } else {
-                document.title = "Polar's Shack";
-                document.getElementById("favicon").href = "../logo.png";
-            }
-        });
-    </script>
+      if (!navbar.contains(event.target) && mobileMenu.classList.contains("active")) {
+        toggleMobileMenu();
+      }
+    });
+
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) {
+        document.title = "Dashboard";
+        document.getElementById("favicon").href = "https://s3.amazonaws.com/cdn.app.cte.virginia.edu/tools/images/XmeGg2PHFfRHaj3upWvncc2gmaG91fApdtDC8bdU.png";
+      } else {
+        document.title = "Polar's Shack";
+        document.getElementById("favicon").href = "../logo.png";
+      }
+    });
+  </script>
 </body>
 </html>
