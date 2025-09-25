@@ -53,7 +53,7 @@
         .footer-links { margin-top: 2rem; display:flex; gap: 1rem; justify-content:center; }
         .footer-links a { color: #00ff00; text-decoration: none; border-bottom:1px dashed rgba(0,255,0,0.15); padding-bottom:2px; }
 /* tos stuff */
-.tos-popup-overlay {
+  .tos-popup-overlay {
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.7);
@@ -96,6 +96,7 @@
     margin-bottom: 1.5rem;
   }
   .tos-btn {
+    position: relative;
     background: #00ff00;
     color: #000;
     border: none;
@@ -104,14 +105,33 @@
     cursor: pointer;
     font-weight: 600;
     float: right;
-    transition: transform 0.3s ease;
+    overflow: hidden;
+    transition: background 0.3s ease, color 0.3s ease;
   }
-  .tos-btn.spin {
-    animation: spinBtn 0.6s linear;
+  .tos-btn.loading {
+    background: #555;
+    color: #aaa;
+    pointer-events: none;
   }
-  @keyframes spinBtn {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+  .tos-btn .spinner {
+    display: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top: 2px solid #fff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .tos-btn.loading .spinner {
+    display: inline-block;
+  }
+  @keyframes spin {
+    0% { transform: translateY(-50%) rotate(0deg); }
+    100% { transform: translateY(-50%) rotate(360deg); }
   }
     </style>
 </head>
@@ -124,7 +144,10 @@
       We have updated our Terms of Service and Privacy Policy. These changes will take effect on 
       <strong>September 27th, 2025</strong>. By continuing, you agree to the new policies.
     </p>
-    <button id="tosAgreeBtn" class="tos-btn">Agree and Continue</button>
+    <button id="tosAgreeBtn" class="tos-btn">
+      Agree and Continue
+      <span class="spinner"></span>
+    </button>
   </div>
 </div>
     
@@ -224,26 +247,23 @@ v1.0.0  — 2025-01-12
     </div>
 
     <script>
-          document.addEventListener("DOMContentLoaded", function () {
+  document.addEventListener("DOMContentLoaded", function () {
     const overlay = document.getElementById("tosPopupOverlay");
     const popup = document.getElementById("tosPopup");
     const btn = document.getElementById("tosAgreeBtn");
 
-    // only show if not accepted yet
     if (!localStorage.getItem("tosAccepted_2025_09_27")) {
       overlay.classList.add("active");
       setTimeout(() => popup.classList.add("show"), 50);
     }
 
     btn.addEventListener("click", () => {
-      btn.classList.add("spin");
+      btn.classList.add("loading");
       setTimeout(() => {
         overlay.style.opacity = "0";
         popup.style.opacity = "0";
-        setTimeout(() => {
-          overlay.remove();
-        }, 400);
-      }, 600);
+        setTimeout(() => overlay.remove(), 400);
+      }, 2000); // 2 second loading
       localStorage.setItem("tosAccepted_2025_09_27", "true");
     });
   });
