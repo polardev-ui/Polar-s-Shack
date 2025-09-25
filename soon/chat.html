@@ -1,318 +1,803 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Polar's Shack Chat</title>
+  <meta charset="utf-8" />
+  <title>Polar's Shack — Chat</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="icon" href="../logo.png">
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <!-- Firebase compat -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
   <style>
-    body {
-      margin: 0;
-      font-family: 'JetBrains Mono', monospace;
-      background: #1a1a1a;
-      color: #ccc;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
+    :root{
+      --bg:#111;
+      --card:#1e1e1e;
+      --muted:#666;
+      --accent:#00ff00;
+      --danger:#ff6666;
+      --panel:#0f0f0f;
     }
-    .navbar {
-      background: #1a1a1a;
-      padding: 1rem 2rem;
-      border-bottom: 1px solid #333;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .chat-container {
-      flex: 1;
-      display: flex;
-      overflow: hidden;
-    }
-    .users-panel {
-      width: 220px;
-      background: #111;
-      border-right: 1px solid #333;
-      padding: 1rem;
-      overflow-y: auto;
-      transition: all 0.3s ease;
-    }
-    .users-panel h3 {
-      color: #00ff00;
-      margin-bottom: 0.5rem;
-      font-size: 1rem;
-    }
-    .user {
-      padding: 0.4rem 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      animation: fadeIn 0.3s ease;
-    }
-    .user span {
-      color: #fff;
-    }
-    .user .admin {
-      font-size: 0.8rem;
-      color: #ff4444;
-      margin-left: 5px;
-    }
-    .chat-panel {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-    .messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 1rem;
-    }
-    .message {
-      margin-bottom: 0.6rem;
-      animation: slideIn 0.25s ease;
-    }
-    .message .username {
-      color: #00ff00;
-      font-weight: bold;
-      margin-right: 6px;
-    }
-    .message.system {
-      color: #888;
-      font-style: italic;
-    }
-    .input-bar {
-      display: flex;
-      border-top: 1px solid #333;
-      padding: 0.7rem;
-      background: #111;
-    }
-    .input-bar input {
-      flex: 1;
-      padding: 0.8rem;
-      border: none;
-      border-radius: 4px;
-      background: #222;
-      color: #fff;
-      font-size: 1rem;
-    }
-    .input-bar button {
-      margin-left: 0.5rem;
-      padding: 0.8rem 1.2rem;
-      border: none;
-      border-radius: 4px;
-      background: #00ff00;
-      color: #111;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background 0.2s;
-    }
-    .input-bar button:hover {
-      background: #00cc00;
-    }
-
-    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-    @keyframes slideIn { from { transform:translateY(10px); opacity:0;} to { transform:translateY(0); opacity:1;} }
-
-    /* login modal */
-    .modal {
-      position: fixed;
-      top:0;left:0;right:0;bottom:0;
-      background: rgba(0,0,0,0.8);
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:'JetBrains Mono', monospace;
+      background:linear-gradient(180deg,#0b0b0b,var(--bg));
+      color:#ddd;
+      height:100vh;
       display:flex;
-      justify-content:center;
+      flex-direction:column;
+      -webkit-font-smoothing:antialiased;
+    }
+
+    /* NAVBAR (keeps same look) */
+    .navbar{
+      background:#1a1a1a;
+      padding:1rem 1.25rem;
+      border-bottom:1px solid #262626;
+      display:flex;
+      justify-content:space-between;
       align-items:center;
-      z-index: 2000;
+      position:sticky;
+      top:0;
+      z-index:60;
     }
-    .modal-content {
-      background:#222;
-      padding:2rem;
-      border-radius:8px;
-      width:300px;
-      text-align:center;
-      animation: fadeIn 0.3s ease;
-    }
-    .modal-content h2 { color:#fff; margin-bottom:1rem;}
-    .modal-content input {
+    .logo-nav {display:flex;gap:.75rem;align-items:center}
+    .logo-nav img{width:34px;height:34px;border-radius:6px}
+    .logo-nav span{color:#fff;font-weight:600}
+    .nav-links{display:flex;gap:1rem;align-items:center}
+    .nav-links a{color:#aaa;text-decoration:none;padding:.2rem .35rem;border-radius:4px}
+    .nav-links a.active, .nav-links a:hover{color:var(--accent)}
+
+    /* layout */
+    .layout {
+      display:grid;
+      grid-template-columns: 240px 1fr;
+      gap: 1rem;
+      padding: 1rem;
       width:100%;
-      padding:0.7rem;
-      margin-bottom:1rem;
+      max-width:1200px;
+      margin:0 auto;
+      flex:1;
+      align-items:stretch;
+    }
+
+    /* Users panel */
+    .users-panel {
+      background:var(--panel);
+      border:1px solid #222;
+      border-radius:10px;
+      padding: .75rem;
+      overflow:auto;
+      box-shadow:0 6px 18px rgba(0,0,0,0.5);
+    }
+    .users-panel h3{color:var(--accent);margin:.15rem 0 .75rem;font-size:1rem}
+    .user-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:.45rem .5rem;
+      border-radius:6px;
+      transition:background .12s, transform .08s;
+      cursor:default;
+    }
+    .user-row:hover{background:#151515; transform:translateY(-1px)}
+    .user-name{color:#fff;font-weight:600}
+    .user-meta{font-size:.8rem;color:var(--muted)}
+    .badge-admin{color:var(--danger);font-weight:700;margin-left:.4rem}
+
+    /* Chat card */
+    .chat-card{
+      display:flex;
+      flex-direction:column;
+      background:linear-gradient(180deg,#121212,#161616);
+      border:1px solid #222;
+      border-radius:12px;
+      overflow:hidden;
+      box-shadow:0 10px 30px rgba(0,0,0,0.6);
+      height: calc(100vh - 150px);
+    }
+    .chat-header{
+      padding:.8rem 1rem;
+      border-bottom:1px solid #222;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:1rem;
+    }
+    .chat-header .title{color:var(--accent);font-weight:700}
+    .chat-header .right {font-size:.9rem;color:var(--muted)}
+
+    .messages{
+      flex:1;
+      padding:1rem;
+      overflow-y:auto;
+      display:flex;
+      flex-direction:column;
+      gap:.55rem;
+      scroll-behavior:smooth;
+      background:
+        radial-gradient(1200px 200px at 10% 0%, rgba(0,255,0,0.01), transparent 2%),
+        transparent;
+    }
+
+    .msg {
+      max-width:72%;
+      padding:.6rem .85rem;
+      border-radius:10px;
+      display:inline-block;
+      line-height:1.25;
+      animation:enter .18s ease;
+      box-shadow:0 2px 6px rgba(0,0,0,0.45);
+    }
+    .msg .meta {display:block;font-size:.78rem;color:var(--muted);margin-bottom:.22rem}
+    .msg.me {align-self:flex-end;background:var(--accent);color:#050505;border-bottom-right-radius:4px}
+    .msg.other {align-self:flex-start;background:#171717;color:#ddd;border-bottom-left-radius:4px}
+    .msg.system {align-self:center;background:transparent;color:#888;font-style:italic;padding:.25rem .5rem;border-radius:6px}
+    .admin-tag{color:var(--danger);font-weight:700;margin-left:.45rem;font-size:.8rem}
+
+    @keyframes enter { from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none} }
+
+    /* Input */
+    .input-bar{
+      padding: .8rem;
+      display:flex;
+      gap:.6rem;
+      border-top:1px solid #222;
+      background:linear-gradient(180deg,#0f0f0f,#131313);
+      align-items:center;
+    }
+    .input-bar input{
+      flex:1;
+      padding:14px 16px;
+      border-radius:10px;
       border:none;
-      border-radius:4px;
-      background:#333;
+      background:#1f1f1f;
       color:#fff;
+      outline:none;
+      font-size:1rem;
     }
-    .modal-content button {
-      width:100%;
-      padding:0.8rem;
+    .input-bar .send-btn{
+      background:var(--accent);
       border:none;
-      border-radius:4px;
-      background:#00ff00;
-      color:#111;
-      font-weight:bold;
+      padding:12px 16px;
+      border-radius:10px;
+      font-weight:700;
       cursor:pointer;
+      transition:transform .12s ease, filter .12s;
+    }
+    .input-bar .send-btn:active{transform:scale(.98);filter:brightness(.95)}
+
+    /* banned modal */
+    .ban-modal {
+      position:fixed; inset:0; display:flex;align-items:center;justify-content:center;
+      background:rgba(0,0,0,0.75); z-index:120;
+    }
+    .ban-box {
+      background:#1c1c1c; padding:1.25rem 1.5rem;border-radius:8px;border:1px solid #3a1a1a;
+      max-width:420px;text-align:center;color:#fff;
+    }
+    .ban-box h3{color:var(--danger);margin:0 0 .5rem}
+    .ban-box p{color:#ddd;margin:.5rem 0 1rem;font-size:.95rem}
+    .ban-box button{background:#444;color:#fff;border:none;padding:.6rem .9rem;border-radius:6px;cursor:pointer}
+
+    /* small screens */
+    @media (max-width:900px){
+      .layout{grid-template-columns:1fr; padding:8px}
+      .users-panel{order:2;height:160px;display:flex;flex-direction:row;gap:.4rem;overflow-x:auto; width:100%}
+      .users-panel .user-row{min-width:120px;flex-direction:column;align-items:flex-start}
+      .chat-card{height:calc(100vh - 220px)}
     }
   </style>
 </head>
 <body>
   <nav class="navbar">
-    <span style="color:#fff;">polar's.shack chat</span>
-    <span id="currentUser"></span>
+    <div class="logo-nav">
+      <img src="../logo.png" alt="logo">
+      <span>polar's.shack</span>
+    </div>
+    <div class="nav-links">
+      <a href="index.html">home</a>
+      <a href="chat.html" class="active">chat</a>
+      <a href="tos.html">tos</a>
+      <a href="privacy.html">privacy</a>
+    </div>
   </nav>
 
-  <div class="chat-container">
-    <div class="users-panel">
+  <div class="layout" role="main">
+    <!-- Users -->
+    <aside class="users-panel" aria-label="Online users">
       <h3>online users</h3>
-      <div id="usersList"></div>
-    </div>
-    <div class="chat-panel">
-      <div class="messages" id="messages"></div>
-      <div class="input-bar">
-        <input id="messageInput" placeholder="Type a message...">
-        <button onclick="sendMessage()">Send</button>
+      <div id="usersList" aria-live="polite"></div>
+    </aside>
+
+    <!-- Chat -->
+    <section class="chat-card" aria-label="Chat">
+      <div class="chat-header">
+        <div class="title">Polar's Shack — Chat</div>
+        <div class="right"><span id="meDisplay">@guest</span></div>
       </div>
+
+      <div id="messages" class="messages" aria-live="polite"></div>
+
+      <div class="input-bar">
+        <input id="messageInput" placeholder="Say something — press Enter to send" autocomplete="off" />
+        <button class="send-btn" id="sendBtn">send</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- auth modal -->
+  <div id="authModal" class="modal" style="display:flex">
+    <div class="modal-content" style="background:#161616;padding:20px;border-radius:10px;border:1px solid #222; width:320px;max-width:92vw; margin:auto;">
+      <h2 style="color:var(--accent);margin:0 0 12px;text-align:center">Sign in / Sign up</h2>
+      <input id="authUsername" placeholder="username" style="width:100%;padding:10px;margin-bottom:8px;border-radius:6px;border:none;background:#222;color:#fff"/>
+      <input id="authPassword" type="password" placeholder="password" style="width:100%;padding:10px;margin-bottom:8px;border-radius:6px;border:none;background:#222;color:#fff"/>
+      <div style="display:flex;gap:.5rem">
+        <button id="signInBtn" style="flex:1;padding:10px;border-radius:6px;border:none;background:var(--accent);cursor:pointer;font-weight:700">Sign In</button>
+        <button id="signUpBtn" style="flex:1;padding:10px;border-radius:6px;border:1px solid #2b2b2b;background:#222;color:#fff;cursor:pointer">Sign Up</button>
+      </div>
+      <p style="color:var(--muted);font-size:.88rem;margin-top:8px;text-align:center">Usernames are unique. Passwords are required.</p>
+      <p id="authError" style="color:var(--danger);display:none;margin:8px 0 0;text-align:center"></p>
     </div>
   </div>
 
-  <!-- login modal -->
-  <div class="modal" id="loginModal">
-    <div class="modal-content">
-      <h2>Enter a username</h2>
-      <input id="usernameInput" placeholder="Username">
-      <button onclick="login()">Join Chat</button>
+  <!-- banned modal (hidden until needed) -->
+  <div id="banModal" class="ban-modal" style="display:none">
+    <div class="ban-box">
+      <h3>Account Banned</h3>
+      <p id="banReason">You have been banned from chat.</p>
+      <button onclick="closeBan()">ok</button>
     </div>
   </div>
 
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs",
-    authDomain: "polars-shack.firebaseapp.com",
-    projectId: "polars-shack",
-    storageBucket: "polars-shack.firebasestorage.app",
-    messagingSenderId: "205388124682",
-    appId: "1:205388124682:web:2b0b1605517e0c6c53c5f3"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+  <!-- TOS popup injection will be handled by tospopup.js if used -->
+  <script>
+    // ---------- FIREBASE CONFIG ----------
+    const firebaseConfig = {
+      apiKey: "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs",
+      authDomain: "polars-shack.firebaseapp.com",
+      projectId: "polars-shack",
+      storageBucket: "polars-shack.firebasestorage.app",
+      messagingSenderId: "205388124682",
+      appId: "1:205388124682:web:2b0b1605517e0c6c53c5f3"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
 
-  let currentUser = null;
+    // ---------- state ----------
+    let my = { uid: null, username: null, isAdmin: false };
+    const messagesEl = document.getElementById('messages');
+    const usersListEl = document.getElementById('usersList');
+    const meDisplay = document.getElementById('meDisplay');
+    const authModal = document.getElementById('authModal');
+    const banModal = document.getElementById('banModal');
+    const banReasonEl = document.getElementById('banReason');
+    const authErrorEl = document.getElementById('authError');
 
-  async function login() {
-    const username = document.getElementById("usernameInput").value.trim();
-    if (!username) return;
-    currentUser = username;
+    // helpers
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-    // check if user exists
-    const userDoc = db.collection("chat_users").doc(username);
-    const docSnap = await userDoc.get();
-    if (!docSnap.exists) {
-      await userDoc.set({ username, isAdmin: false, online: true, lastSeen: firebase.firestore.FieldValue.serverTimestamp() });
-    } else {
-      await userDoc.update({ online: true, lastSeen: firebase.firestore.FieldValue.serverTimestamp() });
-    }
+    // ---------- auth with username+password trick ----------
+    // when signing up, we create Firebase Auth user with fake email: username@polars.shack
+    // and store username in chat_users/{uid}.  This keeps sign-in with username + password.
 
-    document.getElementById("currentUser").innerText = `@${username}`;
-    document.getElementById("loginModal").style.display = "none";
-
-    // send system join message
-    db.collection("messages").add({
-      username: "system",
-      text: `${username} joined the chat`,
-      system: true,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-    subscribeMessages();
-    subscribeUsers();
-  }
-
-  function subscribeMessages() {
-    db.collection("messages").orderBy("timestamp")
-      .onSnapshot(snapshot => {
-        const messagesEl = document.getElementById("messages");
-        messagesEl.innerHTML = "";
-        snapshot.forEach(doc => {
-          const msg = doc.data();
-          const div = document.createElement("div");
-          div.classList.add("message");
-          if (msg.system) {
-            div.classList.add("system");
-            div.innerText = msg.text;
-          } else {
-            div.innerHTML = `<span class="username">@${msg.username}${msg.isAdmin ? ' <span class="admin">[admin]</span>' : ''}</span>${msg.text}`;
-          }
-          messagesEl.appendChild(div);
+    async function signUp(username, password) {
+      try {
+        authErrorEl.style.display = 'none';
+        const fakeEmail = `${username}@polars.shack`;
+        const cred = await auth.createUserWithEmailAndPassword(fakeEmail, password);
+        const uid = cred.user.uid;
+        // write chat_users doc
+        await db.collection('chat_users').doc(uid).set({
+          username,
+          isAdmin: false,
+          online: true,
+          warnings: 0,
+          lastSeen: firebase.firestore.FieldValue.serverTimestamp()
         });
-        messagesEl.scrollTop = messagesEl.scrollHeight;
-      });
-  }
-
-  function subscribeUsers() {
-    db.collection("chat_users").where("online", "==", true)
-      .onSnapshot(snapshot => {
-        const usersEl = document.getElementById("usersList");
-        usersEl.innerHTML = "";
-        snapshot.forEach(doc => {
-          const user = doc.data();
-          const div = document.createElement("div");
-          div.classList.add("user");
-          div.innerHTML = `<span>@${user.username}</span> ${user.isAdmin ? '<span class="admin">admin</span>' : ''}`;
-          usersEl.appendChild(div);
-        });
-      });
-  }
-
-  async function sendMessage() {
-    const input = document.getElementById("messageInput");
-    let text = input.value.trim();
-    if (!text) return;
-
-    // check for admin command
-    if (text.startsWith("/") && await isAdmin(currentUser)) {
-      if (text === "/help") {
-        db.collection("messages").add({
-          username: "system",
-          text: "Admin commands: /help (more coming soon...)",
-          system: true,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        my.uid = uid; my.username = username;
+        await afterLogin();
+      } catch (err) {
+        authErrorEl.textContent = err.message; authErrorEl.style.display = 'block';
       }
-      input.value = "";
-      return;
     }
 
-    db.collection("messages").add({
-      username: currentUser,
-      text,
-      system: false,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-      isAdmin: await isAdmin(currentUser)
+    async function signIn(username, password) {
+      try {
+        authErrorEl.style.display = 'none';
+        const fakeEmail = `${username}@polars.shack`;
+        const cred = await auth.signInWithEmailAndPassword(fakeEmail, password);
+        const uid = cred.user.uid;
+        // ensure chat_users exists
+        const userRef = db.collection('chat_users').doc(uid);
+        const doc = await userRef.get();
+        if (!doc.exists) {
+          // weird state, create record
+          await userRef.set({ username, isAdmin:false, online:true, warnings:0, lastSeen: firebase.firestore.FieldValue.serverTimestamp()});
+        } else {
+          await userRef.update({ online:true, lastSeen: firebase.firestore.FieldValue.serverTimestamp()});
+        }
+        // check banned
+        const bannedDoc = await db.collection('banned_users').doc(uid).get();
+        if (bannedDoc.exists) {
+          const reason = bannedDoc.data().reason || 'banned';
+          // sign out immediately
+          await auth.signOut();
+          showBan(reason);
+          return;
+        }
+
+        my.uid = uid;
+        my.username = (doc.exists ? doc.data().username : username);
+        // refresh admin flag
+        my.isAdmin = doc.exists && doc.data().isAdmin === true;
+
+        await afterLogin();
+      } catch (err) {
+        authErrorEl.textContent = err.message; authErrorEl.style.display = 'block';
+      }
+    }
+
+    document.getElementById('signUpBtn').addEventListener('click', () => {
+      const u = document.getElementById('authUsername').value.trim();
+      const p = document.getElementById('authPassword').value;
+      if (!u || !p) { authErrorEl.textContent='fill both fields'; authErrorEl.style.display='block'; return; }
+      signUp(u.toLowerCase(), p);
     });
-    input.value = "";
-  }
+    document.getElementById('signInBtn').addEventListener('click', () => {
+      const u = document.getElementById('authUsername').value.trim();
+      const p = document.getElementById('authPassword').value;
+      if (!u || !p) { authErrorEl.textContent='fill both fields'; authErrorEl.style.display='block'; return; }
+      signIn(u.toLowerCase(), p);
+    });
 
-  async function isAdmin(username) {
-    const doc = await db.collection("chat_users").doc(username).get();
-    return doc.exists && doc.data().isAdmin === true;
-  }
+    // after login actions
+    async function afterLogin() {
+      authModal.style.display = 'none';
+      meDisplay.textContent = `@${my.username}${my.isAdmin? ' [admin]' : ''}`;
+      // send join system message
+      await db.collection('messages').add({
+        username:'system',
+        text:`${my.username} joined the chat`,
+        system:true,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      subscribeUsers();
+      subscribeMessages();
+      // keep online status alive
+      const myRef = db.collection('chat_users').doc(my.uid);
+      window.addEventListener('beforeunload', async () => {
+        try{ await myRef.update({ online:false, lastSeen:firebase.firestore.FieldValue.serverTimestamp() }); }
+        catch(e){}
+      });
+      // reactively watch my user doc (for ban/mute/role changes)
+      myRef.onSnapshot(doc => {
+        if (!doc.exists) return;
+        const data = doc.data();
+        my.isAdmin = !!data.isAdmin;
+        // if banned flag placed inside chat_users (optional), handle
+        if (data.banned) {
+          showBan(data.banReason || 'banned');
+        }
+      });
+    }
 
-  document.getElementById("messageInput").addEventListener("keydown", e => {
-    if (e.key === "Enter") sendMessage();
-  });
+    // ---------- subscribe to users ----------
+    function subscribeUsers() {
+      db.collection('chat_users').orderBy('username').onSnapshot(snap => {
+        usersListEl.innerHTML = '';
+        snap.forEach(d => {
+          const u = d.data();
+          const row = document.createElement('div');
+          row.className = 'user-row';
+          row.innerHTML = `<div><span class="user-name">@${escapeHtml(u.username)}</span>${u.isAdmin?'<span class="badge-admin">admin</span>':''}</div><div class="user-meta">${u.online?'<span style="color:var(--accent)">online</span>':'<span style="color:var(--muted)">offline</span>'}</div>`;
+          usersListEl.appendChild(row);
+        });
+      });
+    }
 
-  window.addEventListener("beforeunload", async () => {
-    if (currentUser) {
-      await db.collection("chat_users").doc(currentUser).update({ online: false, lastSeen: firebase.firestore.FieldValue.serverTimestamp() });
-      db.collection("messages").add({
-        username: "system",
-        text: `${currentUser} left the chat`,
-        system: true,
+    // ---------- messages subscription with lazy initial load (last 100) ----------
+    let messagesListener = null;
+    function subscribeMessages() {
+      if (messagesListener) messagesListener(); // detach
+      messagesEl.innerHTML = '';
+      // listen to last 200 messages ordered ascending
+      messagesListener = db.collection('messages').orderBy('timestamp','asc').limitToLast(200)
+        .onSnapshot(snapshot => {
+          messagesEl.innerHTML = '';
+          snapshot.forEach(doc => {
+            renderMessage(doc.id, doc.data());
+          });
+          messagesEl.scrollTop = messagesEl.scrollHeight;
+        });
+    }
+
+    // ---------- render message ----------
+    function renderMessage(id, msg) {
+      const wrap = document.createElement('div');
+      wrap.dataset.id = id;
+      if (msg.system) {
+        wrap.className = 'msg system';
+        wrap.textContent = msg.text;
+      } else {
+        const isMe = (msg.username === my.username);
+        wrap.className = 'msg ' + (isMe? 'me' : 'other');
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        meta.innerHTML = `<strong style="color:${isMe? '#050505': 'var(--accent)'}">@${escapeHtml(msg.username)}</strong> ${msg.isAdmin ? '<span class="admin-tag">admin</span>' : ''} <span style="color:var(--muted);font-size:.82rem;margin-left:.5rem">${formatTimestamp(msg.timestamp)}</span>`;
+        const content = document.createElement('div');
+        content.className = 'content';
+        content.style.marginTop = '.18rem';
+        content.innerHTML = escapeHtml(msg.text).replace(/\n/g,'<br/>');
+        wrap.appendChild(meta);
+        wrap.appendChild(content);
+      }
+      messagesEl.appendChild(wrap);
+    }
+
+    // ---------- send message (and admin command processing) ----------
+    document.getElementById('sendBtn').addEventListener('click', sendMessage);
+    document.getElementById('messageInput').addEventListener('keydown', async (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        await sendMessage();
+      }
+    });
+
+    async function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      // Guard: must be logged in
+      if (!my.uid) { alert('please sign in'); return; }
+
+      // Guard: banned?
+      const bannedSnap = await db.collection('banned_users').doc(my.uid).get();
+      if (bannedSnap.exists) { showBan(bannedSnap.data().reason || 'banned'); return; }
+
+      // Guard: muted?
+      const muteSnap = await db.collection('muted_users').doc(my.uid).get();
+      if (muteSnap.exists) {
+        const muteData = muteSnap.data();
+        if (muteData.until && muteData.until.toMillis && muteData.until.toMillis() > Date.now()) {
+          // still muted
+          const until = new Date(muteData.until.toMillis()).toLocaleString();
+          toast(`you are muted until ${until}`);
+          input.value = '';
+          return;
+        } else if (muteData.muted) {
+          toast('you are muted');
+          input.value = '';
+          return;
+        }
+      }
+
+      // Admin commands begin with '/'
+      if (text.startsWith('/')) {
+        // only admins
+        const isAdminNow = await isAdmin(my.uid);
+        if (!isAdminNow) {
+          await sendSystem(`${my.username} attempted admin command (no perms)`);
+          input.value = '';
+          return;
+        }
+        await handleAdminCommand(text);
+        input.value = '';
+        return;
+      }
+
+      // regular message
+      await db.collection('messages').add({
+        username: my.username,
+        text,
+        isAdmin: await isAdmin(my.uid),
+        system: false,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      input.value = '';
+    }
+
+    // ---------- admin command router ----------
+    async function handleAdminCommand(raw) {
+      // parse
+      const parts = raw.trim().split(/\s+/);
+      const cmd = parts[0].toLowerCase();
+      const arg1 = parts[1] || '';
+      const argRest = parts.slice(2).join(' ');
+
+      switch (cmd) {
+        case '/help':
+          await sendSystem('admin commands: /help, /ban <user> [reason], /unban <user>, /kick <user>, /mute <user> <minutes>, /unmute <user>, /warn <user> [note], /clear [n], /giveadmin <user>, /removeadmin <user>, /announce <message>, /listadmins, /whois <user>');
+          break;
+
+        case '/ban':
+          if (!arg1) { await sendSystem('usage: /ban <username> [reason]'); break; }
+          await adminBan(arg1.toLowerCase(), argRest || 'no reason');
+          break;
+
+        case '/unban':
+          if (!arg1) { await sendSystem('usage: /unban <username>'); break; }
+          await adminUnban(arg1.toLowerCase());
+          break;
+
+        case '/kick':
+          if (!arg1) { await sendSystem('usage: /kick <username>'); break; }
+          await adminKick(arg1.toLowerCase());
+          break;
+
+        case '/mute':
+          if (!arg1 || !parts[2]) { await sendSystem('usage: /mute <username> <minutes>'); break; }
+          await adminMute(arg1.toLowerCase(), parseInt(parts[2],10) || 10);
+          break;
+
+        case '/unmute':
+          if (!arg1) { await sendSystem('usage: /unmute <username>'); break; }
+          await adminUnmute(arg1.toLowerCase());
+          break;
+
+        case '/warn':
+          if (!arg1) { await sendSystem('usage: /warn <username> [note]'); break; }
+          await adminWarn(arg1.toLowerCase(), argRest || 'warning from admin');
+          break;
+
+        case '/clear':
+          // /clear or /clear N
+          await adminClear(parts[1] ? parseInt(parts[1],10) : 200);
+          break;
+
+        case '/giveadmin':
+          if (!arg1) { await sendSystem('usage: /giveadmin <username>'); break; }
+          await adminSetAdmin(arg1.toLowerCase(), true);
+          break;
+
+        case '/removeadmin':
+          if (!arg1) { await sendSystem('usage: /removeadmin <username>'); break; }
+          await adminSetAdmin(arg1.toLowerCase(), false);
+          break;
+
+        case '/announce':
+          if (!argRest) { await sendSystem('usage: /announce <message>'); break; }
+          await adminAnnounce(argRest);
+          break;
+
+        case '/listadmins':
+          await adminListAdmins();
+          break;
+
+        case '/whois':
+          if (!arg1) { await sendSystem('usage: /whois <username>'); break; }
+          await adminWhois(arg1.toLowerCase());
+          break;
+
+        default:
+          await sendSystem('unknown admin command. use /help to list commands.');
+      }
+    }
+
+    // ---------- admin helpers ----------
+    async function findUserByUsername(username) {
+      const q = await db.collection('chat_users').where('username','==',username).limit(1).get();
+      if (q.empty) return null;
+      const doc = q.docs[0];
+      return { uid: doc.id, data: doc.data() };
+    }
+
+    async function adminBan(username, reason) {
+      const u = await findUserByUsername(username);
+      if (!u) { await sendSystem(`user ${username} not found`); return; }
+      await db.collection('banned_users').doc(u.uid).set({
+        username: u.data.username,
+        reason,
+        bannedBy: my.username,
+        bannedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      // set chat_users.online false
+      await db.collection('chat_users').doc(u.uid).update({ online:false, banned:true, banReason:reason });
+      await sendSystem(`${u.data.username} was banned by ${my.username} (${reason})`);
+    }
+
+    async function adminUnban(username) {
+      const u = await findUserByUsername(username);
+      if (!u) { await sendSystem(`user ${username} not found`); return; }
+      await db.collection('banned_users').doc(u.uid).delete();
+      await db.collection('chat_users').doc(u.uid).update({ banned:false, banReason:null });
+      await sendSystem(`${u.data.username} was unbanned by ${my.username}`);
+    }
+
+    async function adminKick(username) {
+      const u = await findUserByUsername(username);
+      if (!u) { await sendSystem(`user ${username} not found`); return; }
+      // set online false and send system message
+      await db.collection('chat_users').doc(u.uid).update({ online:false });
+      await sendSystem(`${u.data.username} was kicked by ${my.username}`);
+    }
+
+    async function adminMute(username, minutes) {
+      const u = await findUserByUsername(username);
+      if (!u) { await sendSystem(`user ${username} not found`); return; }
+      const until = firebase.firestore.Timestamp.fromDate(new Date(Date.now() + (minutes*60000)));
+      await db.collection('muted_users').doc(u.uid).set({ username:u.data.username, muted:true, until });
+      await sendSystem(`${u.data.username} muted by ${my.username} for ${minutes} minute(s)`);
+    }
+
+    async function adminUnmute(username) {
+      const u = await findUserByUsername(username);
+      if (!u) { await sendSystem(`user ${username} not found`); return; }
+      await db.collection('muted_users').doc(u.uid).delete();
+      await sendSystem(`${u.data.username} unmuted by ${my.username}`);
+    }
+
+    async function adminWarn(username, note) {
+      const u = await findUserByUsername(username);
+      if (!u) { await sendSystem(`user ${username} not found`); return; }
+      const ref = db.collection('chat_users').doc(u.uid);
+      await db.runTransaction(async tx => {
+        const d = await tx.get(ref);
+        const current = d.exists ? (d.data().warnings || 0) : 0;
+        tx.update(ref, { warnings: current + 1 });
+      });
+      await sendSystem(`${u.data.username} warned by ${my.username}: ${note}`);
+      // auto ban at 3 warnings
+      const doc = await db.collection('chat_users').doc(u.uid).get();
+      if (doc.exists && (doc.data().warnings || 0) >= 3) {
+        await adminBan(u.data.username, 'auto-ban: 3 warnings');
+      }
+    }
+
+    async function adminClear(limit = 200) {
+      // delete up to "limit" messages (most recent)
+      const snap = await db.collection('messages').orderBy('timestamp','desc').limit(limit).get();
+      const batch = db.batch();
+      snap.docs.forEach(d => batch.delete(d.ref));
+      await batch.commit();
+      await sendSystem(`${my.username} cleared ${snap.size} messages`);
+    }
+
+    async function adminSetAdmin(username, allow = true) {
+      const u = await findUserByUsername(username);
+      if (!u) { await sendSystem(`user ${username} not found`); return; }
+      await db.collection('chat_users').doc(u.uid).update({ isAdmin: allow });
+      await sendSystem(`${u.data.username} ${allow? 'granted' : 'revoked'} admin by ${my.username}`);
+    }
+
+    async function adminAnnounce(text) {
+      await sendSystem(`ANNOUNCE: ${text}`);
+    }
+
+    async function adminListAdmins() {
+      const q = await db.collection('chat_users').where('isAdmin','==',true).get();
+      const names = q.docs.map(d => d.data().username).join(', ');
+      await sendSystem(`admins: ${names || '(none)'}`);
+    }
+
+    async function adminWhois(username) {
+      const u = await findUserByUsername(username);
+      if (!u) { await sendSystem(`user ${username} not found`); return; }
+      const d = u.data;
+      await sendSystem(`${d.username} — online:${d.online? 'yes':'no'}, warnings:${d.warnings||0}, admin:${d.isAdmin? 'yes':'no'}`);
+    }
+
+    // ---------- utilities ----------
+    async function sendSystem(text) {
+      await db.collection('messages').add({
+        username:'system',
+        text,
+        system:true,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       });
     }
-  });
-</script>
+
+    async function isAdmin(uid) {
+      if (!uid) return false;
+      const doc = await db.collection('chat_users').doc(uid).get();
+      return doc.exists && doc.data().isAdmin === true;
+    }
+
+    function formatTimestamp(ts) {
+      try {
+        if (!ts) return '';
+        const when = ts.toDate ? ts.toDate() : new Date(ts);
+        return when.toLocaleTimeString();
+      } catch(e){ return '' }
+    }
+
+    function escapeHtml(s) {
+      if (!s && s !== 0) return '';
+      return String(s).replace(/[&<>"'`]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;',"`":'&#96;'})[c]);
+    }
+
+    // a little toast (inexpensive)
+    let toastTimer = 0;
+    function toast(msg) {
+      const t = document.createElement('div');
+      t.style.position='fixed'; t.style.bottom='18px'; t.style.left='50%'; t.style.transform='translateX(-50%)';
+      t.style.background='#171717'; t.style.padding='8px 12px'; t.style.borderRadius='8px'; t.style.border='1px solid #222';
+      t.style.color='#fff'; t.style.boxShadow='0 6px 20px rgba(0,0,0,0.6)'; t.style.zIndex=9999; t.textContent=msg;
+      document.body.appendChild(t);
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(()=>t.remove(), 3000);
+    }
+
+    // ---------- banned handling ----------
+    function showBan(reason) {
+      banReasonEl.textContent = reason || 'banned';
+      banModal.style.display = 'flex';
+      document.getElementById('messageInput').disabled = true;
+      document.getElementById('sendBtn').disabled = true;
+    }
+    function closeBan() {
+      banModal.style.display = 'none';
+    }
+
+    // ---------- real-time ban listener to auto-block if admin bans them while online ----------
+    function watchMyBanStatus() {
+      if (!my.uid) return;
+      db.collection('banned_users').doc(my.uid).onSnapshot(doc => {
+        if (doc.exists) {
+          showBan(doc.data().reason || 'banned');
+        }
+      });
+    }
+
+    // ---------- auth listener for session persistence ----------
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        // load my user doc
+        const uid = user.uid;
+        const doc = await db.collection('chat_users').doc(uid).get();
+        if (!doc.exists) {
+          // weird — create
+          await db.collection('chat_users').doc(uid).set({
+            username: user.email.split('@')[0],
+            isAdmin:false,
+            online:true,
+            lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+            warnings:0
+          });
+        }
+        // check banned
+        const banned = await db.collection('banned_users').doc(uid).get();
+        if (banned.exists) {
+          await auth.signOut();
+          showBan(banned.data().reason || 'banned');
+          return;
+        }
+
+        my.uid = uid;
+        my.username = (doc.exists ? doc.data().username : user.email.split('@')[0]);
+        my.isAdmin = doc.exists && doc.data().isAdmin === true;
+        document.getElementById('authModal').style.display = 'none';
+        meDisplay.textContent = `@${my.username}${my.isAdmin? ' [admin]' : ''}`;
+        // mark online
+        await db.collection('chat_users').doc(uid).update({ online:true, lastSeen: firebase.firestore.FieldValue.serverTimestamp() });
+        subscribeUsers();
+        subscribeMessages();
+        watchMyBanStatus();
+      } else {
+        // show auth modal
+        auth.signOut().catch(()=>{});
+        my = { uid:null, username:null, isAdmin:false };
+        document.getElementById('authModal').style.display = 'flex';
+      }
+    });
+
+    // ---------- allow sign-in via auth modal using username/password ----------
+    // Attach Enter handlers
+    document.getElementById('authUsername').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('signInBtn').click(); });
+    document.getElementById('authPassword').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('signInBtn').click(); });
+
+    // ---------- admin quick instructions in system log when first admin signs in -----------
+    (async () => {
+      // nothing blocking — when an admin signs in they'll have /help
+    })();
+
+  </script>
 </body>
 </html>
