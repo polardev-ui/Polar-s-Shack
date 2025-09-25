@@ -1,0 +1,81 @@
+/* tos popup global styles */
+.tos-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+.tos-popup-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+.tos-popup {
+  background: #121212;
+  border: 1px solid #333;
+  padding: 2rem;
+  border-radius: 10px;
+  max-width: 500px;
+  width: 90%;
+  color: #cfcfcf;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.4s ease;
+}
+.tos-popup.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.tos-popup h2 {
+  color: #00ff00;
+  margin-bottom: 1rem;
+}
+.tos-popup p {
+  color: #bdbdbd;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+.tos-btn {
+  position: relative;
+  background: #00ff00;
+  color: #000;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  float: right;
+  overflow: hidden;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+.tos-btn.loading {
+  background: #555;
+  color: #aaa;
+  pointer-events: none;
+}
+.tos-btn .spinner {
+  display: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top: 2px solid #fff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.tos-btn.loading .spinner {
+  display: inline-block;
+}
+@keyframes spin {
+  0% { transform: translateY(-50%) rotate(0deg); }
+  100% { transform: translateY(-50%) rotate(360deg); }
+}
