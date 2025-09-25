@@ -89,15 +89,17 @@
     .chat-header .right {font-size:.9rem;color:var(--muted);display:flex;gap:.75rem;align-items:center}
 
     .logout-btn {
-      background:#222;
-      color:#fff;
-      border:1px solid #333;
-      padding:.35rem .65rem;
-      border-radius:6px;
-      font-size:.8rem;
-      cursor:pointer;
-    }
-    .logout-btn:hover { background:#333; }
+  margin-left: 1rem;
+  padding: .35rem .75rem;
+  border: 1px solid #333;
+  border-radius: 6px;
+  background:#222;
+  color:#eee;
+  font-size:.9rem;
+  cursor:pointer;
+  transition:background .2s;
+}
+.logout-btn:hover { background:#2c2c2c }
 
     .messages{flex:1;padding:1rem;overflow-y:auto;display:flex;flex-direction:column;gap:.55rem;scroll-behavior:smooth;background:radial-gradient(1200px 200px at 10% 0%, rgba(0,255,0,0.01), transparent 2%),transparent;}
 
@@ -137,10 +139,11 @@
       <span>polar's.shack</span>
     </div>
     <div class="nav-links">
-      <a href="index.html">home</a>
-      <a href="chat.html" class="active">chat</a>
-      <a href="tos.html">tos</a>
-      <a href="privacy.html">privacy</a>
+  <a href="index.html">home</a>
+  <a href="chat.html" class="active">chat</a>
+  <a href="tos.html">tos</a>
+  <a href="privacy.html">privacy</a>
+  <button id="logoutBtn" class="logout-btn">logout</button>
     </div>
   </nav>
 
@@ -730,6 +733,15 @@
         document.getElementById('authModal').style.display = 'flex';
       }
     });
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+  try {
+    await firebase.auth().signOut();
+    location.reload(); // reload so login popup shows again
+  } catch(e) {
+    console.error('Logout failed:', e);
+  }
+});
 
     // ---------- allow sign-in via auth modal using username/password ----------
     // Attach Enter handlers
