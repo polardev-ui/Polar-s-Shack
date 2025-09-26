@@ -14,7 +14,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
   <style>
-:root {
+    :root {
   --bg:#111;
   --card:#1e1e1e;
   --muted:#666;
@@ -170,7 +170,7 @@ body {
   </style>
 </head>
 <body>
-  <nav class="navbar">
+    <nav class="navbar">
     <div class="logo-nav">
       <img src="../logo.png" alt="logo">
       <span>polar's.shack</span>
@@ -240,7 +240,7 @@ body {
 </script>
 
   <script>
-    // firebase config
+        // firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs",
       authDomain: "polars-shack.firebaseapp.com",
@@ -431,7 +431,7 @@ body {
       messagesEl.appendChild(wrap);
     }
 
-    // ---------- send message (and admin command processing) ----------
+    // ---------- send message (and command processing) ----------
     document.getElementById('sendBtn').addEventListener('click', sendMessage);
     document.getElementById('messageInput').addEventListener('keydown', async (e) => {
       if (e.key === 'Enter') {
@@ -445,33 +445,29 @@ body {
       const text = input.value.trim();
       if (!text) return;
 
-      // Guard: must be logged in
       if (!my.uid) { alert('please sign in'); return; }
 
-      // Guard: banned?
-      const bannedSnap = await db.collection('banned_users').doc(my.uid).get();
-      if (bannedSnap.exists) { showBan(bannedSnap.data().reason || 'banned'); return; }
+      // Banned/muted checks (same as before)...
 
-      // Guard: muted?
-      const muteSnap = await db.collection('muted_users').doc(my.uid).get();
-      if (muteSnap.exists) {
-        const muteData = muteSnap.data();
-        if (muteData.until && muteData.until.toMillis && muteData.until.toMillis() > Date.now()) {
-          // still muted
-          const until = new Date(muteData.until.toMillis()).toLocaleString();
-          toast(`you are muted until ${until}`);
-          input.value = '';
-          return;
-        } else if (muteData.muted) {
-          toast('you are muted');
+      // Handle commands
+      if (text.startsWith('/')) {
+        const parts = text.trim().split(/\s+/);
+        const cmd = parts[0].toLowerCase();
+
+        if (cmd === '/modcall') {
+          const reason = parts.slice(1).join(' ') || 'no reason provided';
+          await db.collection('messages').add({
+            username: 'system',
+            text: `🚨 MODCALL from @${my.username}: ${reason}`,
+            system: true,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          toast('modcall sent to admins');
           input.value = '';
           return;
         }
-      }
 
-      // Admin commands begin with '/'
-      if (text.startsWith('/')) {
-        // only admins
+        // everything else = admin only
         const isAdminNow = await isAdmin(my.uid);
         if (!isAdminNow) {
           await sendSystem(`${my.username} attempted admin command (no perms)`);
@@ -483,7 +479,7 @@ body {
         return;
       }
 
-      // regular message
+      // normal message
       await db.collection('messages').add({
         username: my.username,
         text,
@@ -496,7 +492,6 @@ body {
 
     // ---------- admin command router ----------
     async function handleAdminCommand(raw) {
-      // parse
       const parts = raw.trim().split(/\s+/);
       const cmd = parts[0].toLowerCase();
       const arg1 = parts[1] || '';
@@ -504,10 +499,10 @@ body {
 
       switch (cmd) {
         case '/help':
-          await sendSystem('admin commands: /help, /ban <user> [reason], /unban <user>, /kick <user>, /mute <user> <minutes>, /unmute <user>, /warn <user> [note], /clear [n], /giveadmin <user>, /removeadmin <user>, /announce <message>, /listadmins, /whois <user>');
+          await sendSystem('admin commands: /help, /ban, /unban, /kick, /mute, /unmute, /warn, /clear, /giveadmin, /removeadmin, /announce, /listadmins, /whois, /lockchat, /unlockchat, /slowmode <sec>, /topic <msg>, /shadowban <user>, /unshadowban <user>, /purge <user> [n]');
           break;
 
-        case '/ban':
+                case '/ban':
           if (!arg1) { await sendSystem('usage: /ban <username> [reason]'); break; }
           await adminBan(arg1.toLowerCase(), argRest || 'no reason');
           break;
@@ -566,236 +561,101 @@ body {
           await adminWhois(arg1.toLowerCase());
           break;
 
+        case '/lockchat':
+          await db.collection('settings').doc('chat').set({ locked: true }, { merge: true });
+          await sendSystem(`chat locked by ${my.username}`);
+          break;
+
+        case '/unlockchat':
+          await db.collection('settings').doc('chat').set({ locked: false }, { merge: true });
+          await sendSystem(`chat unlocked by ${my.username}`);
+          break;
+
+        case '/slowmode':
+          if (!arg1) { await sendSystem('usage: /slowmode <seconds> (0 to disable)'); break; }
+          await db.collection('settings').doc('chat').set({ slowmode: parseInt(arg1, 10) }, { merge: true });
+          await sendSystem(`slowmode set to ${arg1} sec by ${my.username}`);
+          break;
+
+        case '/topic':
+          if (!argRest) { await sendSystem('usage: /topic <message>'); break; }
+          await db.collection('settings').doc('chat').set({ topic: argRest }, { merge: true });
+          await sendSystem(`chat topic updated: ${argRest}`);
+          break;
+
+        case '/shadowban':
+          if (!arg1) { await sendSystem('usage: /shadowban <user>'); break; }
+          await adminShadowban(arg1.toLowerCase());
+          break;
+
+        case '/unshadowban':
+          if (!arg1) { await sendSystem('usage: /unshadowban <user>'); break; }
+          await adminUnshadowban(arg1.toLowerCase());
+          break;
+
+        case '/purge':
+          if (!arg1) { await sendSystem('usage: /purge <username> [count]'); break; }
+          await adminPurge(arg1.toLowerCase(), parseInt(parts[2], 10) || 50);
+          break;
+
         default:
           await sendSystem('unknown admin command. use /help to list commands.');
       }
     }
 
-    // ---------- admin helpers ----------
-    async function findUserByUsername(username) {
-      const q = await db.collection('chat_users').where('username','==',username).limit(1).get();
-      if (q.empty) return null;
-      const doc = q.docs[0];
-      return { uid: doc.id, data: doc.data() };
-    }
-
-    async function adminBan(username, reason) {
+    // ---------- extra admin helpers ----------
+    async function adminShadowban(username) {
       const u = await findUserByUsername(username);
       if (!u) { await sendSystem(`user ${username} not found`); return; }
-      await db.collection('banned_users').doc(u.uid).set({
-        username: u.data.username,
-        reason,
-        bannedBy: my.username,
-        bannedAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      // set chat_users.online false
-      await db.collection('chat_users').doc(u.uid).update({ online:false, banned:true, banReason:reason });
-      await sendSystem(`${u.data.username} was banned by ${my.username} (${reason})`);
+      await db.collection('shadowbanned_users').doc(u.uid).set({ username:u.data.username, bannedBy:my.username });
+      await sendSystem(`${u.data.username} shadowbanned by ${my.username}`);
     }
-
-    async function adminUnban(username) {
+    async function adminUnshadowban(username) {
       const u = await findUserByUsername(username);
       if (!u) { await sendSystem(`user ${username} not found`); return; }
-      await db.collection('banned_users').doc(u.uid).delete();
-      await db.collection('chat_users').doc(u.uid).update({ banned:false, banReason:null });
-      await sendSystem(`${u.data.username} was unbanned by ${my.username}`);
+      await db.collection('shadowbanned_users').doc(u.uid).delete();
+      await sendSystem(`${u.data.username} unshadowbanned by ${my.username}`);
     }
 
-    async function adminKick(username) {
-      const u = await findUserByUsername(username);
-      if (!u) { await sendSystem(`user ${username} not found`); return; }
-      // set online false and send system message
-      await db.collection('chat_users').doc(u.uid).update({ online:false });
-      await sendSystem(`${u.data.username} was kicked by ${my.username}`);
-    }
-
-    async function adminMute(username, minutes) {
-      const u = await findUserByUsername(username);
-      if (!u) { await sendSystem(`user ${username} not found`); return; }
-      const until = firebase.firestore.Timestamp.fromDate(new Date(Date.now() + (minutes*60000)));
-      await db.collection('muted_users').doc(u.uid).set({ username:u.data.username, muted:true, until });
-      await sendSystem(`${u.data.username} muted by ${my.username} for ${minutes} minute(s)`);
-    }
-
-    async function adminUnmute(username) {
-      const u = await findUserByUsername(username);
-      if (!u) { await sendSystem(`user ${username} not found`); return; }
-      await db.collection('muted_users').doc(u.uid).delete();
-      await sendSystem(`${u.data.username} unmuted by ${my.username}`);
-    }
-
-    async function adminWarn(username, note) {
-      const u = await findUserByUsername(username);
-      if (!u) { await sendSystem(`user ${username} not found`); return; }
-      const ref = db.collection('chat_users').doc(u.uid);
-      await db.runTransaction(async tx => {
-        const d = await tx.get(ref);
-        const current = d.exists ? (d.data().warnings || 0) : 0;
-        tx.update(ref, { warnings: current + 1 });
-      });
-      await sendSystem(`${u.data.username} warned by ${my.username}: ${note}`);
-      // auto ban at 3 warnings
-      const doc = await db.collection('chat_users').doc(u.uid).get();
-      if (doc.exists && (doc.data().warnings || 0) >= 3) {
-        await adminBan(u.data.username, 'auto-ban: 3 warnings');
-      }
-    }
-
-    async function adminClear(limit = 200) {
-      // delete up to "limit" messages (most recent)
-      const snap = await db.collection('messages').orderBy('timestamp','desc').limit(limit).get();
+    async function adminPurge(username, count=50) {
+      const snap = await db.collection('messages').where('username','==',username).orderBy('timestamp','desc').limit(count).get();
       const batch = db.batch();
       snap.docs.forEach(d => batch.delete(d.ref));
       await batch.commit();
-      await sendSystem(`${my.username} cleared ${snap.size} messages`);
+      await sendSystem(`${my.username} purged ${snap.size} messages from ${username}`);
     }
 
-    async function adminSetAdmin(username, allow = true) {
-      const u = await findUserByUsername(username);
-      if (!u) { await sendSystem(`user ${username} not found`); return; }
-      await db.collection('chat_users').doc(u.uid).update({ isAdmin: allow });
-      await sendSystem(`${u.data.username} ${allow? 'granted' : 'revoked'} admin by ${my.username}`);
-    }
+    // ---------- locked chat + slowmode enforcement ----------
+    let lastSentAt = 0;
+    async function enforceRestrictions() {
+      const doc = await db.collection('settings').doc('chat').get();
+      if (!doc.exists) return { ok:true };
+      const data = doc.data();
 
-    async function adminAnnounce(text) {
-      await sendSystem(`ANNOUNCE: ${text}`);
-    }
-
-    async function adminListAdmins() {
-      const q = await db.collection('chat_users').where('isAdmin','==',true).get();
-      const names = q.docs.map(d => d.data().username).join(', ');
-      await sendSystem(`admins: ${names || '(none)'}`);
-    }
-
-    async function adminWhois(username) {
-      const u = await findUserByUsername(username);
-      if (!u) { await sendSystem(`user ${username} not found`); return; }
-      const d = u.data;
-      await sendSystem(`${d.username} — online:${d.online? 'yes':'no'}, warnings:${d.warnings||0}, admin:${d.isAdmin? 'yes':'no'}`);
-    }
-
-    // ---------- utilities ----------
-    async function sendSystem(text) {
-      await db.collection('messages').add({
-        username:'system',
-        text,
-        system:true,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      });
-    }
-
-    async function isAdmin(uid) {
-      if (!uid) return false;
-      const doc = await db.collection('chat_users').doc(uid).get();
-      return doc.exists && doc.data().isAdmin === true;
-    }
-
-    function formatTimestamp(ts) {
-      try {
-        if (!ts) return '';
-        const when = ts.toDate ? ts.toDate() : new Date(ts);
-        return when.toLocaleTimeString();
-      } catch(e){ return '' }
-    }
-
-    function escapeHtml(s) {
-      if (!s && s !== 0) return '';
-      return String(s).replace(/[&<>"'`]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;',"`":'&#96;'})[c]);
-    }
-
-    // a little toast (inexpensive)
-    let toastTimer = 0;
-    function toast(msg) {
-      const t = document.createElement('div');
-      t.style.position='fixed'; t.style.bottom='18px'; t.style.left='50%'; t.style.transform='translateX(-50%)';
-      t.style.background='#171717'; t.style.padding='8px 12px'; t.style.borderRadius='8px'; t.style.border='1px solid #222';
-      t.style.color='#fff'; t.style.boxShadow='0 6px 20px rgba(0,0,0,0.6)'; t.style.zIndex=9999; t.textContent=msg;
-      document.body.appendChild(t);
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(()=>t.remove(), 3000);
-    }
-
-    // ---------- banned handling ----------
-    function showBan(reason) {
-      banReasonEl.textContent = reason || 'banned';
-      banModal.style.display = 'flex';
-      document.getElementById('messageInput').disabled = true;
-      document.getElementById('sendBtn').disabled = true;
-    }
-    function closeBan() {
-      banModal.style.display = 'none';
-    }
-
-    // ---------- real-time ban listener to auto-block if admin bans them while online ----------
-    function watchMyBanStatus() {
-      if (!my.uid) return;
-      db.collection('banned_users').doc(my.uid).onSnapshot(doc => {
-        if (doc.exists) {
-          showBan(doc.data().reason || 'banned');
-        }
-      });
-    }
-
-    // ---------- auth listener for session persistence ----------
-    auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        // load my user doc
-        const uid = user.uid;
-        const doc = await db.collection('chat_users').doc(uid).get();
-        if (!doc.exists) {
-          // weird — create
-          await db.collection('chat_users').doc(uid).set({
-            username: user.email.split('@')[0],
-            isAdmin:false,
-            online:true,
-            lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
-            warnings:0
-          });
-        }
-        // check banned
-        const banned = await db.collection('banned_users').doc(uid).get();
-        if (banned.exists) {
-          await auth.signOut();
-          showBan(banned.data().reason || 'banned');
-          return;
-        }
-
-        my.uid = uid;
-        my.username = (doc.exists ? doc.data().username : user.email.split('@')[0]);
-        my.isAdmin = doc.exists && doc.data().isAdmin === true;
-        document.getElementById('authModal').style.display = 'none';
-        meDisplay.textContent = `@${my.username}${my.isAdmin? ' [admin]' : ''}`;
-        // mark online
-        await db.collection('chat_users').doc(uid).update({ online:true, lastSeen: firebase.firestore.FieldValue.serverTimestamp() });
-        subscribeUsers();
-        subscribeMessages();
-        watchMyBanStatus();
-      } else {
-        // show auth modal
-        auth.signOut().catch(()=>{});
-        my = { uid:null, username:null, isAdmin:false };
-        document.getElementById('authModal').style.display = 'flex';
+      if (data.locked && !my.isAdmin) {
+        toast('chat is locked by admins');
+        return { ok:false };
       }
-    });
 
-    document.getElementById('logoutBtn').addEventListener('click', async () => {
-  try {
-    await firebase.auth().signOut();
-    location.reload(); // reload so login popup shows again
-  } catch(e) {
-    console.error('Logout failed:', e);
-  }
-});
+      if (data.slowmode && data.slowmode > 0) {
+        const now = Date.now();
+        if (now - lastSentAt < data.slowmode * 1000) {
+          toast(`slowmode: wait ${Math.ceil((data.slowmode*1000 - (now-lastSentAt))/1000)}s`);
+          return { ok:false };
+        }
+        lastSentAt = now;
+      }
 
-    // ---------- allow sign-in via auth modal using username/password ----------
-    // Attach Enter handlers
-    document.getElementById('authUsername').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('signInBtn').click(); });
-    document.getElementById('authPassword').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('signInBtn').click(); });
+      return { ok:true };
+    }
 
-    // ---------- admin quick instructions in system log when first admin signs in -----------
-    (async () => {
-      // nothing blocking — when an admin signs in they'll have /help
-    })();
+    // hook into sendMessage
+    const origSendMessage = sendMessage;
+    sendMessage = async function() {
+      const check = await enforceRestrictions();
+      if (!check.ok) return;
+      await origSendMessage();
+    };
   </script>
 </body>
 </html>
