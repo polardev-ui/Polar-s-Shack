@@ -263,6 +263,12 @@ body {
     const db = firebase.firestore();
     const auth = firebase.auth();
 
+    async function isAdmin(uid) {
+  if (!uid) return false;
+  const snap = await db.collection("admins").doc(uid).get();
+  return snap.exists;
+}
+
     const logoutBtn = document.getElementById('logoutBtn');
     logoutBtn.addEventListener('click', async () => {
       try {
