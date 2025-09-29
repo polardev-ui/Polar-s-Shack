@@ -8,6 +8,7 @@
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
         * {
@@ -450,31 +451,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Firebase scripts here first -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
-<!-- Your Firebase config -->
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBqJJQqJQqJQqJQqJQqJQqJQqJQqJQqJQq",
-      authDomain: "polars-shack.firebaseapp.com",
-      databaseURL: "https://polars-shack-default-rtdb.firebaseio.com/", // IMPORTANT for RTDB
-      projectId: "polars-shack",
-      storageBucket: "polars-shack.appspot.com",
-      messagingSenderId: "123456789012",
-      appId: "1:123456789012:web:abcdefghijklmnopqr" 
-  };
-  firebase.initializeApp(firebaseConfig);
-</script>
-
-<!-- Import analytics.js -->
-<script src="analytics.js"></script>
-<script>
-  // Call it once when the page loads
-  initAnalytics();
-</script>
 
     <script>
         const firebaseConfig = {
