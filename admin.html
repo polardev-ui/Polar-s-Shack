@@ -923,16 +923,26 @@
 
         class AdminPanel {
             constructor() {
-                this.apiUrl = 'https://api.jsonbin.io/v3/b/67a0f1e5e41b4d34e4684c8a'
-                this.apiKey = '$2a$10$9L8kM7nP5qR3sT6uI2oW1.4jG8hK9dL2cE5bA7yT1uI6pW0qV8rX3'
-                this.proxyServerUrl = 'https://polars-shack.vercel.app/api/proxy'
-                this.isLoggedIn = false;
-                // The correct password is "Mango030911!" and its SHA-256 hash
-                this.adminPasswordHash = "50172b3e278ccc1f2caaac89e2911df21304024b98578c4642af9d340fc73b71";
-                this.connectionStatus = isFirebaseConfigured ? 'connected' : 'local';
-                this.startTime = Date.now();
-                this.proxyClient = null;
-                this.useFirebase = isFirebaseConfigured && db !== null;
+              this.apiUrl = 'https://api.jsonbin.io/v3/b/67a0f1e5e41b4d34e4684c8a';
+              this.apiKey = '$2a$10$9L8kM7nP5qR3sT6uI2oW1.4jG8hK9dL2cE5bA7yT1uI6pW0qV8rX3';
+              this.proxyServerUrl = 'https://render-proxy-6x2v.onrender.com';
+              this.isLoggedIn = false;
+              // The correct password is "Mango030911!" and its SHA-256 hash
+              this.adminPasswordHash = '50172b3e278ccc1f2caaac89e2911df21304024b98578c4642af9d340fc73b71';
+              this.connectionStatus = isFirebaseConfigured ? 'connected' : 'local';
+              this.startTime = Date.now();
+              this.proxyClient = null;
+              this.useFirebase = isFirebaseConfigured && db !== null;
+            
+              // ✅ Initialize securityData here so it's defined before any use
+              this.securityData = {
+                failedLogins: parseInt(localStorage.getItem('failedLogins') || '0', 10),
+                bannedIPs: JSON.parse(localStorage.getItem('bannedIPs') || '[]'),
+                proxyBlocks: parseInt(localStorage.getItem('proxyBlocks') || '0', 10),
+                rateLimit: parseInt(localStorage.getItem('rateLimit') || '100', 10),
+                securityLogs: JSON.parse(localStorage.getItem('securityLogs') || '[]'),
+                activeSessions: parseInt(localStorage.getItem('activeSessions') || '1', 10),
+              };
             }
 
             init() {
@@ -1229,7 +1239,7 @@
                     setInterval(() => {
                         this.updateSystemStats();
                         this.updateUptime();
-                        this.checkProxyServerHealth();
+                        this.checkProxyConnection();
                         this.updateMaintenanceStatus();
                     }, 30000); // Update every 30 seconds
                 }
@@ -1745,7 +1755,7 @@
                 results.innerHTML = '<p>Testing proxy connections...</p>'
                 
                 const proxies = [
-                    { name: "Polar's Official Proxy", url: 'https://polars-shack.vercel.app/api/proxy', priority: 1 },
+                    { name: "Polar's Official Proxy", url: 'https://render-proxy-6x2v.onrender.com', priority: 1 },
                     { name: 'Corsproxy.io', url: 'https://corsproxy.io/?', priority: 2 },
                     { name: 'AllOrigins', url: 'https://api.allorigins.win/raw?url=', priority: 3 }
                 ]
@@ -1794,7 +1804,7 @@
             async restartProxyServer() {
                 if (confirm('Are you sure you want to restart the proxy server? This may cause temporary downtime.')) {
                     try {
-                        const response = await fetch('https://polars-shack.vercel.app/api/proxy/admin/restart', {
+                        const response = await fetch('https://render-proxy-6x2v.onrender.com/admin/restart', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ adminKey: 'polar-admin-2024' })
@@ -1913,7 +1923,45 @@
             e.preventDefault();
             adminPanel.handleLogin(e);
         });
-        adminPanel.init();
+        const adminPanel = new AdminPanel();
+
+// Wire class methods to global functions used by inline onclick="..."
+window.showSection                 = (id) => adminPanel.showSection(id);
+window.logout                      = () => adminPanel.logout();
+
+window.toggleMaintenance           = () => adminPanel.toggleMaintenance();
+window.updateMaintenanceMessage    = () => adminPanel.updateMaintenanceMessage();
+window.enableGlobalMaintenance     = () => adminPanel.enableGlobalMaintenance();
+window.disableGlobalMaintenance    = () => adminPanel.disableGlobalMaintenance();
+window.emergencyGlobalLockdown     = () => adminPanel.emergencyGlobalLockdown();
+window.toggleMaintenanceDismissal  = () => adminPanel.toggleMaintenanceDismissal();
+window.scheduleMaintenanceWindow   = () => adminPanel.scheduleMaintenanceWindow();
+window.broadcastMaintenanceNotice  = () => adminPanel.broadcastMaintenanceNotice();
+window.emergencyMaintenance        = () => adminPanel.emergencyMaintenance();
+
+window.banIP                       = () => adminPanel.banIP();
+window.updateRateLimit             = () => adminPanel.updateRateLimit();
+window.clearSecurityLogs           = () => adminPanel.clearSecurityLogs();
+window.exportSecurityReport        = () => adminPanel.exportSecurityReport();
+window.lockdownMode                = () => adminPanel.lockdownMode();
+window.disableAllSecurity          = () => adminPanel.disableAllSecurity();
+window.resetSecuritySettings       = () => adminPanel.resetSecuritySettings();
+
+window.testProxyConnection         = () => adminPanel.testProxyConnection();
+window.restartProxyServer          = () => adminPanel.restartProxyServer();
+window.generateAnalyticsReport     = () => adminPanel.generateAnalyticsReport();
+window.createBackup                = () => adminPanel.createBackup();
+window.executeCustomCommand        = () => adminPanel.executeCustomCommand();
+window.emergencyShutdown           = () => adminPanel.emergencyShutdown();
+
+// login form -> class method
+document.getElementById('loginForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  adminPanel.handleLogin(e);
+});
+
+// finally boot
+adminPanel.init();
 
         // All functions are now properly contained within the AdminPanel class
 
