@@ -919,8 +919,7 @@
 
         class AdminPanel {
             constructor() {
-              this.apiUrl = 'https://api.jsonbin.io/v3/b/67a0f1e5e41b4d34e4684c8a';
-              this.apiKey = '$2a$10$9L8kM7nP5qR3sT6uI2oW1.4jG8hK9dL2cE5bA7yT1uI6pW0qV8rX3';
+              this.maintenanceDoc = db ? db.collection('settings').doc('maintenance') : null;
               this.proxyServerUrl = 'https://render-proxy-6x2v.onrender.com';
               this.isLoggedIn = false;
               // The correct password is "Mango030911!" and its SHA-256 hash
@@ -950,6 +949,19 @@
                 this.updateConnectionStatus();
                 this.initializeProxyClient();
                 this.loadSecurityData();
+
+                if (this.maintenanceDoc) {
+                  this.unsubscribeMaintenance = this.maintenanceDoc.onSnapshot((snap) => {
+                    const data = snap.exists ? snap.data() : {};
+                    // keep localStorage in sync so your existing UI code keeps working
+                    localStorage.setItem('maintenanceMode', data.maintenanceMode ? 'true' : 'false');
+                    localStorage.setItem('lockdownMode', data.lockdownMode ? 'true' : 'false');
+                    if (typeof data.maintenanceMessage === 'string') {
+                      localStorage.setItem('maintenanceMessage', data.maintenanceMessage);
+                    }
+                    this.updateMaintenanceStatus();
+                  }, (err) => console.log('[v0] maintenance onSnapshot error:', err));
+                }
             }
 
             setupEventListeners() {
@@ -1717,19 +1729,18 @@
             }
 
             async updateServerMaintenanceState(state) {
-                const response = await fetch(this.apiUrl, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Master-Key': this.apiKey
-                    },
-                    body: JSON.stringify(state)
-                })
-                
-                if (!response.ok) {
-                    throw new Error('Failed to update server state')
-                }
+              if (!this.maintenanceDoc) throw new Error('Firestore not ready');
+              const uid = firebase.auth().currentUser?.uid || 'unknown';
+              await this.maintenanceDoc.set(
+                {
+                  ...state,
+                  updatedBy: uid,
+                  updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                },
+                { merge: true }
+              );
             }
+
 
             toggleMaintenanceDismissal() {
                 const toggle = document.getElementById('allowDismissalToggle')
