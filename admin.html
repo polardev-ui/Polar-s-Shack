@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -902,7 +903,7 @@
             appId: "1:205388124682:web:2b0b1605517e0c6c53c5f3"
         };
 
-        const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "your-actual-api-key-here";
+        let isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs";
         
         let db = null;
         let auth = null;
