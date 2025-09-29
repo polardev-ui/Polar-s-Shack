@@ -893,32 +893,29 @@
     </div>
 
     <script>
-        // Firebase configuration - Replace with your actual Firebase config
-        const firebaseConfig = {
-            apiKey: "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs",
-            authDomain: "polars-shack.firebaseapp.com", 
-            projectId: "polars-shack",
-            storageBucket: "polars-shack.firebasestorage.app",
-            messagingSenderId: "205388124682",
-            appId: "1:205388124682:web:2b0b1605517e0c6c53c5f3"
-        };
+  // Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs",
+    authDomain: "polars-shack.firebaseapp.com",
+    projectId: "polars-shack",
+    storageBucket: "polars-shack.firebasestorage.app",
+    messagingSenderId: "205388124682",
+    appId: "1:205388124682:web:2b0b1605517e0c6c53c5f3"
+  };
 
-        let isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs";
-        
-        // --- Firebase init (REPLACE your whole current init block with this) ---
-        let db = null;
-        let auth = null;
-        let firebaseReady = false;
+  let db = null;
+  let auth = null;
+  let firebaseReady = false;
 
-        try {
-          firebase.initializeApp(firebaseConfig);
-          db = firebase.firestore();
-          auth = firebase.auth();
-          firebaseReady = true;
-          console.log('[v0] Firebase initialized successfully');
-        } catch (error) {
-          console.log('[v0] Firebase initialization failed:', error);
-        }
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    auth = firebase.auth();
+    firebaseReady = true;
+    console.log('[v0] Firebase initialized successfully');
+  } catch (error) {
+    console.log('[v0] Firebase initialization failed:', error);
+  }
 
         class AdminPanel {
             constructor() {
@@ -928,10 +925,10 @@
               this.isLoggedIn = false;
               // The correct password is "Mango030911!" and its SHA-256 hash
               this.adminPasswordHash = '50172b3e278ccc1f2caaac89e2911df21304024b98578c4642af9d340fc73b71';
-              this.connectionStatus = isFirebaseConfigured ? 'connected' : 'local';
+              this.connectionStatus = firebaseReady ? 'connected' : 'local';
               this.startTime = Date.now();
               this.proxyClient = null;
-              this.useFirebase = isFirebaseConfigured && db !== null;
+              this.useFirebase = firebaseReady && db !== null;
             
               // ✅ Initialize securityData here so it's defined before any use
               this.securityData = {
@@ -993,7 +990,7 @@
                         const proxyStatusElement = document.getElementById('proxyStatus');
                         if (proxyStatusElement) {
                             proxyStatusElement.innerHTML = '<i class="bx bx-check-circle"></i> Proxy Online';
-                            proxyStatusElement.className = 'status-indicator online';
+                            proxyStatusElement.className = 'status-badge online';
                         }
                     }
                 } catch (error) {
