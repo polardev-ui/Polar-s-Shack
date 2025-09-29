@@ -1204,28 +1204,46 @@
             }
 
             async loadFirebaseData() {
-                try {
-                    // Load users
-                    const usersSnapshot = await db.collection('users').limit(10).get();
-                    const users = [];
-                    usersSnapshot.forEach(doc => {
-                        users.push({ id: doc.id, ...doc.data() });
-                    });
-                    this.displayUsers(users);
+  try {
+    // users (chat users)
+    const usersSnapshot = await db.collection('chat_users').limit(50).get();
+    const users = usersSnapshot.docs.map(d => {
+      const u = d.data() || {};
+      return {
+        id: d.id,
+        username: u.username || '(unknown)',
+        status: u.banned ? 'banned' : (u.status || 'active'),
+        joinDate: u.createdAt?.toDate?.() || u.createdAt || Date.now(),
+        lastSeen: u.lastActive?.toDate?.() || u.lastActive || null,
+      };
+    });
+    this.displayUsers(users);
 
-                    // Load reports
-                    const reportsSnapshot = await db.collection('reports').orderBy('timestamp', 'desc').limit(10).get();
-                    const reports = [];
-                    reportsSnapshot.forEach(doc => {
-                        reports.push({ id: doc.id, ...doc.data() });
-                    });
-                    this.displayReports(reports);
+    // reports (game reports)
+    const reportsSnapshot = await db.collection('game_reports')
+      .orderBy('timestamp', 'desc')
+      .limit(50)
+      .get();
 
-                } catch (error) {
-                    console.log('[v0] Error loading Firebase data:', error);
-                    this.loadLocalData(); // Fallback to local data
-                }
-            }
+    const reports = reportsSnapshot.docs.map(d => {
+      const r = d.data() || {};
+      return {
+        id: d.id,
+        type: r.reason || r.type || 'report',
+        reason: r.reason || '-',
+        description: r.description || '',
+        status: r.status || 'pending',
+        timestamp: r.timestamp?.toDate?.() || r.timestamp || Date.now(),
+      };
+    });
+    this.displayReports(reports);
+
+    console.log('[v0] Firebase data loaded');
+  } catch (error) {
+    console.log('[v0] Error loading Firebase data:', error);
+    this.loadLocalData(); // fallback
+  }
+}
 
             loadLocalData() {
                 const mockUsers = [
@@ -1304,23 +1322,23 @@
             }
 
             displayUsers(users) {
-                const usersTable = document.getElementById('usersTable');
-                usersTable.innerHTML = '';
-                users.forEach(user => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${user.username}</td>
-                        <td>${new Date(user.joinDate).toLocaleDateString()}</td>
-                        <td>Not Available</td>
-                        <td>${user.status}</td>
-                        <td>
-                            <button class="action-btn">Edit</button>
-                            <button class="action-btn danger">Delete</button>
-                        </td>
-                    `;
-                    usersTable.appendChild(row);
-                });
-            }
+  const usersTable = document.getElementById('usersTable');
+  usersTable.innerHTML = '';
+  users.forEach(user => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${user.username}</td>
+      <td>${new Date(user.joinDate).toLocaleDateString?.() || '-'}</td>
+      <td>${user.lastSeen ? new Date(user.lastSeen).toLocaleDateString?.() : '-'}</td>
+      <td>${user.status}</td>
+      <td>
+        <button class="action-btn">Edit</button>
+        <button class="action-btn danger">Delete</button>
+      </td>
+    `;
+    usersTable.appendChild(row);
+  });
+}
 
             displayReports(reports) {
                 const reportsTable = document.getElementById('reportsTable');
@@ -1666,67 +1684,52 @@
             }
 
             async enableGlobalMaintenance() {
-                const message = document.getElementById('maintenanceMessage').value || 
-                    "Polar's Shack is currently receiving a new update, and we're trying to push it to your device. This is marked as a beta update, so if anything is broken, please report the game or issue thru the play page when you select a game or app, or directly from the games / apps page. Thank you."
-                
-                try {
-                    await this.updateServerMaintenanceState({
-                        maintenanceMode: true,
-                        lockdownMode: false,
-                        maintenanceMessage: message,
-                        timestamp: Date.now()
-                    })
-                    
-                    localStorage.setItem('maintenanceMode', 'true')
-                    localStorage.setItem('maintenanceMessage', message)
-                    this.updateMaintenanceStatus()
-                    alert('Global maintenance mode enabled - all devices will see maintenance popup')
-                } catch (error) {
-                    alert('Failed to enable global maintenance mode. Using local mode.')
-                    this.toggleMaintenance()
-                }
-            }
+  const message = document.getElementById('maintenanceMessage').value ||
+    "Polar's Shack is currently receiving a new update...";
+  try {
+    await this.updateServerMaintenanceState({
+      maintenanceMode: true,
+      lockdownMode: false,
+      maintenanceMessage: message,
+      timestamp: Date.now(),
+    });
+    alert('Global maintenance mode enabled - all devices will see the maintenance popup');
+  } catch (err) {
+    console.log('[polar] enableGlobalMaintenance error:', err);
+    alert('Failed to enable global maintenance.');
+  }
+}
 
             async disableGlobalMaintenance() {
-                try {
-                    await this.updateServerMaintenanceState({
-                        maintenanceMode: false,
-                        lockdownMode: false,
-                        maintenanceMessage: '',
-                        timestamp: Date.now()
-                    })
-                    
-                    localStorage.setItem('maintenanceMode', 'false')
-                    localStorage.setItem('lockdownMode', 'false')
-                    this.updateMaintenanceStatus()
-                    alert('Global maintenance mode disabled')
-                } catch (error) {
-                    alert('Failed to disable global maintenance mode. Using local mode.')
-                    localStorage.setItem('maintenanceMode', 'false')
-                    this.updateMaintenanceStatus()
-                }
-            }
+  try {
+    await this.updateServerMaintenanceState({
+      maintenanceMode: false,
+      lockdownMode: false,
+      maintenanceMessage: '',
+      timestamp: Date.now(),
+    });
+    alert('Global maintenance mode disabled');
+  } catch (err) {
+    console.log('[polar] disableGlobalMaintenance error:', err);
+    alert('Failed to disable global maintenance.');
+  }
+}
 
             async emergencyGlobalLockdown() {
-                if (confirm('Are you sure you want to activate GLOBAL EMERGENCY LOCKDOWN? This will lock down the site for ALL users across ALL devices.')) {
-                    try {
-                        await this.updateServerMaintenanceState({
-                            maintenanceMode: false,
-                            lockdownMode: true,
-                            maintenanceMessage: 'EMERGENCY LOCKDOWN: This site is temporarily unavailable due to security concerns. Access has been restricted by the administrator.',
-                            timestamp: Date.now()
-                        })
-                        
-                        localStorage.setItem('lockdownMode', 'true')
-                        localStorage.setItem('maintenanceMode', 'false')
-                        this.updateMaintenanceStatus()
-                        alert('GLOBAL EMERGENCY LOCKDOWN ACTIVATED!')
-                    } catch (error) {
-                        alert('Failed to activate global lockdown. Using local mode.')
-                        this.lockdownMode()
-                    }
-                }
-            }
+  if (!confirm('Are you sure you want to activate GLOBAL EMERGENCY LOCKDOWN?')) return;
+  try {
+    await this.updateServerMaintenanceState({
+      maintenanceMode: false,
+      lockdownMode: true,
+      maintenanceMessage: 'EMERGENCY LOCKDOWN: This site is temporarily unavailable due to security concerns. Access has been restricted by the administrator.',
+      timestamp: Date.now(),
+    });
+    alert('GLOBAL EMERGENCY LOCKDOWN ACTIVATED!');
+  } catch (err) {
+    console.log('[v0] emergencyGlobalLockdown error:', err);
+    alert('Failed to activate global lockdown.');
+  }
+}
 
             async updateServerMaintenanceState(state) {
               if (!this.maintenanceDoc) throw new Error('Firestore not ready');
