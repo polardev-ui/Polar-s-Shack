@@ -905,21 +905,23 @@
 
         let isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs";
         
+        // --- Firebase init (REPLACE your whole current init block with this) ---
         let db = null;
         let auth = null;
-        if (isFirebaseConfigured) {
-            try {
-                firebase.initializeApp(firebaseConfig);
-                db = firebase.firestore();
-                auth = firebase.auth();
-                console.log('[v0] Firebase initialized successfully');
-            } catch (error) {
-                console.log('[v0] Firebase initialization failed:', error);
-                isFirebaseConfigured = false;
-            }
-        } else {
-            console.log('[v0] Firebase not configured - using local authentication only');
+        let firebaseReady = false;
+
+        try {
+          firebase.initializeApp(firebaseConfig);
+          db = firebase.firestore();
+          auth = firebase.auth();
+          firebaseReady = true;
+          console.log('[v0] Firebase initialized successfully');
+        } catch (error) {
+          console.log('[v0] Firebase initialization failed:', error);
         }
+
+        // Inside AdminPanel constructor, set:
+        this.useFirebase = firebaseReady && db !== null;
 
         class AdminPanel {
             constructor() {
@@ -1937,6 +1939,7 @@ window.toggleMaintenanceDismissal  = () => adminPanel.toggleMaintenanceDismissal
 window.scheduleMaintenanceWindow   = () => adminPanel.scheduleMaintenanceWindow();
 window.broadcastMaintenanceNotice  = () => adminPanel.broadcastMaintenanceNotice();
 window.emergencyMaintenance        = () => adminPanel.emergencyMaintenance();
+window.toggleSecuritySystem        = () => adminPanel.toggleSecuritySystem();
 
 window.banIP                       = () => adminPanel.banIP();
 window.updateRateLimit             = () => adminPanel.updateRateLimit();
