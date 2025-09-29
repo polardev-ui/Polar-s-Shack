@@ -920,9 +920,6 @@
           console.log('[v0] Firebase initialization failed:', error);
         }
 
-        // Inside AdminPanel constructor, set:
-        this.useFirebase = firebaseReady && db !== null;
-
         class AdminPanel {
             constructor() {
               this.apiUrl = 'https://api.jsonbin.io/v3/b/67a0f1e5e41b4d34e4684c8a';
