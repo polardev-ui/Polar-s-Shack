@@ -1,28 +1,45 @@
 // analytics.js
+// Assumes Firebase (app + database compat) is already initialized on the page.
 
-// Make sure Firebase is initialized in your HTML before this script runs
+(function () {
+  function toRtdbKey(s) {
+    // encode slashes so we don't create subpaths, then remove illegal RTDB chars
+    return encodeURIComponent(s).replace(/[.#$\[\]]/g, "_");
+  }
 
-function initAnalytics(pageName = window.location.pathname) {
-  const db = firebase.database();
+  function initAnalytics(pageName = window.location.pathname) {
+    if (!firebase || !firebase.apps || !firebase.apps.length) {
+      console.warn("[analytics] Firebase not initialized on this page.");
+      return;
+    }
 
-  // --- Online Users ---
-  const sessionRef = db.ref("onlineUsers").push();
-  sessionRef.set({
-    joined: Date.now(),
-    page: pageName
-  });
-  sessionRef.onDisconnect().remove();
+    const rtdb = firebase.database();
+    const safePageKey = toRtdbKey(pageName);
 
-  // --- Total Visits ---
-  const visitsRef = db.ref("stats/visits");
-  visitsRef.transaction(current => (current || 0) + 1);
+    // --- Online Users (create + auto-remove) ---
+    const sessionRef = rtdb.ref("onlineUsers").push();
+    sessionRef
+      .set({
+        joined: firebase.database.ServerValue.TIMESTAMP,
+        page: pageName,
+        ua: navigator.userAgent.slice(0, 200)
+      })
+      .catch(console.warn);
+    sessionRef.onDisconnect().remove();
 
-  // --- Per-page Visits ---
-  const pageRef = db.ref("stats/pages/" + encodeURIComponent(pageName));
-  pageRef.transaction(current => (current || 0) + 1);
-}
+    // --- Total Visits (atomic, no read needed) ---
+    rtdb.ref("stats/visits")
+      .set(firebase.database.ServerValue.increment(1))
+      .catch(console.warn);
 
-// Export if using modules (optional)
-if (typeof window !== "undefined") {
-  window.initAnalytics = initAnalytics;
-}
+    // --- Per-page Visits (atomic, no read needed) ---
+    rtdb.ref("stats/pages/" + safePageKey)
+      .set(firebase.database.ServerValue.increment(1))
+      .catch(console.warn);
+  }
+
+  // expose
+  if (typeof window !== "undefined") {
+    window.initAnalytics = initAnalytics;
+  }
+})();
