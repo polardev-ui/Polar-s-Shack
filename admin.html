@@ -1907,13 +1907,10 @@
         // All functionality is now properly contained within the adminPanel object
 
         const adminPanel = new AdminPanel();
-
         document.getElementById('loginForm').addEventListener('submit', (e) => {
             e.preventDefault();
             adminPanel.handleLogin(e);
         });
-
-        const adminPanel = new AdminPanel();
         adminPanel.init();
 
         // All functions are now properly contained within the AdminPanel class
