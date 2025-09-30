@@ -543,20 +543,20 @@
                 gameFrame.src = this.gameUrl;
 
                 gameFrame.onload = () => {
-                    console.log("[v0] Game loaded successfully");
+                    console.log("[polar] Game loaded successfully");
                     setTimeout(() => {
                         loadingScreen.classList.add('hidden');
                     }, 1000);
                 };
 
                 gameFrame.onerror = () => {
-                    console.error("[v0] Game failed to load");
+                    console.error("[polar] Game failed to load");
                     this.showGameError();
                 };
 
                 setTimeout(() => {
                     if (!loadingScreen.classList.contains('hidden')) {
-                        console.log("[v0] Game load timeout, hiding loading screen");
+                        console.log("[polar] Game load timeout, hiding loading screen");
                         loadingScreen.classList.add('hidden');
                     }
                 }, 10000);
