@@ -1,45 +1,45 @@
 // analytics.js
-// Assumes Firebase (app + database compat) is already initialized on the page.
 
-(function () {
-  function toRtdbKey(s) {
-    // encode slashes so we don't create subpaths, then remove illegal RTDB chars
-    return encodeURIComponent(s).replace(/[.#$\[\]]/g, "_");
+function keySafe(s) {
+  // Can't contain . # $ [ ] /
+  return String(s).replace(/[.#$\[\]\/]/g, '_');
+}
+
+function deviceId() {
+  let id = localStorage.getItem('ps_device_id');
+  if (!id) {
+    id = (crypto.randomUUID && crypto.randomUUID()) ||
+         ('d' + Date.now() + '_' + Math.random().toString(36).slice(2));
+    localStorage.setItem('ps_device_id', id);
   }
+  return id;
+}
 
-  function initAnalytics(pageName = window.location.pathname) {
-    if (!firebase || !firebase.apps || !firebase.apps.length) {
-      console.warn("[analytics] Firebase not initialized on this page.");
-      return;
-    }
+function initAnalytics(pageName = window.location.pathname) {
+  const rtdb = firebase.database();
+  const did = deviceId();
+  const now = firebase.database.ServerValue.TIMESTAMP;
 
-    const rtdb = firebase.database();
-    const safePageKey = toRtdbKey(pageName);
+  // Persistent "users" (unique device)
+  const userRef = rtdb.ref('users/' + did);
+  userRef.update({
+    firstSeen: now,
+    lastSeen: now,
+    lastPage: pageName,
+    userAgent: navigator.userAgent
+  });
+  userRef.onDisconnect().update({ lastSeen: now });
 
-    // --- Online Users (create + auto-remove) ---
-    const sessionRef = rtdb.ref("onlineUsers").push();
-    sessionRef
-      .set({
-        joined: firebase.database.ServerValue.TIMESTAMP,
-        page: pageName,
-        ua: navigator.userAgent.slice(0, 200)
-      })
-      .catch(console.warn);
-    sessionRef.onDisconnect().remove();
+  // Ephemeral session presence
+  const sessionRef = rtdb.ref('onlineUsers').push();
+  sessionRef.set({ uid: did, joined: now, page: pageName });
+  sessionRef.onDisconnect().remove();
 
-    // --- Total Visits (atomic, no read needed) ---
-    rtdb.ref("stats/visits")
-      .set(firebase.database.ServerValue.increment(1))
-      .catch(console.warn);
+  // Counters
+  rtdb.ref('stats/visits').transaction(v => (v || 0) + 1);
+  rtdb.ref('stats/pages/' + keySafe(pageName)).transaction(v => (v || 0) + 1);
+}
 
-    // --- Per-page Visits (atomic, no read needed) ---
-    rtdb.ref("stats/pages/" + safePageKey)
-      .set(firebase.database.ServerValue.increment(1))
-      .catch(console.warn);
-  }
-
-  // expose
-  if (typeof window !== "undefined") {
-    window.initAnalytics = initAnalytics;
-  }
-})();
+if (typeof window !== 'undefined') {
+  window.initAnalytics = initAnalytics;
+}
