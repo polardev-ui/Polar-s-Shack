@@ -509,6 +509,7 @@
         };
 
         firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
 (function maintenanceListener(){
   if (!window.firebase?.database) return;
