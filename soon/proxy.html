@@ -8,7 +8,6 @@
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    /* --- your CSS unchanged --- */
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:'JetBrains Mono','Courier New',monospace;background:#1a1a1a;color:#888;min-height:100vh}
     .navbar{background:#1a1a1a;padding:1rem 2rem;position:fixed;top:0;width:100%;z-index:1000;border-bottom:1px solid #333}
@@ -195,16 +194,14 @@
     </section>
   </main>
 
-  <!-- Firebase scripts here first -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
-<!-- Your Firebase config -->
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyBqJJQqJQqJQqJQqJQqJQqJQqJQqJQqJQq",
       authDomain: "polars-shack.firebaseapp.com",
-      databaseURL: "https://polars-shack-default-rtdb.firebaseio.com/", // IMPORTANT for RTDB
+      databaseURL: "https://polars-shack-default-rtdb.firebaseio.com/", // ken could you put this here? sure
       projectId: "polars-shack",
       storageBucket: "polars-shack.appspot.com",
       messagingSenderId: "123456789012",
@@ -213,10 +210,8 @@
   firebase.initializeApp(firebaseConfig);
 </script>
 
-<!-- Import analytics.js -->
 <script src="analytics.js"></script>
 <script>
-  // Call it once when the page loads
   initAnalytics();
   <script>
 (function maintenanceListener(){
@@ -254,15 +249,13 @@
 })()
 </script>
 
-  <!-- Scramjet client -->
-  <script src="https://render-proxy-6x2v.onrender.com/scram/scramjet.all.js"></script>
+  <script src="https://render-proxy-6x2v.onrender.com/scram/scramjet.all.js">// test scramjet client</script> 
 
   <script>
     const maintenanceScript = document.createElement('script');
     maintenanceScript.src = '../maintenance-mode.js';
     document.head.appendChild(maintenanceScript);
 
-    // If Scramjet loaded, expose a helper (advanced rewrite)
     (async () => {
       try {
         if (typeof $scramjetLoadClient === 'function') {
@@ -304,18 +297,15 @@
       }
 
       async checkProxyStatus() {
-        // If Scramjet client loaded, just mark online
         if (window.sj || window.toProxyUrl) {
           this.customProxyOnline = true;
           this.updateProxyStatus('online');
           return;
         }
-        // Try healthz (but don't mark offline if CORS blocks)
         try {
           const response = await fetch(this.healthUrl, { cache: 'no-store', mode: 'cors' });
           this.customProxyOnline = response.ok;
         } catch {
-          // CORS error or network: still treat as available (opening new tab doesn't need CORS)
           this.customProxyOnline = true;
         }
         this.updateProxyStatus(this.customProxyOnline ? 'online' : 'fallback');
@@ -378,14 +368,12 @@
         this.saveRecentSite(url);
         this.updateProxyRequestCount();
 
-        // Prefer Scramjet full rewrite if available
         if (window.toProxyUrl) {
           const proxied = window.toProxyUrl(url);
           window.open(proxied, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=yes,menubar=yes,location=yes');
           return;
         }
 
-        // Else open our /proxy (new window avoids CORS checks)
         const proxyUrl = `${this.customProxyUrl}?url=${encodeURIComponent(url)}`;
         window.open(proxyUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=yes,menubar=yes,location=yes');
       }
