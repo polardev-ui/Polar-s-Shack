@@ -631,7 +631,7 @@
                 this.updateGameCount();
             }
 
-(function maintenanceListener(){
+function maintenanceListener(){
   if (!window.firebase?.database) return;
   const rtdb = firebase.database();
   const ref = rtdb.ref('settings/maintenance');
