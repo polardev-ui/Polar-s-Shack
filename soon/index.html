@@ -499,19 +499,18 @@
     </main>
 
   <script>
-    // --- Firebase Config ---
-    const firebaseConfig = {
-      apiKey: "AIzaSyBqJJQqJQqJQqJQqJQqJQqJQqJQqJQqJQq",
-      authDomain: "polars-shack.firebaseapp.com",
-      databaseURL: "https://polars-shack-default-rtdb.firebaseio.com/", // IMPORTANT for RTDB
-      projectId: "polars-shack",
-      storageBucket: "polars-shack.appspot.com",
-      messagingSenderId: "123456789012",
-      appId: "1:123456789012:web:abcdefghijklmnopqr"
-    };
+        const firebaseConfig = {
+            apiKey: "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs",
+            authDomain: "polars-shack.firebaseapp.com",
+            projectId: "polars-shack",
+            storageBucket: "polars-shack.firebasestorage.app",
+            messagingSenderId: "205388124682",
+            appId: "1:205388124682:web:2b0b1605517e0c6c53c5f3"
+        };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
 (function maintenanceListener(){
   if (!window.firebase?.database) return;
   const rtdb = firebase.database();
