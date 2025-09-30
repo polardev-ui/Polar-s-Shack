@@ -1,1989 +1,667 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Polar's Shack Admin</title>
-    <link id="favicon" rel="icon" href="logo.png" type="image/png">
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'JetBrains Mono', 'Courier New', monospace;
-            background: #1a1a1a;
-            color: #888;
-            min-height: 100vh;
-        }
-
-        .login-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-        }
-
-        .login-box {
-            background: #2a2a2a;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 3rem;
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-        }
-
-        .login-box h1 {
-            color: #fff;
-            font-size: 1.8rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .login-box p {
-            color: #666;
-            margin-bottom: 2rem;
-            font-size: 0.9rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-            text-align: left;
-        }
-
-        .form-group label {
-            display: block;
-            color: #888;
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 1rem;
-            background: #333;
-            border: 1px solid #444;
-            border-radius: 4px;
-            color: #fff;
-            font-size: 0.9rem;
-            outline: none;
-            transition: all 0.3s ease;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .form-group input:focus {
-            border-color: #00ff00;
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
-        }
-
-        .login-btn {
-            width: 100%;
-            padding: 1rem;
-            background: #00ff00;
-            color: #1a1a1a;
-            border: none;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .login-btn:hover {
-            background: #00cc00;
-            transform: translateY(-1px);
-        }
-
-        .error-message {
-            color: #ff6666;
-            margin-top: 1rem;
-            font-size: 0.8rem;
-            display: none;
-        }
-
-        .logout-btn {
-            position: fixed;
-            top: 2rem;
-            right: 2rem;
-            background: #ff6666;
-            color: #fff;
-            border: none;
-            padding: 0.8rem 1.2rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: all 0.3s ease;
-            font-family: 'JetBrains Mono', monospace;
-            z-index: 1000;
-        }
-
-        .logout-btn:hover {
-            background: #ff4444;
-            transform: translateY(-1px);
-        }
-
-        .admin-container {
-            display: none;
-            padding: 2rem;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .admin-header {
-            background: #2a2a2a;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-
-        .admin-header h1 {
-            color: #fff;
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .admin-header p {
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        .admin-nav {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .nav-btn {
-            background: #333;
-            color: #888;
-            border: 1px solid #444;
-            padding: 0.8rem 1.5rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            transition: all 0.3s ease;
-        }
-
-        .nav-btn.active {
-            background: #00ff00;
-            color: #1a1a1a;
-            border-color: #00ff00;
-        }
-
-        .nav-btn:hover {
-            background: #444;
-            color: #00ff00;
-            border-color: #00ff00;
-        }
-
-        .nav-btn.active:hover {
-            background: #00cc00;
-        }
-
-        .admin-section {
-            display: none;
-            background: #2a2a2a;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 2rem;
-        }
-
-        .admin-section.active {
-            display: block;
-        }
-
-        .admin-section h2 {
-            color: #fff;
-            font-size: 1.3rem;
-            margin-bottom: 1.5rem;
-            border-bottom: 1px solid #333;
-            padding-bottom: 0.5rem;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: #333;
-            padding: 1.5rem;
-            border-radius: 8px;
-            border: 1px solid #444;
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #00ff00;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            color: #888;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-        }
-
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 2rem;
-            background: #333;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .data-table th,
-        .data-table td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid #444;
-        }
-
-        .data-table th {
-            background: #444;
-            color: #fff;
-            font-weight: 600;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-        }
-
-        .data-table td {
-            color: #888;
-            font-size: 0.8rem;
-        }
-
-        .data-table tr:hover {
-            background: #3a3a3a;
-        }
-
-        .action-btn {
-            background: #444;
-            color: #00ff00;
-            border: 1px solid #555;
-            padding: 0.3rem 0.8rem;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 0.7rem;
-            margin-right: 0.5rem;
-            transition: all 0.3s ease;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .action-btn:hover {
-            background: #555;
-            border-color: #00ff00;
-        }
-
-        .action-btn.danger {
-            color: #ff6666;
-            border-color: #ff6666;
-        }
-
-        .action-btn.danger:hover {
-            background: #ff6666;
-            color: #fff;
-        }
-
-        .form-inline {
-            display: flex;
-            gap: 1rem;
-            align-items: end;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-        }
-
-        .form-inline .form-group {
-            margin-bottom: 0;
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .form-inline button {
-            background: #00ff00;
-            color: #1a1a1a;
-            border: none;
-            padding: 1rem 1.5rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            font-family: 'JetBrains Mono', monospace;
-            white-space: nowrap;
-        }
-
-        .form-inline button:hover {
-            background: #00cc00;
-            transform: translateY(-1px);
-        }
-
-        .form-inline button.danger {
-            background: #ff6666;
-            color: #fff;
-        }
-
-        .form-inline button.danger:hover {
-            background: #ff4444;
-        }
-
-        .log-entry {
-            background: #333;
-            padding: 1rem;
-            border-radius: 4px;
-            margin-bottom: 0.5rem;
-            border-left: 3px solid #444;
-        }
-
-        .log-timestamp {
-            color: #666;
-            font-size: 0.7rem;
-        }
-
-        .log-level {
-            color: #00ff00;
-            font-size: 0.7rem;
-            font-weight: 600;
-            margin-left: 1rem;
-        }
-
-        .log-message {
-            color: #888;
-            margin-top: 0.5rem;
-            font-size: 0.8rem;
-        }
-
-        /* Added new styles for enhanced features */
-        .maintenance-toggle {
-            background: #333;
-            padding: 1.5rem;
-            border-radius: 8px;
-            border: 1px solid #444;
-            margin-bottom: 2rem;
-        }
-
-        .maintenance-toggle h3 {
-            color: #fff;
-            margin-bottom: 1rem;
-            font-size: 1.1rem;
-        }
-
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 34px;
-            margin-right: 1rem;
-        }
-
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #444;
-            transition: .4s;
-            border-radius: 34px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 26px;
-            width: 26px;
-            left: 4px;
-            bottom: 4px;
-            background-color: #888;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background-color: #ff6666;
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(26px);
-            background-color: #fff;
-        }
-
-        .system-controls {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .control-card {
-            background: #333;
-            padding: 1.5rem;
-            border-radius: 8px;
-            border: 1px solid #444;
-        }
-
-        .control-card h4 {
-            color: #fff;
-            margin-bottom: 1rem;
-            font-size: 1rem;
-        }
-
-        .control-card p {
-            color: #666;
-            font-size: 0.8rem;
-            margin-bottom: 1rem;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 0.2rem 0.6rem;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .status-badge.online {
-            background: rgba(0, 255, 0, 0.2);
-            color: #00ff00;
-            border: 1px solid #00ff00;
-        }
-
-        .status-badge.offline {
-            background: rgba(255, 102, 102, 0.2);
-            color: #ff6666;
-            border: 1px solid #ff6666;
-        }
-
-        .status-badge.maintenance {
-            background: rgba(255, 165, 0, 0.2);
-            color: #ffa500;
-            border: 1px solid #ffa500;
-        }
-
-        .real-time-indicator {
-            position: fixed;
-            top: 2rem;
-            left: 2rem;
-            background: #333;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            border: 1px solid #444;
-            font-size: 0.7rem;
-            z-index: 1000;
-        }
-
-        .real-time-indicator.connected {
-            border-color: #00ff00;
-            color: #00ff00;
-        }
-
-        .real-time-indicator.disconnected {
-            border-color: #ff6666;
-            color: #ff6666;
-        }
-
-        @media (max-width: 768px) {
-            .admin-container {
-                padding: 1rem;
-            }
-
-            .admin-header {
-                padding: 1.5rem;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            }
-
-            .form-inline {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .form-inline .form-group {
-                min-width: unset;
-            }
-
-            .logout-btn {
-                top: 1rem;
-                right: 1rem;
-                padding: 0.6rem 1rem;
-            }
-
-            .real-time-indicator {
-                top: 1rem;
-                left: 1rem;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Polar's Shack Admin</title>
+  <link id="favicon" rel="icon" href="logo.png" type="image/png"/>
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+
+  <!-- Firebase compat SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'JetBrains Mono','Courier New',monospace;background:#1a1a1a;color:#888;min-height:100vh}
+    .login-container{display:flex;justify-content:center;align-items:center;min-height:100vh;background:linear-gradient(135deg,#1a1a1a 0%,#2a2a2a 100%)}
+    .login-box{background:#2a2a2a;border:1px solid #333;border-radius:8px;padding:3rem;max-width:400px;width:100%;text-align:center}
+    .login-box h1{color:#fff;font-size:1.8rem;margin-bottom:.5rem}
+    .login-box p{color:#666;margin-bottom:2rem;font-size:.9rem}
+    .form-group{margin-bottom:1.5rem;text-align:left}
+    .form-group label{display:block;color:#888;margin-bottom:.5rem;font-size:.9rem}
+    .form-group input{width:100%;padding:1rem;background:#333;border:1px solid #444;border-radius:4px;color:#fff;font-size:.9rem;outline:none;transition:.3s;font-family:'JetBrains Mono',monospace}
+    .form-group input:focus{border-color:#00ff00;box-shadow:0 0 10px rgba(0,255,0,.2)}
+    .login-btn{width:100%;padding:1rem;background:#00ff00;color:#1a1a1a;border:none;border-radius:4px;font-size:.9rem;font-weight:600;cursor:pointer;transition:.3s;font-family:'JetBrains Mono',monospace}
+    .login-btn:hover{background:#00cc00;transform:translateY(-1px)}
+    .error-message{color:#ff6666;margin-top:1rem;font-size:.8rem;display:none}
+    .logout-btn{position:fixed;top:2rem;right:2rem;background:#ff6666;color:#fff;border:none;padding:.8rem 1.2rem;border-radius:4px;cursor:pointer;font-size:.8rem;transition:.3s;font-family:'JetBrains Mono',monospace;z-index:1000}
+    .logout-btn:hover{background:#ff4444;transform:translateY(-1px)}
+    .admin-container{display:none;padding:2rem;max-width:1400px;margin:0 auto}
+    .admin-header{background:#2a2a2a;border:1px solid #333;border-radius:8px;padding:2rem;margin-bottom:2rem;text-align:center}
+    .admin-header h1{color:#fff;font-size:2rem;margin-bottom:.5rem}
+    .admin-header p{color:#666;font-size:.9rem}
+    .admin-nav{display:flex;gap:1rem;margin:1rem 0 2rem;flex-wrap:wrap;justify-content:center}
+    .nav-btn{background:#333;color:#888;border:1px solid #444;padding:.8rem 1.5rem;border-radius:4px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.8rem;transition:.3s}
+    .nav-btn.active{background:#00ff00;color:#1a1a1a;border-color:#00ff00}
+    .nav-btn:hover{background:#444;color:#00ff00;border-color:#00ff00}
+    .nav-btn.active:hover{background:#00cc00}
+    .admin-section{display:none;background:#2a2a2a;border:1px solid #333;border-radius:8px;padding:2rem}
+    .admin-section.active{display:block}
+    .admin-section h2{color:#fff;font-size:1.3rem;margin-bottom:1.5rem;border-bottom:1px solid #333;padding-bottom:.5rem}
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:2rem}
+    .stat-card{background:#333;padding:1.5rem;border-radius:8px;border:1px solid #444;text-align:center}
+    .stat-number{font-size:2rem;font-weight:700;color:#00ff00;margin-bottom:.5rem}
+    .stat-label{color:#888;font-size:.8rem;text-transform:uppercase}
+    .data-table{width:100%;border-collapse:collapse;margin-bottom:2rem;background:#333;border-radius:8px;overflow:hidden}
+    .data-table th,.data-table td{padding:1rem;text-align:left;border-bottom:1px solid #444}
+    .data-table th{background:#444;color:#fff;font-weight:600;font-size:.8rem;text-transform:uppercase}
+    .data-table td{color:#888;font-size:.8rem}
+    .data-table tr:hover{background:#3a3a3a}
+    .action-btn{background:#444;color:#00ff00;border:1px solid #555;padding:.3rem .8rem;border-radius:3px;cursor:pointer;font-size:.7rem;margin-right:.5rem;transition:.3s;font-family:'JetBrains Mono',monospace}
+    .action-btn:hover{background:#555;border-color:#00ff00}
+    .action-btn.danger{color:#ff6666;border-color:#ff6666}
+    .action-btn.danger:hover{background:#ff6666;color:#fff}
+    .form-inline{display:flex;gap:1rem;align-items:end;margin-bottom:1.5rem;flex-wrap:wrap}
+    .form-inline .form-group{margin-bottom:0;flex:1;min-width:200px}
+    .form-inline button{background:#00ff00;color:#1a1a1a;border:none;padding:1rem 1.5rem;border-radius:4px;cursor:pointer;font-size:.8rem;font-weight:600;transition:.3s;font-family:'JetBrains Mono',monospace;white-space:nowrap}
+    .form-inline button:hover{background:#00cc00;transform:translateY(-1px)}
+    .form-inline button.danger{background:#ff6666;color:#fff}
+    .form-inline button.danger:hover{background:#ff4444}
+    .maintenance-toggle{background:#333;padding:1.5rem;border-radius:8px;border:1px solid #444;margin-bottom:2rem}
+    .toggle-switch{position:relative;display:inline-block;width:60px;height:34px;margin-right:1rem}
+    .toggle-switch input{opacity:0;width:0;height:0}
+    .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#444;transition:.4s;border-radius:34px}
+    .slider:before{position:absolute;content:"";height:26px;width:26px;left:4px;bottom:4px;background:#888;transition:.4s;border-radius:50%}
+    input:checked + .slider{background:#ff6666}
+    input:checked + .slider:before{transform:translateX(26px);background:#fff}
+    .system-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem;margin-bottom:2rem}
+    .control-card{background:#333;padding:1.5rem;border-radius:8px;border:1px solid #444}
+    .control-card h4{color:#fff;margin-bottom:1rem;font-size:1rem}
+    .control-card p{color:#666;font-size:.8rem;margin-bottom:1rem}
+    .status-badge{display:inline-block;padding:.2rem .6rem;border-radius:12px;font-size:.7rem;font-weight:600;text-transform:uppercase}
+    .status-badge.online{background:rgba(0,255,0,.2);color:#00ff00;border:1px solid #00ff00}
+    .status-badge.offline{background:rgba(255,102,102,.2);color:#ff6666;border:1px solid #ff6666}
+    .status-badge.maintenance{background:rgba(255,165,0,.2);color:#ffa500;border:1px solid #ffa500}
+    .real-time-indicator{position:fixed;top:2rem;left:2rem;background:#333;padding:.5rem 1rem;border-radius:4px;border:1px solid #444;font-size:.7rem;z-index:1000}
+    .real-time-indicator.connected{border-color:#00ff00;color:#00ff00}
+    .real-time-indicator.disconnected{border-color:#ff6666;color:#ff6666}
+    @media (max-width:768px){
+      .admin-container{padding:1rem}
+      .admin-header{padding:1.5rem}
+      .stats-grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+      .form-inline{flex-direction:column;align-items:stretch}
+      .form-inline .form-group{min-width:unset}
+      .logout-btn{top:1rem;right:1rem;padding:.6rem 1rem}
+      .real-time-indicator{top:1rem;left:1rem}
+    }
+  </style>
 </head>
 <body>
-    <!-- Added real-time connection indicator -->
-    <div class="real-time-indicator" id="connectionStatus">
-        <i class='bx bx-wifi'></i> connecting...
-    </div>
+  <!-- live connection indicator -->
+  <div class="real-time-indicator" id="connectionStatus"><i class='bx bx-wifi'></i> connecting…</div>
 
-    <div class="login-container" id="loginContainer">
-        <div class="login-box">
-            <h1>admin access</h1>
-            <p>enter credentials to access the administration panel</p>
-            <form id="loginForm">
-                <div class="form-group">
-                    <label for="password">password</label>
-                    <input type="password" id="password" placeholder="enter admin password" required>
-                </div>
-                <button type="submit" class="login-btn">
-                    <i class='bx bx-log-in'></i> authenticate
-                </button>
-                <div class="error-message" id="errorMessage"></div>
-            </form>
+  <!-- login -->
+  <div class="login-container" id="loginContainer">
+    <div class="login-box">
+      <h1>admin access</h1>
+      <p>enter credentials to access the administration panel</p>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="password">password</label>
+          <input type="password" id="password" placeholder="enter admin password" required/>
         </div>
+        <button type="submit" class="login-btn"><i class='bx bx-log-in'></i> authenticate</button>
+        <div class="error-message" id="errorMessage"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- admin -->
+  <div class="admin-container" id="adminPanel">
+    <button class="logout-btn" onclick="logout()"><i class='bx bx-log-out'></i> logout</button>
+
+    <div class="admin-header">
+      <h1>polar's shack admin</h1>
+      <p>comprehensive system administration and monitoring dashboard</p>
     </div>
 
-    <div class="admin-container" id="adminPanel">
-        <button class="logout-btn" onclick="logout()">
-            <i class='bx bx-log-out'></i> logout
-        </button>
+    <nav class="admin-nav">
+      <button class="nav-btn active" onclick="showSection('dashboard')">dashboard</button>
+      <button class="nav-btn" onclick="showSection('users')">users</button>
+      <button class="nav-btn" onclick="showSection('reports')">reports</button>
+      <button class="nav-btn" onclick="showSection('chat')">chat logs</button>
+      <button class="nav-btn" onclick="showSection('system')">system</button>
+      <button class="nav-btn" onclick="showSection('maintenance')">maintenance</button>
+      <button class="nav-btn" onclick="showSection('security')">security</button>
+    </nav>
 
-        <div class="admin-header">
-            <h1>polar's shack admin</h1>
-            <p>comprehensive system administration and monitoring dashboard</p>
+    <!-- Dashboard -->
+    <section class="admin-section active" id="dashboard">
+      <h2>system overview</h2>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-number" id="totalUsers">0</div><div class="stat-label">total users</div></div>
+        <div class="stat-card"><div class="stat-number" id="onlineUsers">0</div><div class="stat-label">online users</div></div>
+        <div class="stat-card"><div class="stat-number" id="totalReports">0</div><div class="stat-label">total reports</div></div>
+        <div class="stat-card"><div class="stat-number" id="pendingReports">0</div><div class="stat-label">pending reports</div></div>
+        <div class="stat-card"><div class="stat-number" id="proxyRequests">0</div><div class="stat-label">proxy requests</div></div>
+        <div class="stat-card"><div class="stat-number" id="systemUptime">0h</div><div class="stat-label">system uptime</div></div>
+      </div>
+
+      <div class="system-controls">
+        <div class="control-card">
+          <h4>proxy service</h4>
+          <p>custom proxy server status</p>
+          <span class="status-badge" id="proxyStatus">unknown</span>
         </div>
+        <div class="control-card">
+          <h4>chat system</h4>
+          <p>real-time chat functionality</p>
+          <span class="status-badge online" id="chatStatus">online</span>
+        </div>
+        <div class="control-card">
+          <h4>database</h4>
+          <p>firebase connection</p>
+          <span class="status-badge online" id="dbStatus">online</span>
+        </div>
+        <div class="control-card">
+          <h4>site status</h4>
+          <p>overall website availability</p>
+          <span class="status-badge online" id="siteStatus">online</span>
+        </div>
+      </div>
+    </section>
 
-        <nav class="admin-nav">
-            <button class="nav-btn active" onclick="showSection('dashboard')">dashboard</button>
-            <button class="nav-btn" onclick="showSection('users')">users</button>
-            <button class="nav-btn" onclick="showSection('reports')">reports</button>
-            <button class="nav-btn" onclick="showSection('chat')">chat logs</button>
-            <button class="nav-btn" onclick="showSection('system')">system</button>
-            <!-- Added new navigation tabs -->
-            <button class="nav-btn" onclick="showSection('maintenance')">maintenance</button>
-            <button class="nav-btn" onclick="showSection('security')">security</button>
-        </nav>
+    <!-- Users -->
+    <section class="admin-section" id="users">
+      <h2>user management</h2>
+      <table class="data-table">
+        <thead><tr><th>device id</th><th>first seen</th><th>last seen</th><th>last page</th></tr></thead>
+        <tbody id="usersTable"></tbody>
+      </table>
+    </section>
 
-        <!-- Dashboard Section -->
-        <section class="admin-section active" id="dashboard">
-            <h2>system overview</h2>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-number" id="totalUsers">0</div>
-                    <div class="stat-label">total users</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="onlineUsers">0</div>
-                    <div class="stat-label">online users</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="totalReports">0</div>
-                    <div class="stat-label">total reports</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="pendingReports">0</div>
-                    <div class="stat-label">pending reports</div>
-                </div>
-                <!-- Added new stats -->
-                <div class="stat-card">
-                    <div class="stat-number" id="proxyRequests">0</div>
-                    <div class="stat-label">proxy requests</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="systemUptime">0h</div>
-                    <div class="stat-label">system uptime</div>
-                </div>
-            </div>
+    <!-- Reports -->
+    <section class="admin-section" id="reports">
+      <h2>game reports</h2>
+      <table class="data-table">
+        <thead><tr><th>game</th><th>reason</th><th>description</th><th>reported</th><th>status</th></tr></thead>
+        <tbody id="reportsTable"></tbody>
+      </table>
+    </section>
 
-            <!-- Added system status overview -->
-            <div class="system-controls">
-                <div class="control-card">
-                    <h4>proxy service</h4>
-                    <p>custom nginx proxy server status</p>
-                    <span class="status-badge online" id="proxyStatus">online</span>
-                </div>
-                <div class="control-card">
-                    <h4>chat system</h4>
-                    <p>real-time chat functionality</p>
-                    <span class="status-badge online" id="chatStatus">online</span>
-                </div>
-                <div class="control-card">
-                    <h4>database</h4>
-                    <p>firebase firestore connection</p>
-                    <span class="status-badge online" id="dbStatus">online</span>
-                </div>
-                <div class="control-card">
-                    <h4>site status</h4>
-                    <p>overall website availability</p>
-                    <span class="status-badge" id="siteStatus">online</span>
-                </div>
-            </div>
-        </section>
+    <!-- Chat (placeholder hooks to your chat admin) -->
+    <section class="admin-section" id="chat">
+      <h2>chat management</h2>
+      <div class="form-inline">
+        <div class="form-group"><label for="banUsername">ban user:</label><input type="text" id="banUsername" placeholder="enter username"/></div>
+        <button onclick="banUser()">ban user</button>
+      </div>
+      <div class="form-inline">
+        <div class="form-group"><label for="unbanUsername">unban user:</label><input type="text" id="unbanUsername" placeholder="enter username"/></div>
+        <button onclick="unbanUser()">unban user</button>
+      </div>
+      <h3 style="color:#fff;margin:2rem 0 1rem;">recent chat messages</h3>
+      <div id="chatLogs"></div>
+    </section>
 
-        <!-- Users Section -->
-        <section class="admin-section" id="users">
-            <h2>user management</h2>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>username</th>
-                        <th>joined</th>
-                        <th>last seen</th>
-                        <th>status</th>
-                        <th>actions</th>
-                    </tr>
-                </thead>
-                <tbody id="usersTable">
-                    <!-- Users will be populated here -->
-                </tbody>
-            </table>
-        </section>
+    <!-- System -->
+    <section class="admin-section" id="system">
+      <h2>system management</h2>
+      <div class="form-inline">
+        <button onclick="exportData()">export data</button>
+      </div>
+      <h3 style="color:#fff;margin:2rem 0 1rem;">system logs</h3>
+      <div id="systemLogs"></div>
+    </section>
 
-        <!-- Reports Section -->
-        <section class="admin-section" id="reports">
-            <h2>game reports</h2>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>game</th>
-                        <th>reason</th>
-                        <th>description</th>
-                        <th>reported</th>
-                        <th>status</th>
-                        <th>actions</th>
-                    </tr>
-                </thead>
-                <tbody id="reportsTable">
-                    <!-- Reports will be populated here -->
-                </tbody>
-            </table>
-        </section>
+    <!-- Maintenance -->
+    <section class="admin-section" id="maintenance">
+      <h2>maintenance mode</h2>
 
-        <!-- Chat Logs Section -->
-        <section class="admin-section" id="chat">
-            <h2>chat management</h2>
-            <div class="form-inline">
-                <div class="form-group">
-                    <label for="banUsername">ban user:</label>
-                    <input type="text" id="banUsername" placeholder="enter username">
-                </div>
-                <button onclick="banUser()">ban user</button>
-            </div>
-            <div class="form-inline">
-                <div class="form-group">
-                    <label for="unbanUsername">unban user:</label>
-                    <input type="text" id="unbanUsername" placeholder="enter username">
-                </div>
-                <button onclick="unbanUser()">unban user</button>
-            </div>
-            <h3 style="color: #fff; margin: 2rem 0 1rem;">recent chat messages</h3>
-            <div id="chatLogs">
-                <!-- Chat logs will be populated here -->
-            </div>
-        </section>
+      <div class="maintenance-toggle">
+        <h3>site maintenance</h3>
+        <label class="toggle-switch">
+          <input type="checkbox" id="maintenanceToggle" onchange="toggleMaintenance()"/>
+          <span class="slider"></span>
+        </label>
+        <span id="maintenanceStatus">maintenance mode disabled</span>
+        <p style="color:#666;margin-top:1rem;font-size:.8rem;">when enabled, visitors will see a maintenance popup with update information across ALL devices</p>
+      </div>
 
-        <!-- System Section -->
-        <section class="admin-section" id="system">
-            <h2>system management</h2>
-            <div class="form-inline">
-                <button onclick="clearAllReports()">clear all reports</button>
-                <button onclick="clearChatHistory()">clear chat history</button>
-                <button onclick="exportData()">export data</button>
-            </div>
-            <h3 style="color: #fff; margin: 2rem 0 1rem;">system logs</h3>
-            <div id="systemLogs">
-                <!-- System logs will be populated here -->
-            </div>
-        </section>
+      <div class="form-inline">
+        <div class="form-group">
+          <label for="maintenanceMessage">custom maintenance message</label>
+          <input type="text" id="maintenanceMessage" placeholder="enter custom message for users" value="Polar's Shack is currently receiving a new update, and we're trying to push it to your device. This is marked as a beta update, so if anything is broken, please report the game or issue thru the play page when you select a game or app, or directly from the games / apps page. Thank you."/>
+        </div>
+        <button onclick="updateMaintenanceMessage()">update message</button>
+      </div>
 
-        <!-- Enhanced maintenance mode section with cross-device controls -->
-        <section class="admin-section" id="maintenance">
-            <h2>maintenance mode</h2>
-            <div class="maintenance-toggle">
-                <h3>site maintenance</h3>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="maintenanceToggle" onchange="toggleMaintenance()">
-                    <span class="slider"></span>
-                </label>
-                <span id="maintenanceStatus">maintenance mode disabled</span>
-                <p style="color: #666; margin-top: 1rem; font-size: 0.8rem;">
-                    when enabled, visitors will see a maintenance popup with update information across ALL devices
-                </p>
-            </div>
+      <div class="form-inline">
+        <button onclick="enableGlobalMaintenance()">enable global maintenance</button>
+        <button onclick="disableGlobalMaintenance()">disable global maintenance</button>
+        <button class="danger" onclick="emergencyGlobalLockdown()">global emergency lockdown</button>
+      </div>
 
-            <div class="form-inline">
-                <div class="form-group">
-                    <label for="maintenanceMessage">custom maintenance message</label>
-                    <input type="text" id="maintenanceMessage" placeholder="enter custom message for users" value="Polar's Shack is currently receiving a new update, and we're trying to push it to your device. This is marked as a beta update, so if anything is broken, please report the game or issue thru the play page when you select a game or app, or directly from the games / apps page. Thank you.">
-                </div>
-                <button onclick="updateMaintenanceMessage()">update message</button>
-            </div>
+      <div class="maintenance-toggle">
+        <h3>allow maintenance dismissal during lockdown</h3>
+        <label class="toggle-switch">
+          <input type="checkbox" id="allowDismissalToggle" onchange="toggleMaintenanceDismissal()"/>
+          <span class="slider"></span>
+        </label>
+        <span id="dismissalStatus">dismissal disabled during lockdown</span>
+      </div>
+    </section>
 
-            <!-- Added cross-device maintenance controls -->
-            <div class="form-inline">
-                <button onclick="enableGlobalMaintenance()">enable global maintenance</button>
-                <button onclick="disableGlobalMaintenance()">disable global maintenance</button>
-                <button class="danger" onclick="emergencyGlobalLockdown()">global emergency lockdown</button>
-            </div>
+    <!-- Security (local UI only) -->
+    <section class="admin-section" id="security">
+      <h2>security management</h2>
+      <div class="form-inline">
+        <div class="maintenance-toggle">
+          <h3>security system</h3>
+          <label class="toggle-switch">
+            <input type="checkbox" id="securityToggle" onchange="toggleSecuritySystem()" checked/>
+            <span class="slider"></span>
+          </label>
+          <span id="securityStatus">security system enabled</span>
+        </div>
+      </div>
 
-            <!-- Added maintenance dismissal control -->
-            <div class="maintenance-toggle">
-                <h3>allow maintenance dismissal during lockdown</h3>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="allowDismissalToggle" onchange="toggleMaintenanceDismissal()">
-                    <span class="slider"></span>
-                </label>
-                <span id="dismissalStatus">dismissal disabled during lockdown</span>
-            </div>
+      <div class="system-controls">
+        <div class="control-card"><h4>failed login attempts</h4><p>monitor unauthorized access attempts</p><div class="stat-number" style="font-size:1.5rem" id="failedLogins">0</div></div>
+        <div class="control-card"><h4>active sessions</h4><p>current admin sessions</p><div class="stat-number" style="font-size:1.5rem" id="activeSessions">1</div></div>
+        <div class="control-card"><h4>proxy blocks</h4><p>blocked malicious requests</p><div class="stat-number" style="font-size:1.5rem" id="proxyBlocks">0</div></div>
+        <div class="control-card"><h4>rate limits</h4><p>requests per minute limit</p><div class="stat-number" style="font-size:1.5rem" id="rateLimit">100</div></div>
+      </div>
+    </section>
+  </div>
 
-            <div class="form-inline">
-                <button onclick="scheduleMaintenanceWindow()">schedule maintenance</button>
-                <button onclick="broadcastMaintenanceNotice()">broadcast notice</button>
-                <button class="danger" onclick="emergencyMaintenance()">emergency maintenance</button>
-            </div>
-        </section>
+  <!-- Firebase init (ONE time) -->
+  <script>
+    // Replace with your config if different
+    const firebaseConfig = {
+      apiKey: "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs",
+      authDomain: "polars-shack.firebaseapp.com",
+      projectId: "polars-shack",
+      storageBucket: "polars-shack.firebasestorage.app",
+      messagingSenderId: "205388124682",
+      appId: "1:205388124682:web:2b0b1605517e0c6c53c5f3",
+      databaseURL: "https://polars-shack-default-rtdb.firebaseio.com"   // RTDB
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 
-        <!-- Added new Security section -->
-        <section class="admin-section" id="security">
-            <h2>security management</h2>
-            
-            <!-- Added security system toggle controls -->
-            <div class="form-inline">
-                <div class="maintenance-toggle">
-                    <h3>security system</h3>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="securityToggle" onchange="toggleSecuritySystem()" checked>
-                        <span class="slider"></span>
-                    </label>
-                    <span id="securityStatus">security system enabled</span>
-                </div>
-            </div>
+    const auth = firebase.auth();
+    const db   = firebase.firestore();     // game_reports live here
+    const rtdb = firebase.database();      // users/online/stats/maintenance live here
 
-            <div class="form-inline">
-                <button class="danger" onclick="disableAllSecurity()">disable all security features</button>
-                <button onclick="resetSecuritySettings()">reset security settings</button>
-            </div>
-            
-            <div class="system-controls">
-                <div class="control-card">
-                    <h4>failed login attempts</h4>
-                    <p>monitor unauthorized access attempts</p>
-                    <div class="stat-number" style="font-size: 1.5rem;" id="failedLogins">0</div>
-                </div>
-                <div class="control-card">
-                    <h4>active sessions</h4>
-                    <p>current admin sessions</p>
-                    <div class="stat-number" style="font-size: 1.5rem;" id="activeSessions">1</div>
-                </div>
-                <div class="control-card">
-                    <h4>proxy blocks</h4>
-                    <p>blocked malicious requests</p>
-                    <div class="stat-number" style="font-size: 1.5rem;" id="proxyBlocks">0</div>
-                </div>
-                <div class="control-card">
-                    <h4>rate limits</h4>
-                    <p>requests per minute limit</p>
-                    <div class="stat-number" style="font-size: 1.5rem;" id="rateLimit">100</div>
-                </div>
-            </div>
-
-            <div class="form-inline">
-                <div class="form-group">
-                    <label for="ipBanInput">ban ip address</label>
-                    <input type="text" id="ipBanInput" placeholder="enter ip address to ban">
-                </div>
-                <button onclick="banIP()">ban ip</button>
-            </div>
-
-            <div class="form-inline">
-                <div class="form-group">
-                    <label for="rateLimitInput">set rate limit (requests/min)</label>
-                    <input type="number" id="rateLimitInput" placeholder="100" min="1" max="1000">
-                </div>
-                <button onclick="updateRateLimit()">update limit</button>
-            </div>
-
-            <div class="form-inline">
-                <button onclick="clearSecurityLogs()">clear security logs</button>
-                <button onclick="exportSecurityReport()">export security report</button>
-                <button class="danger" onclick="lockdownMode()">emergency lockdown</button>
-            </div>
-        </section>
-
-        <!-- Added new Admin Features section -->
-        <section class="admin-section" id="advanced">
-            <h2>advanced features</h2>
-            
-            <div class="system-controls">
-                <div class="control-card">
-                    <h4>proxy server management</h4>
-                    <p>monitor and control the custom NGINX proxy server</p>
-                    <div class="form-inline">
-                        <button onclick="testProxyConnection()">test proxy connection</button>
-                        <button onclick="restartProxyServer()">restart proxy server</button>
-                    </div>
-                    <div id="proxyResults" style="margin-top: 1rem; font-size: 0.8rem;"></div>
-                </div>
-                
-                <div class="control-card">
-                    <h4>site analytics</h4>
-                    <p>view detailed site usage statistics</p>
-                    <div class="form-inline">
-                        <button onclick="generateAnalyticsReport()">generate report</button>
-                        <button onclick="exportAnalytics()">export analytics</button>
-                    </div>
-                </div>
-                
-                <div class="control-card">
-                    <h4>backup & restore</h4>
-                    <p>backup site data and restore from previous backups</p>
-                    <div class="form-inline">
-                        <button onclick="createBackup()">create backup</button>
-                        <button onclick="restoreBackup()">restore backup</button>
-                    </div>
-                </div>
-                
-                <div class="control-card">
-                    <h4>cdn management</h4>
-                    <p>manage content delivery network settings</p>
-                    <div class="form-inline">
-                        <button onclick="purgeCache()">purge cache</button>
-                        <button onclick="optimizeAssets()">optimize assets</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-inline">
-                <div class="form-group">
-                    <label for="customCommand">execute custom command</label>
-                    <input type="text" id="customCommand" placeholder="enter system command">
-                </div>
-                <button onclick="executeCustomCommand()">execute</button>
-            </div>
-
-            <div class="form-inline">
-                <button onclick="viewSystemLogs()">view system logs</button>
-                <button onclick="monitorPerformance()">monitor performance</button>
-                <button class="danger" onclick="emergencyShutdown()">emergency shutdown</button>
-            </div>
-        </section>
-    </div>
-
-    <script>
-  // Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs",
-    authDomain: "polars-shack.firebaseapp.com",
-    projectId: "polars-shack",
-    storageBucket: "polars-shack.firebasestorage.app",
-    messagingSenderId: "205388124682",
-    appId: "1:205388124682:web:2b0b1605517e0c6c53c5f3"
-  };
-
-  let db = null;
-  let auth = null;
-  let firebaseReady = false;
-
-  try {
-    firebase.initializeApp(firebaseConfig);
-    db = firebase.firestore();
-    auth = firebase.auth();
-    firebaseReady = true;
-    console.log('[v0] Firebase initialized successfully');
-  } catch (error) {
-    console.log('[v0] Firebase initialization failed:', error);
-  }
-
-        class AdminPanel {
-            constructor() {
-              this.maintenanceDoc = db ? db.collection('settings').doc('maintenance') : null;
-              this.proxyServerUrl = 'https://render-proxy-6x2v.onrender.com';
-              this.isLoggedIn = false;
-              // The correct password is "Mango030911!" and its SHA-256 hash
-              this.adminPasswordHash = '50172b3e278ccc1f2caaac89e2911df21304024b98578c4642af9d340fc73b71';
-              this.connectionStatus = firebaseReady ? 'connected' : 'local';
-              this.startTime = Date.now();
-              this.proxyClient = null;
-              this.useFirebase = firebaseReady && db !== null;
-            
-              // ✅ Initialize securityData here so it's defined before any use
-              this.securityData = {
-                failedLogins: parseInt(localStorage.getItem('failedLogins') || '0', 10),
-                bannedIPs: JSON.parse(localStorage.getItem('bannedIPs') || '[]'),
-                proxyBlocks: parseInt(localStorage.getItem('proxyBlocks') || '0', 10),
-                rateLimit: parseInt(localStorage.getItem('rateLimit') || '100', 10),
-                securityLogs: JSON.parse(localStorage.getItem('securityLogs') || '[]'),
-                activeSessions: parseInt(localStorage.getItem('activeSessions') || '1', 10),
-              };
-            }
-
-            init() {
-                this.setupEventListeners();
-                this.checkLoginStatus();
-                if (this.useFirebase) {
-                    this.initializeRealTimeUpdates();
-                }
-                this.updateConnectionStatus();
-                this.initializeProxyClient();
-                this.loadSecurityData();
-
-                if (this.maintenanceDoc) {
-                  this.unsubscribeMaintenance = this.maintenanceDoc.onSnapshot((snap) => {
-                    const data = snap.exists ? snap.data() : {};
-                    // keep localStorage in sync so your existing UI code keeps working
-                    localStorage.setItem('maintenanceMode', data.maintenanceMode ? 'true' : 'false');
-                    localStorage.setItem('lockdownMode', data.lockdownMode ? 'true' : 'false');
-                    if (typeof data.maintenanceMessage === 'string') {
-                      localStorage.setItem('maintenanceMessage', data.maintenanceMessage);
-                    }
-                    this.updateMaintenanceStatus();
-                  }, (err) => console.log('[v0] maintenance onSnapshot error:', err));
-                }
-            }
-
-            setupEventListeners() {
-                document.querySelectorAll('.nav-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-                        e.target.classList.add('active');
-                    });
-                });
-
-                window.addEventListener('storage', (e) => {
-                    if (e.key === 'maintenanceMode' || e.key === 'lockdownMode') {
-                        this.updateMaintenanceStatus();
-                    }
-                });
-            }
-
-            updateConnectionStatus() {
-                const statusElement = document.getElementById('connectionStatus');
-                if (statusElement) {
-                    if (this.useFirebase) {
-                        statusElement.innerHTML = '<i class="bx bx-wifi"></i> Connected (Firebase)';
-                        statusElement.className = 'real-time-indicator connected';
-                    } else {
-                        statusElement.innerHTML = '<i class="bx bx-wifi-off"></i> Local Mode';
-                        statusElement.className = 'real-time-indicator disconnected';
-                    }
-                }
-                
-                this.checkProxyConnection();
-            }
-
-            async checkProxyConnection() {
-                try {
-                    const response = await fetch(`${this.proxyServerUrl}/health`);
-                    if (response.ok) {
-                        console.log('[v0] Proxy server connection successful');
-                        const proxyStatusElement = document.getElementById('proxyStatus');
-                        if (proxyStatusElement) {
-                            proxyStatusElement.innerHTML = '<i class="bx bx-check-circle"></i> Proxy Online';
-                            proxyStatusElement.className = 'status-badge online';
-                        }
-                    }
-                } catch (error) {
-                    console.log('[v0] Proxy server connection failed:', error);
-                    const proxyStatusElement = document.getElementById('proxyStatus');
-                    if (proxyStatusElement) {
-                        proxyStatusElement.innerHTML = '<i class="bx bx-x-circle"></i> Proxy Offline';
-                        proxyStatusElement.className = 'status-indicator offline';
-                    }
-                }
-            }
-
-            async initializeProxyClient() {
-                try {
-                    const response = await fetch(`${this.proxyServerUrl}/health`, {
-                        method: 'GET',
-                        timeout: 5000
-                    });
-                    if (response.ok) {
-                        const data = await response.json();
-                        console.log('[v0] Proxy client initialized:', data);
-                        this.proxyClient = {
-                            status: 'connected',
-                            serverUrl: this.proxyServerUrl,
-                            isOnline: true,
-                            stats: data.stats || {}
-                        };
-                        this.updateProxyServerStatus('online');
-                    } else {
-                        throw new Error('Proxy server not responding');
-                    }
-                } catch (error) {
-                    console.log('[v0] Proxy client initialization failed:', error);
-                    this.proxyClient = {
-                        status: 'disconnected',
-                        serverUrl: null,
-                        isOnline: false,
-                        stats: {}
-                    };
-                    this.updateProxyServerStatus('offline');
-                }
-            }
-
-            async hashPassword(password) {
-                const encoder = new TextEncoder();
-                const data = encoder.encode(password);
-                const hash = await crypto.subtle.digest('SHA-256', data);
-                return Array.from(new Uint8Array(hash))
-                    .map(b => b.toString(16).padStart(2, '0'))
-                    .join('');
-            }
-
-            async handleLogin(event) {
-                event.preventDefault();
-                const password = document.getElementById('password').value;
-                const errorElement = document.getElementById('errorMessage');
-                
-                try {
-                    const hashedPassword = await this.hashPassword(password);
-                    
-                    if (hashedPassword === this.adminPasswordHash) {
-                        this.isLoggedIn = true;
-                        localStorage.setItem('adminLoggedIn', 'true');
-                        localStorage.setItem('loginTime', Date.now().toString());
-                        
-                        document.getElementById('loginContainer').style.display = 'none';
-                        document.getElementById('adminPanel').style.display = 'block';
-                        
-                        this.loadDashboardData();
-                        if (this.useFirebase) {
-                            this.initializeRealTimeUpdates();
-                        }
-                        
-                        this.addSecurityLog('Admin login successful', 'info');
-                        console.log('[v0] Admin login successful');
-                    } else {
-                        this.securityData.failedLogins++;
-                        localStorage.setItem('failedLogins', this.securityData.failedLogins.toString());
-                        this.addSecurityLog(`Failed login attempt from ${this.getClientIP()}`, 'warning');
-                        this.updateSecurityStats();
-                        
-                        errorElement.textContent = 'Invalid password. Please try again.';
-                        errorElement.style.display = 'block';
-                    }
-                } catch (error) {
-                    console.log('[v0] Login error:', error);
-                    errorElement.textContent = 'Login failed. Please try again.';
-                    errorElement.style.display = 'block';
-                }
-            }
-
-            checkLoginStatus() {
-                const isLoggedIn = localStorage.getItem('adminLoggedIn') === 'true';
-                const loginTime = localStorage.getItem('loginTime');
-                
-                // Check if login is still valid (24 hours)
-                if (isLoggedIn && loginTime) {
-                    const timeDiff = Date.now() - parseInt(loginTime);
-                    const hoursElapsed = timeDiff / (1000 * 60 * 60);
-                    
-                    if (hoursElapsed < 24) {
-                        this.isLoggedIn = true;
-                        document.getElementById('loginContainer').style.display = 'none';
-                        document.getElementById('adminPanel').style.display = 'block';
-                        this.loadDashboardData();
-                        return;
-                    }
-                }
-                
-                // Show login form
-                this.logout();
-            }
-
-            async loadDashboardData() {
-                try {
-                    // Update system stats
-                    this.updateSystemStats();
-                    this.updateUptime();
-                    this.updateSecurityStats();
-                    this.updateMaintenanceStatus();
-                    
-                    if (this.useFirebase) {
-                        // Load Firebase data if available
-                        await this.loadFirebaseData();
-                    } else {
-                        // Load local/mock data
-                        this.loadLocalData();
-                    }
-                    
-                    console.log('[v0] Dashboard data loaded successfully');
-                } catch (error) {
-                    console.log('[v0] Error loading dashboard data:', error);
-                }
-            }
-
-            loadSecurityData() {
-                this.updateSecurityStats();
-                this.displaySecurityLogs();
-            }
-
-            updateSecurityStats() {
-                document.getElementById('failedLogins').textContent = this.securityData.failedLogins;
-                document.getElementById('activeSessions').textContent = this.securityData.activeSessions;
-                document.getElementById('proxyBlocks').textContent = this.securityData.proxyBlocks;
-                document.getElementById('rateLimit').textContent = this.securityData.rateLimit;
-            }
-
-            updateMaintenanceStatus() {
-                const toggle = document.getElementById('maintenanceToggle');
-                const status = document.getElementById('maintenanceStatus');
-                const siteStatusElement = document.getElementById('siteStatus');
-                
-                const isMaintenanceMode = localStorage.getItem('maintenanceMode') === 'true';
-                const isLockdownMode = localStorage.getItem('lockdownMode') === 'true';
-                const isSecurityEnabled = localStorage.getItem('securityEnabled') !== 'false';
-                
-                if (toggle) {
-                    toggle.checked = isMaintenanceMode || (isLockdownMode && isSecurityEnabled);
-                }
-                
-                if (status) {
-                    if (isLockdownMode && isSecurityEnabled) {
-                        status.textContent = 'emergency lockdown active';
-                        status.style.color = '#ff6666';
-                    } else if (isMaintenanceMode) {
-                        status.textContent = 'maintenance mode enabled';
-                        status.style.color = '#ffa500';
-                    } else {
-                        status.textContent = 'maintenance mode disabled';
-                        status.style.color = '#888';
-                    }
-                }
-                
-                if (siteStatusElement) {
-                    if (isLockdownMode && isSecurityEnabled) {
-                        siteStatusElement.className = 'status-badge offline';
-                        siteStatusElement.textContent = 'lockdown';
-                    } else if (isMaintenanceMode) {
-                        siteStatusElement.className = 'status-badge maintenance';
-                        siteStatusElement.textContent = 'maintenance';
-                    } else {
-                        siteStatusElement.className = 'status-badge online';
-                        siteStatusElement.textContent = 'online';
-                    }
-                }
-                
-                const securityToggle = document.getElementById('securityToggle');
-                const securityStatus = document.getElementById('securityStatus');
-                if (securityToggle && securityStatus) {
-                    securityToggle.checked = isSecurityEnabled;
-                    if (isSecurityEnabled) {
-                        securityStatus.textContent = 'security system enabled';
-                        securityStatus.style.color = '#4CAF50';
-                    } else {
-                        securityStatus.textContent = 'security system disabled';
-                        securityStatus.style.color = '#ff6666';
-                    }
-                }
-            }
-
-            async loadFirebaseData() {
-  try {
-    // users (chat users)
-    const usersSnapshot = await db.collection('chat_users').limit(50).get();
-    const users = usersSnapshot.docs.map(d => {
-      const u = d.data() || {};
-      return {
-        id: d.id,
-        username: u.username || '(unknown)',
-        status: u.banned ? 'banned' : (u.status || 'active'),
-        joinDate: u.createdAt?.toDate?.() || u.createdAt || Date.now(),
-        lastSeen: u.lastActive?.toDate?.() || u.lastActive || null,
-      };
+    auth.onAuthStateChanged(async u => {
+      if (!u) { try { await auth.signInAnonymously(); } catch(e){ console.log('anon auth failed', e); } }
     });
-    this.displayUsers(users);
+  </script>
 
-    // reports (game reports)
-    const reportsSnapshot = await db.collection('game_reports')
-      .orderBy('timestamp', 'desc')
-      .limit(50)
-      .get();
+  <!-- Global maintenance popup listener (works on ALL pages) -->
+  <script>
+    (function maintenanceListener(){
+      if (!window.firebase?.database) return;
+      const ref = firebase.database().ref('settings/maintenance');
+      let box;
+      function ensureBox(){
+        if (box) return box;
+        box = document.createElement('div');
+        box.id = 'ps-maintenance';
+        box.style.cssText = 'position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.85);z-index:999999;';
+        box.innerHTML = `
+          <div style="background:#2a2a2a;border:1px solid #444;border-radius:10px;max-width:620px;width:92%;padding:1.25rem;font-family:JetBrains Mono,monospace;color:#ddd;text-align:center">
+            <h2 style="color:#fff;margin:0 0 .5rem">Maintenance</h2>
+            <p id="ps-maint-msg" style="margin:.5rem 0 1rem;color:#bbb"></p>
+            <button id="ps-maint-dismiss" style="display:none;background:#333;color:#0f0;border:1px solid #444;padding:.6rem 1rem;border-radius:6px;cursor:pointer">dismiss</button>
+          </div>`;
+        document.body.appendChild(box);
+        box.querySelector('#ps-maint-dismiss').addEventListener('click', ()=>{ box.style.display='none'; });
+        return box;
+      }
+      ref.on('value', snap => {
+        const s = snap.val() || {};
+        const active = !!(s.lockdownMode || s.maintenanceMode);
+        const dismissible = !!s.allowDismissal && !s.lockdownMode;
+        const msg = s.maintenanceMessage || 'We are performing maintenance. Please check back soon.';
+        const el = ensureBox();
+        el.querySelector('#ps-maint-msg').textContent = msg;
+        el.querySelector('#ps-maint-dismiss').style.display = dismissible ? '' : 'none';
+        el.style.display = active ? 'flex' : 'none';
+      });
+    })();
+  </script>
 
-    const reports = reportsSnapshot.docs.map(d => {
-      const r = d.data() || {};
-      return {
-        id: d.id,
-        type: r.reason || r.type || 'report',
-        reason: r.reason || '-',
-        description: r.description || '',
-        status: r.status || 'pending',
-        timestamp: r.timestamp?.toDate?.() || r.timestamp || Date.now(),
-      };
-    });
-    this.displayReports(reports);
+  <!-- Admin logic -->
+  <script>
+    class AdminPanel {
+      constructor(){
+        this.startTime = Date.now();
+        this.proxyServerUrl = 'https://render-proxy-6x2v.onrender.com'; // optional, best-effort check
+        this.securityData = {
+          failedLogins: parseInt(localStorage.getItem('failedLogins') || '0', 10),
+          proxyBlocks:  parseInt(localStorage.getItem('proxyBlocks')  || '0', 10),
+          rateLimit:    parseInt(localStorage.getItem('rateLimit')    || '100',10),
+          activeSessions: 1,
+          securityLogs: JSON.parse(localStorage.getItem('securityLogs')||'[]')
+        };
+        this.rtdb = rtdb;
+        this.db   = db;
+        this.maintenanceRef = rtdb.ref('settings/maintenance');
+        // local password gate (extra barrier)
+        this.adminPasswordHash = '50172b3e278ccc1f2caaac89e2911df21304024b98578c4642af9d340fc73b71'; // Mango030911!
+        this.isLoggedIn = false;
+      }
 
-    console.log('[v0] Firebase data loaded');
-  } catch (error) {
-    console.log('[v0] Error loading Firebase data:', error);
-    this.loadLocalData(); // fallback
-  }
-}
+      init(){
+        this.setupEventListeners();
+        this.checkLoginStatus();
+        this.updateConnectionStatus();
+        this.initializeProxyCheck();
+        this.loadSecurityData();
 
-            loadLocalData() {
-                const mockUsers = [
-                    { id: '1', username: 'user1', email: 'user1@example.com', status: 'active', joinDate: new Date().toISOString() },
-                    { id: '2', username: 'user2', email: 'user2@example.com', status: 'banned', joinDate: new Date().toISOString() }
-                ];
-                
-                const mockReports = [
-                    { id: '1', type: 'bug', description: 'Sample bug report', status: 'pending', timestamp: new Date().toISOString() },
-                    { id: '2', type: 'abuse', description: 'Sample abuse report', status: 'resolved', timestamp: new Date().toISOString() }
-                ];
-                
-                this.displayUsers(mockUsers);
-                this.displayReports(mockReports);
-            }
+        // Live RTDB wires
+        this.wireRealtimeStats();
+        this.subscribeMaintenance();
 
-            initializeRealTimeUpdates() {
-                if (this.isLoggedIn) {
-                    setInterval(() => {
-                        this.updateSystemStats();
-                        this.updateUptime();
-                        this.checkProxyConnection();
-                        this.updateMaintenanceStatus();
-                    }, 30000); // Update every 30 seconds
-                }
-            }
+        // Firestore (reports)
+        this.loadFirebaseData();
 
-            async initializeProxyClient() {
-                try {
-                    // Try to connect to proxy server
-                    const proxyUrl = this.proxyServerUrl; // Use the same proxy URL logic as the rest of the app
-                    const response = await fetch(`${proxyUrl}/health`);
-                    
-                    if (response.ok) {
-                        this.proxyClient = {
-                            serverUrl: proxyUrl,
-                            isOnline: true
-                        };
-                        console.log('[v0] Proxy server connected successfully');
-                        this.updateProxyServerStatus('online');
-                    } else {
-                        throw new Error('Proxy server not responding');
-                    }
-                } catch (error) {
-                    console.log('[v0] Proxy server offline:', error.message);
-                    this.proxyClient = {
-                        serverUrl: null,
-                        isOnline: false
-                    };
-                    this.updateProxyServerStatus('offline');
-                }
-            }
+        // anon auth ensures RTDB perms; UI shows connected regardless
+      }
 
-            updateProxyServerStatus(status) {
-                const proxyStatusElement = document.getElementById('proxyStatus');
-                if (proxyStatusElement) {
-                    proxyStatusElement.className = `status-badge ${status}`;
-                    proxyStatusElement.textContent = status;
-                }
-            }
+      setupEventListeners(){
+        document.querySelectorAll('.nav-btn').forEach(btn=>{
+          btn.addEventListener('click',e=>{
+            document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+            e.target.classList.add('active');
+          });
+        });
+      }
 
-            async updateSystemStats() {
-                const proxyRequestsElement = document.getElementById('proxyRequests');
-                if (proxyRequestsElement) {
-                    const requests = parseInt(localStorage.getItem('proxyRequests') || '0');
-                    proxyRequestsElement.textContent = requests;
-                }
-            }
+      updateConnectionStatus(){
+        const el = document.getElementById('connectionStatus');
+        el.className = 'real-time-indicator connected';
+        el.innerHTML = "<i class='bx bx-wifi'></i> Connected (Firebase)";
+      }
 
-            updateUptime() {
-                const uptimeElement = document.getElementById('systemUptime');
-                if (uptimeElement) {
-                    const uptime = Math.floor((Date.now() - this.startTime) / (1000 * 60 * 60));
-                    uptimeElement.textContent = `${uptime}h`;
-                }
-            }
-
-            displayUsers(users) {
-  const usersTable = document.getElementById('usersTable');
-  usersTable.innerHTML = '';
-  users.forEach(user => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${user.username}</td>
-      <td>${new Date(user.joinDate).toLocaleDateString?.() || '-'}</td>
-      <td>${user.lastSeen ? new Date(user.lastSeen).toLocaleDateString?.() : '-'}</td>
-      <td>${user.status}</td>
-      <td>
-        <button class="action-btn">Edit</button>
-        <button class="action-btn danger">Delete</button>
-      </td>
-    `;
-    usersTable.appendChild(row);
-  });
-}
-
-            displayReports(reports) {
-                const reportsTable = document.getElementById('reportsTable');
-                reportsTable.innerHTML = '';
-                reports.forEach(report => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${report.type}</td>
-                        <td>${report.reason}</td>
-                        <td>${report.description}</td>
-                        <td>${new Date(report.timestamp).toLocaleDateString()}</td>
-                        <td>${report.status}</td>
-                        <td>
-                            <button class="action-btn">Resolve</button>
-                            <button class="action-btn danger">Delete</button>
-                        </td>
-                    `;
-                    reportsTable.appendChild(row);
-                });
-            }
-
-            logout() {
-                this.isLoggedIn = false;
-                localStorage.removeItem('adminLoggedIn');
-                localStorage.removeItem('loginTime');
-                this.addSecurityLog('Admin logged out', 'info');
-                document.getElementById('adminPanel').style.display = 'none';
-                document.getElementById('loginContainer').style.display = 'block';
-                console.log('[v0] Admin logged out');
-            }
-
-            showSection(sectionId) {
-                const sections = document.querySelectorAll('.admin-section');
-                sections.forEach(section => {
-                    section.classList.remove('active');
-                });
-                document.getElementById(sectionId).classList.add('active');
-            }
-
-            async toggleMaintenance() {
-                const toggle = document.getElementById('maintenanceToggle');
-                const status = document.getElementById('maintenanceStatus');
-                
-                if (toggle.checked) {
-                    localStorage.setItem('maintenanceMode', 'true');
-                    localStorage.removeItem('lockdownMode'); // Clear lockdown if maintenance is enabled
-                    status.textContent = 'maintenance mode enabled';
-                    status.style.color = '#ffa500';
-                    
-                    this.addSecurityLog('Maintenance mode enabled by admin', 'info');
-                    
-                    if (this.proxyClient && this.proxyClient.isOnline) {
-                        fetch(`${this.proxyClient.serverUrl}/admin/maintenance`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ enabled: true })
-                        }).catch(error => console.log('[v0] Failed to notify proxy server:', error.message));
-                    }
-                    
-                    // Broadcast maintenance mode to all pages
-                    this.broadcastMaintenanceMode(true);
-                    alert('Maintenance mode enabled - all visitors will see maintenance popup');
-                } else {
-                    localStorage.setItem('maintenanceMode', 'false');
-                    status.textContent = 'maintenance mode disabled';
-                    status.style.color = '#888';
-                    
-                    this.addSecurityLog('Maintenance mode disabled by admin', 'info');
-                    
-                    if (this.proxyClient && this.proxyClient.isOnline) {
-                        fetch(`${this.proxyClient.serverUrl}/admin/maintenance`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ enabled: false })
-                        }).catch(error => console.log('[v0] Failed to notify proxy server:', error.message));
-                    }
-                    
-                    // Disable maintenance mode
-                    this.broadcastMaintenanceMode(false);
-                    alert('Maintenance mode disabled');
-                }
-                
-                this.updateMaintenanceStatus();
-            }
-
-            async updateMaintenanceMessage() {
-                const messageInput = document.getElementById('maintenanceMessage');
-                const message = messageInput.value.trim();
-                
-                if (!message) {
-                    alert('Please enter a maintenance message');
-                    return;
-                }
-                
-                localStorage.setItem('maintenanceMessage', message);
-                this.addSecurityLog('Maintenance message updated', 'info');
-                alert('Maintenance message updated successfully');
-            }
-
-            async scheduleMaintenanceWindow() {
-                const startTime = prompt('Enter maintenance start time (YYYY-MM-DD HH:MM):');
-                const duration = prompt('Enter maintenance duration in hours:');
-                
-                if (startTime && duration) {
-                    const scheduledMaintenance = {
-                        startTime: startTime,
-                        duration: parseInt(duration),
-                        scheduled: new Date().toISOString()
-                    };
-                    
-                    localStorage.setItem('scheduledMaintenance', JSON.stringify(scheduledMaintenance));
-                    this.addSecurityLog(`Maintenance scheduled for ${startTime} (${duration}h)`, 'info');
-                    alert(`Maintenance window scheduled for ${startTime} lasting ${duration} hours`);
-                }
-            }
-
-            async broadcastMaintenanceNotice() {
-                const notice = prompt('Enter maintenance notice to broadcast:');
-                if (notice) {
-                    localStorage.setItem('maintenanceNotice', notice);
-                    localStorage.setItem('noticeTimestamp', Date.now().toString());
-                    this.addSecurityLog('Maintenance notice broadcasted', 'info');
-                    alert('Maintenance notice has been broadcasted to all users');
-                }
-            }
-
-            async emergencyMaintenance() {
-                if (confirm('Are you sure you want to activate emergency maintenance? This will immediately show maintenance popup to all users.')) {
-                    localStorage.setItem('maintenanceMode', 'true');
-                    localStorage.setItem('emergencyMaintenance', 'true');
-                    localStorage.setItem('maintenanceMessage', 'EMERGENCY MAINTENANCE: The site is temporarily unavailable due to critical updates. Please check back shortly.');
-                    
-                    this.addSecurityLog('Emergency maintenance activated', 'critical');
-                    this.updateMaintenanceStatus();
-                    this.broadcastMaintenanceMode(true);
-                    
-                    alert('Emergency maintenance activated! All users will see the maintenance popup immediately.');
-                }
-            }
-
-            async banIP() {
-                const ipInput = document.getElementById('ipBanInput');
-                const ip = ipInput.value.trim();
-                
-                if (!ip) {
-                    alert('Please enter an IP address');
-                    return;
-                }
-                
-                // Validate IP format
-                const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-                if (!ipRegex.test(ip)) {
-                    alert('Please enter a valid IP address');
-                    return;
-                }
-                
-                if (!this.securityData.bannedIPs.includes(ip)) {
-                    this.securityData.bannedIPs.push(ip);
-                    localStorage.setItem('bannedIPs', JSON.stringify(this.securityData.bannedIPs));
-                    this.addSecurityLog(`IP address ${ip} banned by admin`, 'warning');
-                    alert(`IP address ${ip} has been banned successfully`);
-                    ipInput.value = '';
-                } else {
-                    alert('IP address is already banned');
-                }
-            }
-
-            async updateRateLimit() {
-                const rateLimitInput = document.getElementById('rateLimitInput');
-                const rateLimit = parseInt(rateLimitInput.value);
-                
-                if (!rateLimit || rateLimit < 1 || rateLimit > 1000) {
-                    alert('Please enter a valid rate limit between 1 and 1000');
-                    return;
-                }
-                
-                this.securityData.rateLimit = rateLimit;
-                localStorage.setItem('rateLimit', rateLimit.toString());
-                this.updateSecurityStats();
-                this.addSecurityLog(`Rate limit updated to ${rateLimit} requests/min`, 'info');
-                alert(`Rate limit updated to ${rateLimit} requests per minute`);
-                rateLimitInput.value = '';
-            }
-
-            async clearSecurityLogs() {
-                if (confirm('Are you sure you want to clear all security logs? This action cannot be undone.')) {
-                    this.securityData.securityLogs = [];
-                    localStorage.setItem('securityLogs', JSON.stringify([]));
-                    this.displaySecurityLogs();
-                    this.addSecurityLog('Security logs cleared by admin', 'info');
-                    alert('Security logs have been cleared');
-                }
-            }
-
-            async exportSecurityReport() {
-                const report = {
-                    generatedAt: new Date().toISOString(),
-                    failedLogins: this.securityData.failedLogins,
-                    bannedIPs: this.securityData.bannedIPs,
-                    proxyBlocks: this.securityData.proxyBlocks,
-                    rateLimit: this.securityData.rateLimit,
-                    securityLogs: this.securityData.securityLogs
-                };
-                
-                const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `security-report-${new Date().toISOString().split('T')[0]}.json`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                
-                this.addSecurityLog('Security report exported', 'info');
-                alert('Security report has been exported and downloaded');
-            }
-
-            async lockdownMode() {
-                if (confirm('Are you sure you want to activate EMERGENCY LOCKDOWN? This will completely lock down the site and prevent all user access.')) {
-                    localStorage.setItem('lockdownMode', 'true');
-                    localStorage.setItem('maintenanceMode', 'false'); // Override maintenance mode
-                    localStorage.setItem('maintenanceMessage', 'EMERGENCY LOCKDOWN: This site is temporarily unavailable due to security concerns. Access has been restricted by the administrator.');
-                    
-                    this.addSecurityLog('EMERGENCY LOCKDOWN activated by admin', 'critical');
-                    this.updateMaintenanceStatus();
-                    this.broadcastMaintenanceMode(true);
-                    
-                    alert('EMERGENCY LOCKDOWN ACTIVATED! The site is now completely locked down.');
-                }
-            }
-
-            async toggleSecuritySystem() {
-                const toggle = document.getElementById('securityToggle');
-                const status = document.getElementById('securityStatus');
-                
-                if (toggle.checked) {
-                    localStorage.setItem('securityEnabled', 'true');
-                    status.textContent = 'security system enabled';
-                    status.style.color = '#4CAF50';
-                    this.addSecurityLog('Security system enabled by admin', 'info');
-                } else {
-                    localStorage.setItem('securityEnabled', 'false');
-                    status.textContent = 'security system disabled';
-                    status.style.color = '#ff6666';
-                    this.addSecurityLog('Security system disabled by admin', 'warning');
-                    alert('Security system has been disabled. All security features are now inactive.');
-                }
-            }
-
-            async disableAllSecurity() {
-                if (confirm('Are you sure you want to disable ALL security features? This will turn off emergency lockdown, IP banning, rate limiting, and all security monitoring.')) {
-                    // Clear all security settings
-                    localStorage.setItem('securityEnabled', 'false');
-                    localStorage.setItem('lockdownMode', 'false');
-                    localStorage.setItem('emergencyMaintenance', 'false');
-                    localStorage.setItem('bannedIPs', JSON.stringify([]));
-                    localStorage.setItem('rateLimit', '100');
-                    localStorage.setItem('securityLogs', JSON.stringify([]));
-                    
-                    // Reset security data
-                    this.securityData = {
-                        failedLogins: 0,
-                        bannedIPs: [],
-                        proxyBlocks: 0,
-                        rateLimit: 100,
-                        securityLogs: []
-                    };
-                    
-                    // Update UI
-                    document.getElementById('securityToggle').checked = false;
-                    document.getElementById('securityStatus').textContent = 'security system disabled';
-                    document.getElementById('securityStatus').style.color = '#ff6666';
-                    
-                    this.updateSecurityStats();
-                    this.updateMaintenanceStatus();
-                    
-                    alert('All security features have been disabled and reset.');
-                }
-            }
-
-            async resetSecuritySettings() {
-                if (confirm('Reset all security settings to default values?')) {
-                    localStorage.setItem('securityEnabled', 'true');
-                    localStorage.setItem('lockdownMode', 'false');
-                    localStorage.setItem('emergencyMaintenance', 'false');
-                    localStorage.setItem('bannedIPs', JSON.stringify([]));
-                    localStorage.setItem('rateLimit', '100');
-                    
-                    this.securityData = {
-                        failedLogins: 0,
-                        bannedIPs: [],
-                        proxyBlocks: 0,
-                        rateLimit: 100,
-                        securityLogs: this.securityData.securityLogs || []
-                    };
-                    
-                    document.getElementById('securityToggle').checked = true;
-                    document.getElementById('securityStatus').textContent = 'security system enabled';
-                    document.getElementById('securityStatus').style.color = '#4CAF50';
-                    
-                    this.updateSecurityStats();
-                    this.addSecurityLog('Security settings reset to defaults', 'info');
-                    alert('Security settings have been reset to default values.');
-                }
-            }
-
-            addSecurityLog(message, level = 'info') {
-                const logEntry = {
-                    timestamp: new Date().toISOString(),
-                    message: message,
-                    level: level,
-                    ip: this.getClientIP()
-                };
-                
-                this.securityData.securityLogs.unshift(logEntry);
-                
-                // Keep only last 100 logs
-                if (this.securityData.securityLogs.length > 100) {
-                    this.securityData.securityLogs = this.securityData.securityLogs.slice(0, 100);
-                }
-                
-                localStorage.setItem('securityLogs', JSON.stringify(this.securityData.securityLogs));
-                this.displaySecurityLogs();
-            }
-
-            displaySecurityLogs() {
-                // This would display security logs in the security section
-                // Implementation depends on where you want to show the logs
-            }
-
-            getClientIP() {
-                return 'unknown';
-            }
-
-            broadcastMaintenanceMode(enabled) {
-                // Trigger storage event for other tabs
-                window.dispatchEvent(new StorageEvent('storage', {
-                    key: enabled ? 'maintenanceMode' : 'maintenanceMode',
-                    newValue: enabled.toString(),
-                    url: window.location.href
-                }));
-            }
-
-            async enableGlobalMaintenance() {
-  const message = document.getElementById('maintenanceMessage').value ||
-    "Polar's Shack is currently receiving a new update...";
-  try {
-    await this.updateServerMaintenanceState({
-      maintenanceMode: true,
-      lockdownMode: false,
-      maintenanceMessage: message,
-      timestamp: Date.now(),
-    });
-    alert('Global maintenance mode enabled - all devices will see the maintenance popup');
-  } catch (err) {
-    console.log('[polar] enableGlobalMaintenance error:', err);
-    alert('Failed to enable global maintenance.');
-  }
-}
-
-            async disableGlobalMaintenance() {
-  try {
-    await this.updateServerMaintenanceState({
-      maintenanceMode: false,
-      lockdownMode: false,
-      maintenanceMessage: '',
-      timestamp: Date.now(),
-    });
-    alert('Global maintenance mode disabled');
-  } catch (err) {
-    console.log('[polar] disableGlobalMaintenance error:', err);
-    alert('Failed to disable global maintenance.');
-  }
-}
-
-            async emergencyGlobalLockdown() {
-  if (!confirm('Are you sure you want to activate GLOBAL EMERGENCY LOCKDOWN?')) return;
-  try {
-    await this.updateServerMaintenanceState({
-      maintenanceMode: false,
-      lockdownMode: true,
-      maintenanceMessage: 'EMERGENCY LOCKDOWN: This site is temporarily unavailable due to security concerns. Access has been restricted by the administrator.',
-      timestamp: Date.now(),
-    });
-    alert('GLOBAL EMERGENCY LOCKDOWN ACTIVATED!');
-  } catch (err) {
-    console.log('[v0] emergencyGlobalLockdown error:', err);
-    alert('Failed to activate global lockdown.');
-  }
-}
-
-            async updateServerMaintenanceState(state) {
-              if (!this.maintenanceDoc) throw new Error('Firestore not ready');
-              const uid = firebase.auth().currentUser?.uid || 'unknown';
-              await this.maintenanceDoc.set(
-                {
-                  ...state,
-                  updatedBy: uid,
-                  updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                },
-                { merge: true }
-              );
-            }
-
-
-            toggleMaintenanceDismissal() {
-                const toggle = document.getElementById('allowDismissalToggle')
-                const status = document.getElementById('dismissalStatus')
-                
-                if (toggle.checked) {
-                    localStorage.setItem('allowMaintenanceDismissal', 'true')
-                    status.textContent = 'dismissal allowed during lockdown'
-                    status.style.color = '#00ff00'
-                } else {
-                    localStorage.setItem('allowMaintenanceDismissal', 'false')
-                    status.textContent = 'dismissal disabled during lockdown'
-                    status.style.color = '#ff6666'
-                }
-            }
-
-            async testProxyConnection() {
-                const results = document.getElementById('proxyResults')
-                results.innerHTML = '<p>Testing proxy connections...</p>'
-                
-                const proxies = [
-                    { name: "Polar's Official Proxy", url: 'https://render-proxy-6x2v.onrender.com', priority: 1 },
-                    { name: 'Corsproxy.io', url: 'https://corsproxy.io/?', priority: 2 },
-                    { name: 'AllOrigins', url: 'https://api.allorigins.win/raw?url=', priority: 3 }
-                ]
-                
-                let html = '<div class="proxy-test-results">'
-                
-                for (const proxy of proxies) {
-                    try {
-                        const testUrl = proxy.url.includes('polars-shack') ? 
-                            `${proxy.url}/health` :
-                            proxy.url.includes('corsproxy') ?
-                            `${proxy.url}https://httpbin.org/status/200` :
-                            `${proxy.url}https://httpbin.org/status/200`
-                        
-                        const start = Date.now()
-                        const response = await fetch(testUrl, { 
-                            method: 'GET',
-                            timeout: 5000 
-                        })
-                        const time = Date.now() - start
-                        
-                        if (response.ok) {
-                            html += `<div class="proxy-result success" style="color: #00ff00; margin: 0.5rem 0;">
-                                <strong>${proxy.name}</strong> ✅ 
-                                <span>Response: ${time}ms</span>
-                                ${proxy.priority === 1 ? '<span style="color: #ffa500;"> [PRIMARY]</span>' : ''}
-                            </div>`
-                        } else {
-                            html += `<div class="proxy-result error" style="color: #ff6666; margin: 0.5rem 0;">
-                                <strong>${proxy.name}</strong> ❌ 
-                                <span>Status: ${response.status}</span>
-                            </div>`
-                        }
-                    } catch (error) {
-                        html += `<div class="proxy-result error" style="color: #ff6666; margin: 0.5rem 0;">
-                            <strong>${proxy.name}</strong> ❌ 
-                            <span>Error: ${error.message}</span>
-                        </div>`
-                    }
-                }
-                
-                html += '</div>'
-                results.innerHTML = html
-            }
-
-            async restartProxyServer() {
-                if (confirm('Are you sure you want to restart the proxy server? This may cause temporary downtime.')) {
-                    try {
-                        const response = await fetch('https://render-proxy-6x2v.onrender.com/admin/restart', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ adminKey: 'polar-admin-2024' })
-                        })
-                        
-                        if (response.ok) {
-                            this.addSecurityLog('Proxy server restart initiated', 'info')
-                            alert('Proxy server restart initiated successfully')
-                        } else {
-                            throw new Error('Failed to restart proxy server')
-                        }
-                    } catch (error) {
-                        this.addSecurityLog(`Proxy server restart failed: ${error.message}`, 'error')
-                        alert('Failed to restart proxy server: ' + error.message)
-                    }
-                }
-            }
-
-            async generateAnalyticsReport() {
-                const analytics = {
-                    generatedAt: new Date().toISOString(),
-                    proxyRequests: parseInt(localStorage.getItem('proxyRequests') || '0'),
-                    failedLogins: this.securityData.failedLogins,
-                    bannedIPs: this.securityData.bannedIPs.length,
-                    uptime: Math.floor((Date.now() - this.startTime) / (1000 * 60 * 60)),
-                    maintenanceEvents: this.securityData.securityLogs.filter(log => log.message.includes('maintenance')).length,
-                    securityEvents: this.securityData.securityLogs.filter(log => log.level === 'warning' || log.level === 'critical').length
-                }
-                
-                const blob = new Blob([JSON.stringify(analytics, null, 2)], { type: 'application/json' })
-                const url = URL.createObjectURL(blob)
-                const a = document.createElement('a')
-                a.href = url
-                a.download = `analytics-report-${new Date().toISOString().split('T')[0]}.json`
-                document.body.appendChild(a)
-                a.click()
-                document.body.removeChild(a)
-                URL.revokeObjectURL(url)
-                
-                this.addSecurityLog('Analytics report generated', 'info')
-                alert('Analytics report has been generated and downloaded')
-            }
-
-            async createBackup() {
-                const backup = {
-                    timestamp: new Date().toISOString(),
-                    version: '2.0.0',
-                    data: {
-                        securityLogs: this.securityData.securityLogs,
-                        bannedIPs: this.securityData.bannedIPs,
-                        proxyRequests: localStorage.getItem('proxyRequests'),
-                        recentSites: localStorage.getItem('recentSites'),
-                        maintenanceSettings: {
-                            maintenanceMode: localStorage.getItem('maintenanceMode'),
-                            maintenanceMessage: localStorage.getItem('maintenanceMessage'),
-                            lockdownMode: localStorage.getItem('lockdownMode')
-                        }
-                    }
-                }
-                
-                const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' })
-                const url = URL.createObjectURL(blob)
-                const a = document.createElement('a')
-                a.href = url
-                a.download = `polar-shack-backup-${new Date().toISOString().split('T')[0]}.json`
-                document.body.appendChild(a)
-                a.click()
-                document.body.removeChild(a)
-                URL.revokeObjectURL(url)
-                
-                this.addSecurityLog('System backup created', 'info')
-                alert('System backup has been created and downloaded')
-            }
-
-            async executeCustomCommand() {
-                const command = document.getElementById('customCommand').value.trim()
-                if (!command) {
-                    alert('Please enter a command')
-                    return
-                }
-                
-                // Simulate command execution (in a real system, this would be handled server-side)
-                const allowedCommands = ['status', 'uptime', 'memory', 'disk', 'network', 'logs']
-                const commandName = command.split(' ')[0].toLowerCase()
-                
-                if (allowedCommands.includes(commandName)) {
-                    this.addSecurityLog(`Custom command executed: ${command}`, 'info')
-                    alert(`Command "${command}" executed successfully`)
-                    document.getElementById('customCommand').value = ''
-                } else {
-                    this.addSecurityLog(`Unauthorized command attempted: ${command}`, 'warning')
-                    alert('Command not allowed or not recognized')
-                }
-            }
-
-            async emergencyShutdown() {
-                if (confirm('Are you sure you want to initiate EMERGENCY SHUTDOWN? This will completely shut down all services.')) {
-                    localStorage.setItem('emergencyShutdown', 'true')
-                    localStorage.setItem('lockdownMode', 'true')
-                    localStorage.setItem('maintenanceMode', 'false')
-                    localStorage.setItem('maintenanceMessage', 'EMERGENCY SHUTDOWN: All services have been shut down by the administrator. Please contact support for more information.')
-                    
-                    this.addSecurityLog('EMERGENCY SHUTDOWN initiated by admin', 'critical')
-                    this.updateMaintenanceStatus()
-                    this.broadcastMaintenanceMode(true)
-                    
-                    alert('EMERGENCY SHUTDOWN INITIATED! All services are now offline.')
-                }
-            }
+      async initializeProxyCheck(){
+        const el = document.getElementById('proxyStatus');
+        try {
+          // Render blocks CORS; do best-effort ping
+          await fetch(this.proxyServerUrl + '/health', { mode:'no-cors' });
+          if (el){ el.className = 'status-badge online'; el.textContent = 'online'; }
+        } catch {
+          if (el){ el.className = 'status-badge offline'; el.textContent = 'offline'; }
         }
+      }
 
-        // All functionality is now properly contained within the adminPanel object
+      loadSecurityData(){
+        this.updateSecurityStats();
+      }
+      updateSecurityStats(){
+        document.getElementById('failedLogins').textContent  = this.securityData.failedLogins;
+        document.getElementById('activeSessions').textContent= this.securityData.activeSessions;
+        document.getElementById('proxyBlocks').textContent   = this.securityData.proxyBlocks;
+        document.getElementById('rateLimit').textContent     = this.securityData.rateLimit;
+      }
 
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            adminPanel.handleLogin(e);
+      // ---------- AUTH WALL ----------
+      async hashPassword(password){
+        const enc = new TextEncoder().encode(password);
+        const hash = await crypto.subtle.digest('SHA-256', enc);
+        return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+      }
+      async handleLogin(e){
+        e.preventDefault();
+        const pwd = document.getElementById('password').value;
+        const err = document.getElementById('errorMessage');
+        try{
+          const h = await this.hashPassword(pwd);
+          if (h === this.adminPasswordHash){
+            this.isLoggedIn = true;
+            localStorage.setItem('adminLoggedIn','true');
+            localStorage.setItem('loginTime', Date.now().toString());
+            document.getElementById('loginContainer').style.display='none';
+            document.getElementById('adminPanel').style.display='block';
+            this.addSecurityLog('Admin login successful','info');
+          } else {
+            this.securityData.failedLogins++;
+            localStorage.setItem('failedLogins', String(this.securityData.failedLogins));
+            this.updateSecurityStats();
+            err.textContent = 'Invalid password. Please try again.'; err.style.display='block';
+          }
+        } catch (e){ err.textContent='Login failed. Try again.'; err.style.display='block'; }
+      }
+      checkLoginStatus(){
+        const ok = localStorage.getItem('adminLoggedIn')==='true';
+        const t  = parseInt(localStorage.getItem('loginTime') || '0', 10);
+        if (ok && Date.now() - t < 24*60*60*1000){
+          this.isLoggedIn = true;
+          document.getElementById('loginContainer').style.display='none';
+          document.getElementById('adminPanel').style.display='block';
+        } else {
+          this.logout(true);
+        }
+      }
+      logout(onlyShow=false){
+        this.isLoggedIn = false;
+        localStorage.removeItem('adminLoggedIn'); localStorage.removeItem('loginTime');
+        if (!onlyShow) this.addSecurityLog('Admin logged out','info');
+        document.getElementById('adminPanel').style.display='none';
+        document.getElementById('loginContainer').style.display='block';
+      }
+
+      // ---------- UI ----------
+      showSection(id){
+        document.querySelectorAll('.admin-section').forEach(s=>s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+      }
+      updateUptime(){
+        const el = document.getElementById('systemUptime');
+        const h = Math.floor((Date.now() - this.startTime)/ (1000*60*60));
+        el.textContent = h + 'h';
+      }
+
+      // ---------- RTDB live stats ----------
+      wireRealtimeStats(){
+        // total users (unique devices)
+        this.rtdb.ref('users').on('value', snap=>{
+          document.getElementById('totalUsers').textContent = String(snap.numChildren()||0);
+          // also render simple table (first 100)
+          const body = document.getElementById('usersTable');
+          body.innerHTML = '';
+          let i = 0;
+          snap.forEach(child=>{
+            if (i++ > 100) return;
+            const u = child.val() || {};
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${child.key}</td>
+              <td>${u.firstSeen ? new Date(u.firstSeen).toLocaleString() : '-'}</td>
+              <td>${u.lastSeen ? new Date(u.lastSeen).toLocaleString() : '-'}</td>
+              <td>${u.lastPage || '-'}</td>`;
+            body.appendChild(tr);
+          });
         });
-        const adminPanel = new AdminPanel();
 
-// Wire class methods to global functions used by inline onclick="..."
-window.showSection                 = (id) => adminPanel.showSection(id);
-window.logout                      = () => adminPanel.logout();
-
-window.toggleMaintenance           = () => adminPanel.toggleMaintenance();
-window.updateMaintenanceMessage    = () => adminPanel.updateMaintenanceMessage();
-window.enableGlobalMaintenance     = () => adminPanel.enableGlobalMaintenance();
-window.disableGlobalMaintenance    = () => adminPanel.disableGlobalMaintenance();
-window.emergencyGlobalLockdown     = () => adminPanel.emergencyGlobalLockdown();
-window.toggleMaintenanceDismissal  = () => adminPanel.toggleMaintenanceDismissal();
-window.scheduleMaintenanceWindow   = () => adminPanel.scheduleMaintenanceWindow();
-window.broadcastMaintenanceNotice  = () => adminPanel.broadcastMaintenanceNotice();
-window.emergencyMaintenance        = () => adminPanel.emergencyMaintenance();
-window.toggleSecuritySystem        = () => adminPanel.toggleSecuritySystem();
-
-window.banIP                       = () => adminPanel.banIP();
-window.updateRateLimit             = () => adminPanel.updateRateLimit();
-window.clearSecurityLogs           = () => adminPanel.clearSecurityLogs();
-window.exportSecurityReport        = () => adminPanel.exportSecurityReport();
-window.lockdownMode                = () => adminPanel.lockdownMode();
-window.disableAllSecurity          = () => adminPanel.disableAllSecurity();
-window.resetSecuritySettings       = () => adminPanel.resetSecuritySettings();
-
-window.testProxyConnection         = () => adminPanel.testProxyConnection();
-window.restartProxyServer          = () => adminPanel.restartProxyServer();
-window.generateAnalyticsReport     = () => adminPanel.generateAnalyticsReport();
-window.createBackup                = () => adminPanel.createBackup();
-window.executeCustomCommand        = () => adminPanel.executeCustomCommand();
-window.emergencyShutdown           = () => adminPanel.emergencyShutdown();
-
-// login form -> class method
-document.getElementById('loginForm').addEventListener('submit', (e) => {
-  e.preventDefault();
-  adminPanel.handleLogin(e);
-});
-
-// finally boot
-adminPanel.init();
-
-        // All functions are now properly contained within the AdminPanel class
-
-        document.addEventListener("visibilitychange", function () {
-            if (document.hidden) {
-                document.title = "Dashboard";
-                document.getElementById("favicon").href = "https://s3.amazonaws.com/cdn.app.cte.virginia.edu/tools/images/XmeGg2PHFfRHaj3upWvncc2gmaG91fApdtDC8bdU.png";
-            } else {
-                document.title = "Polar's Shack - Admin";
-                document.getElementById("favicon").href = "logo.png";
-            }
+        // online users (sessions)
+        this.rtdb.ref('onlineUsers').on('value', snap=>{
+          document.getElementById('onlineUsers').textContent = String(snap.numChildren()||0);
         });
-    </script>
+
+        // proxy requests counter (optional)
+        this.rtdb.ref('stats/proxyRequests').on('value', snap=>{
+          document.getElementById('proxyRequests').textContent = String(snap.val()||0);
+        });
+
+        // uptime ticker
+        setInterval(()=>this.updateUptime(), 60000);
+        this.updateUptime();
+      }
+
+      // ---------- Firestore reports ----------
+      async loadFirebaseData(){
+        try{
+          const qs = await this.db.collection('game_reports').orderBy('timestamp','desc').limit(100).get();
+          const rows = [];
+          qs.forEach(d=>{
+            const r = d.data() || {};
+            rows.push({
+              id:d.id,
+              type:r.reason || r.type || 'report',
+              reason:r.reason || '-',
+              description:r.description || '',
+              status:r.status || 'pending',
+              timestamp:r.timestamp?.toDate?.() || (r.timestamp || Date.now()),
+              gameName:r.gameName || r.game || '-'
+            });
+          });
+
+          document.getElementById('totalReports').textContent   = String(rows.length);
+          document.getElementById('pendingReports').textContent = String(rows.filter(x=>x.status==='pending').length);
+
+          const body = document.getElementById('reportsTable');
+          body.innerHTML = '';
+          rows.forEach(r=>{
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${r.gameName}</td>
+              <td>${r.reason}</td>
+              <td>${r.description}</td>
+              <td>${new Date(r.timestamp).toLocaleString()}</td>
+              <td>${r.status}</td>`;
+            body.appendChild(tr);
+          });
+        } catch (e){ console.log('[admin] loadFirebaseData', e); }
+      }
+
+      // ---------- Maintenance (RTDB) ----------
+      subscribeMaintenance(){
+        this.maintenanceRef.on('value', snap=>{
+          const s = snap.val() || {};
+          localStorage.setItem('maintenanceMode', s.maintenanceMode ? 'true' : 'false');
+          localStorage.setItem('lockdownMode',     s.lockdownMode   ? 'true' : 'false');
+          if (typeof s.maintenanceMessage === 'string') {
+            localStorage.setItem('maintenanceMessage', s.maintenanceMessage);
+          }
+          const toggle = document.getElementById('maintenanceToggle');
+          const status = document.getElementById('maintenanceStatus');
+          const site   = document.getElementById('siteStatus');
+          toggle.checked = !!(s.maintenanceMode || s.lockdownMode);
+          if (s.lockdownMode){ status.textContent='emergency lockdown active'; status.style.color='#ff6666'; site.className='status-badge offline'; site.textContent='lockdown'; }
+          else if (s.maintenanceMode){ status.textContent='maintenance mode enabled'; status.style.color='#ffa500'; site.className='status-badge maintenance'; site.textContent='maintenance'; }
+          else { status.textContent='maintenance mode disabled'; status.style.color='#888'; site.className='status-badge online'; site.textContent='online'; }
+          const allow = !!s.allowDismissal && !s.lockdownMode;
+          document.getElementById('allowDismissalToggle').checked = allow;
+          document.getElementById('dismissalStatus').textContent = allow ? 'dismissal allowed during lockdown' : 'dismissal disabled during lockdown';
+          document.getElementById('dismissalStatus').style.color = allow ? '#00ff00' : '#ff6666';
+          if (typeof s.maintenanceMessage === 'string'){
+            const msg = document.getElementById('maintenanceMessage');
+            if (msg && msg !== document.activeElement) msg.value = s.maintenanceMessage;
+          }
+        });
+      }
+      async updateServerMaintenanceState(state){
+        // Requires RTDB rule: roles/<uid>/isAdmin == true
+        const uid = (firebase.auth().currentUser && firebase.auth().currentUser.uid) || 'unknown';
+        return this.maintenanceRef.update({
+          ...state,
+          updatedBy: uid,
+          updatedAt: firebase.database.ServerValue.TIMESTAMP
+        });
+      }
+      async enableGlobalMaintenance(){
+        const message = document.getElementById('maintenanceMessage').value || "Polar's Shack is currently receiving a new update...";
+        try{
+          await this.updateServerMaintenanceState({ maintenanceMode:true, lockdownMode:false, allowDismissal:true, maintenanceMessage: message });
+          alert('Global maintenance enabled');
+        }catch(e){ alert('Failed: missing RTDB admin role for this UID. Create roles/<uid>/isAdmin=true.'); }
+      }
+      async disableGlobalMaintenance(){
+        try{
+          await this.updateServerMaintenanceState({ maintenanceMode:false, lockdownMode:false, maintenanceMessage:'' });
+          alert('Global maintenance disabled');
+        }catch(e){ alert('Failed: missing RTDB admin role for this UID.'); }
+      }
+      async emergencyGlobalLockdown(){
+        if (!confirm('Activate GLOBAL EMERGENCY LOCKDOWN?')) return;
+        try{
+          await this.updateServerMaintenanceState({
+            maintenanceMode:false, lockdownMode:true, allowDismissal:false,
+            maintenanceMessage:'EMERGENCY LOCKDOWN: This site is temporarily unavailable due to security concerns.'
+          });
+          alert('GLOBAL EMERGENCY LOCKDOWN ACTIVATED!');
+        }catch(e){ alert('Failed: missing RTDB admin role for this UID.'); }
+      }
+      async toggleMaintenance(){
+        // local toggle just mirrors current RTDB flags quickly
+        const checked = document.getElementById('maintenanceToggle').checked;
+        if (checked) return this.enableGlobalMaintenance();
+        return this.disableGlobalMaintenance();
+      }
+      async updateMaintenanceMessage(){
+        const message = (document.getElementById('maintenanceMessage').value || '').trim();
+        if (!message) return alert('Please enter a maintenance message');
+        try{
+          await this.updateServerMaintenanceState({ maintenanceMessage: message });
+          alert('Maintenance message updated');
+        }catch(e){ alert('Failed: missing RTDB admin role for this UID.'); }
+      }
+      toggleMaintenanceDismissal(){
+        const allow = document.getElementById('allowDismissalToggle').checked;
+        this.updateServerMaintenanceState({ allowDismissal: !!allow }).catch(()=>alert('Failed: missing RTDB admin role for this UID.'));
+      }
+
+      // ---------- Misc/UI helpers ----------
+      addSecurityLog(message, level='info'){
+        const entry = { ts: Date.now(), level, message };
+        this.securityData.securityLogs.unshift(entry);
+        if (this.securityData.securityLogs.length>100) this.securityData.securityLogs.pop();
+        localStorage.setItem('securityLogs', JSON.stringify(this.securityData.securityLogs));
+      }
+      // stubs
+      banUser(){ alert('hook up to your chat admin logic'); }
+      unbanUser(){ alert('hook up to your chat admin logic'); }
+      exportData(){ alert('implement as needed'); }
+      toggleSecuritySystem(){
+        const on = document.getElementById('securityToggle').checked;
+        const s = document.getElementById('securityStatus');
+        s.textContent = on ? 'security system enabled' : 'security system disabled';
+        s.style.color = on ? '#4CAF50' : '#ff6666';
+      }
+    }
+
+    // Create panel ONCE and wire globals
+    const adminPanel = new AdminPanel();
+
+    // login submit
+    document.getElementById('loginForm').addEventListener('submit', (e)=>adminPanel.handleLogin(e));
+
+    // wire functions for onclick HTML
+    window.showSection               = (id)=>adminPanel.showSection(id);
+    window.logout                    = ()=>adminPanel.logout();
+    window.toggleMaintenance         = ()=>adminPanel.toggleMaintenance();
+    window.updateMaintenanceMessage  = ()=>adminPanel.updateMaintenanceMessage();
+    window.enableGlobalMaintenance   = ()=>adminPanel.enableGlobalMaintenance();
+    window.disableGlobalMaintenance  = ()=>adminPanel.disableGlobalMaintenance();
+    window.emergencyGlobalLockdown   = ()=>adminPanel.emergencyGlobalLockdown();
+    window.toggleMaintenanceDismissal= ()=>adminPanel.toggleMaintenanceDismissal();
+    window.toggleSecuritySystem      = ()=>adminPanel.toggleSecuritySystem();
+    window.banUser                   = ()=>adminPanel.banUser();
+    window.unbanUser                 = ()=>adminPanel.unbanUser();
+    window.exportData                = ()=>adminPanel.exportData();
+
+    // boot
+    adminPanel.init();
+
+    // tab title flair
+    document.addEventListener('visibilitychange', ()=>{
+      if (document.hidden){
+        document.title = "Dashboard";
+        document.getElementById("favicon").href = "https://s3.amazonaws.com/cdn.app.cte.virginia.edu/tools/images/XmeGg2PHFfRHaj3upWvncc2gmaG91fApdtDC8bdU.png";
+      } else {
+        document.title = "Polar's Shack - Admin";
+        document.getElementById("favicon").href = "logo.png";
+      }
+    });
+  </script>
+
+  <!-- Presence & counters (OPTIONAL on admin page, REQUIRED on user pages) -->
+  <script src="analytics.js"></script>
+  <script> if (window.initAnalytics) initAnalytics('/admin.html'); </script>
 </body>
 </html>
