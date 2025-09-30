@@ -434,20 +434,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
-<!-- Your Firebase config -->
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBqJJQqJQqJQqJQqJQqJQqJQqJQqJQqJQq",
-      authDomain: "polars-shack.firebaseapp.com",
-      databaseURL: "https://polars-shack-default-rtdb.firebaseio.com/", // IMPORTANT for RTDB
-      projectId: "polars-shack",
-      storageBucket: "polars-shack.appspot.com",
-      messagingSenderId: "123456789012",
-      appId: "1:123456789012:web:abcdefghijklmnopqr" 
-  };
-  firebase.initializeApp(firebaseConfig);
-</script>
-
 <!-- Import analytics.js -->
 <script src="analytics.js"></script>
 <script>
@@ -456,7 +442,6 @@
 </script>
 
     <script>
-
         const firebaseConfig = {
             apiKey: "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs",
             authDomain: "polars-shack.firebaseapp.com",
@@ -468,7 +453,9 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        
+    </script>
+    
+    <script>    
         const games = [
             { name: "1v1.lol", url: "https://storage.googleapis.com/test-41376.appspot.com/1.html", icon: "https://th.bing.com/th/id/R.23c1cb7d41a5475776fc3186ead79f20?rik=XpxnUj55%2bqpiUA&pid=ImgRaw&r=0", description: "Battle royale building game with 1v1 combat" },
             { name: "Request a Game", url: "https://forms.gle/ZE1q6vJyXwSsQ4EQ9", icon: "https://cdn-icons-png.flaticon.com/512/2003/2003257.png", description: "Request your favorite game to be added" },
