@@ -9,6 +9,10 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9156548662984796"
      crossorigin="anonymous"></script>
+      <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+  <script defer data-domain="https://polars-shack.vercel.app" src="https://analytics.vercel-insights.com/script.js"></script>
     <style>
         * {
             margin: 0;
@@ -430,16 +434,18 @@
 
 <!-- Your Firebase config -->
 <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBqJJQqJQqJQqJQqJQqJQqJQqJQqJQqJQq",
-      authDomain: "polars-shack.firebaseapp.com",
-      databaseURL: "https://polars-shack-default-rtdb.firebaseio.com/", // IMPORTANT for RTDB
-      projectId: "polars-shack",
-      storageBucket: "polars-shack.appspot.com",
-      messagingSenderId: "123456789012",
-      appId: "1:123456789012:web:abcdefghijklmnopqr" 
-  };
-  firebase.initializeApp(firebaseConfig);
+    // --- Firebase Config ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs",
+            authDomain: "polars-shack.firebaseapp.com",
+            projectId: "polars-shack",
+            storageBucket: "polars-shack.firebasestorage.app",
+            messagingSenderId: "205388124682",
+            appId: "1:205388124682:web:2b0b1605517e0c6c53c5f3"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 </script>
 
 <!-- Import analytics.js -->
