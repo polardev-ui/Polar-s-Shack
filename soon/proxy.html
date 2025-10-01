@@ -491,7 +491,7 @@
                   console.log('SW active. Reloading frame to ensure resource interception...');
                   // Force a reload of the iframe content if it's already loaded
                   const iframe = document.getElementById('contentFrame');
-                  if (iframe && iframe.src !== 'about:blank' && !iframe.src.includes('/proxy-sw.js')) {
+                  if (iframe && iframe.src !== 'about:blank' && !iframe.src.includes('./proxy-sw.js')) {
                       iframe.src = iframe.src; // Simple trick to re-trigger the request through the now-active SW
                   }
               }
