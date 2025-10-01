@@ -478,6 +478,30 @@
       }
     });
 
+    // --- SERVICE WORKER REGISTRATION (CRITICAL FIX) ---
+      // This is the core fix for missing CSS and broken links.
+      if ('serviceWorker' in navigator) {
+          // Register the Service Worker (proxy-sw.js) relative to the Vercel client's root.
+          // The scope MUST be '/' to ensure it intercepts all traffic, including iframe requests.
+          navigator.serviceWorker.register('/proxy-sw.js', { 
+              scope: '/' 
+          }).then(reg => {
+              console.log('Standard Proxy SW registration successful with scope:', reg.scope);
+              if (reg.active) {
+                  console.log('SW active. Reloading frame to ensure resource interception...');
+                  // Force a reload of the iframe content if it's already loaded
+                  const iframe = document.getElementById('contentFrame');
+                  if (iframe && iframe.src !== 'about:blank' && !iframe.src.includes('/proxy-sw.js')) {
+                      iframe.src = iframe.src; // Simple trick to re-trigger the request through the now-active SW
+                  }
+              }
+          }).catch(err => {
+              console.error('Standard Proxy SW registration failed:', err);
+              // Calls your existing error handler
+              proxyManager.showError("Service Worker failed to load. CSS and links will not work correctly. Check console for details.");
+          });
+      }
+
     document.addEventListener("visibilitychange", function () {
       if (document.hidden) {
         document.title = "Dashboard";
