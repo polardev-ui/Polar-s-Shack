@@ -369,6 +369,30 @@ Advanced features coming soon!
     function openSettings(){ proxy.openSettings(); }
     function retryConnection(){ proxy.retryConnection(); }
 
+    // ... (existing JavaScript code ends here)
+
+    // --- SERVICE WORKER REGISTRATION (CRITICAL FIX) ---
+    // This must run before any resource loads to intercept traffic.
+    if ('serviceWorker' in navigator) {
+        // Register the Service Worker (proxy-sw.js) relative to the Vercel client's root.
+        navigator.serviceWorker.register('./proxy-sw.js', { 
+            scope: '/' 
+        }).then(reg => {
+            console.log('Advanced Proxy SW registration successful with scope:', reg.scope);
+            if (reg.active) {
+                console.log('SW active. Reloading frame to ensure resource interception...');
+                const iframe = document.getElementById('contentFrame');
+                if (iframe && iframe.src !== 'about:blank' && !iframe.src.includes('/proxy-sw.js')) {
+                    iframe.src = iframe.src;
+                }
+            }
+        }).catch(err => {
+            console.error('Advanced Proxy SW registration failed:', err);
+            // Calls your existing error handler
+            proxy.showError("Service Worker failed to load. CSS and links will not work correctly. Check console for details.");
+        });
+    }
+
     document.addEventListener("visibilitychange", function () {
       if (document.hidden) {
         document.title = "Dashboard";
