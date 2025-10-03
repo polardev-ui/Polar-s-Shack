@@ -9,8 +9,8 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:'JetBrains Mono','Courier New',monospace;background:#1a1a1a;color:#888;min-height:100vh}
-    .navbar{background:#1a1a1a;padding:1rem 2rem;position:fixed;top:0;width:100%;z-index:1000;border-bottom:1px solid #333}
+    body{font-family:'JetBrains Mono','Courier New',monospace;background:linear-gradient(180deg,#0b0b0b,#111);color:#888;min-height:100vh}
+    .navbar{background:#1a1a1a;padding:1rem 2rem;position:fixed;top:0;width:100%;z-index:1000;border-bottom:1px solid #333;backdrop-filter:blur(10px)}
     .nav-container{display:flex;justify-content:space-between;align-items:center;max-width:1200px;margin:0 auto}
     .logo-nav{display:flex;align-items:center;gap:10px}
     .logo-nav img{width:32px;height:32px;border-radius:4px}
@@ -26,27 +26,27 @@
     .mobile-menu a:last-child{border-bottom:none}
     .main-content{margin-top:80px;padding:2rem;max-width:1200px;margin-left:auto;margin-right:auto}
     .page-header{margin-bottom:3rem}
-    .page-header h1{font-size:clamp(2rem,6vw,2.5rem);font-weight:400;margin-bottom:1rem;color:#fff;position:relative}
+    .page-header h1{font-size:clamp(2rem,6vw,2.5rem);font-weight:600;margin-bottom:1rem;color:#fff;position:relative}
     .page-header h1::after{content:'_';color:#00ff00;animation:blink 1s infinite;margin-left:2px}
     .page-header p{font-size:clamp(.9rem,2.5vw,1rem);color:#666;max-width:600px}
-    .proxy-container{background:#2a2a2a;border-radius:8px;padding:2rem;border:1px solid #333;margin-bottom:3rem}
+    .proxy-container{background:linear-gradient(180deg,#1a1a1a,#1e1e1e);border-radius:12px;padding:2rem;border:1px solid #333;margin-bottom:3rem;box-shadow:0 10px 30px rgba(0,0,0,0.6)}
     .proxy-controls{margin-bottom:2rem}
     .url-input-container{display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap}
     .url-input{flex:1;min-width:250px;padding:1rem;background:#333;border:1px solid #444;border-radius:4px;color:#888;font-size:.9rem;outline:none;transition:all .3s ease;font-family:'JetBrains Mono',monospace}
     .url-input:focus{border-color:#00ff00;box-shadow:0 0 10px rgba(0,255,0,.2)}
     .proxy-buttons{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center}
-    .proxy-btn{padding:1rem 1.5rem;background:#333;color:#00ff00;border:1px solid #444;border-radius:4px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .3s ease;font-family:'JetBrains Mono',monospace;white-space:nowrap}
-    .proxy-btn:hover{background:#444;border-color:#00ff00;transform:translateY(-1px)}
-    .proxy-btn.primary{background:#00ff00;color:#1a1a1a}
-    .proxy-btn.primary:hover{background:#00cc00}
+    .proxy-btn{padding:1rem 1.5rem;background:#2a2a2a;color:#00ff00;border:1px solid #444;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .3s ease;font-family:'JetBrains Mono',monospace;white-space:nowrap}
+    .proxy-btn:hover{background:#333;border-color:#00ff00;transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,255,0,0.2)}
+    .proxy-btn.primary{background:var(--accent,#00ff00);color:#000;font-weight:700}
+    .proxy-btn.primary:hover{background:#00cc00;box-shadow:0 4px 16px rgba(0,255,0,0.4)}
     .proxy-info{background:#333;padding:1.5rem;border-radius:8px;border:1px solid #444;margin-bottom:2rem}
     .proxy-info h3{color:#fff;margin-bottom:1rem;font-size:1.1rem}
     .proxy-info p{color:#666;line-height:1.6;margin-bottom:1rem;font-size:.9rem}
     .proxy-info ul{color:#666;margin-left:1.5rem;font-size:.8rem}
     .proxy-info li{margin-bottom:.5rem}
     .proxy-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem;margin-bottom:3rem}
-    .proxy-card{background:#2a2a2a;padding:1.5rem;border-radius:8px;border:1px solid #333;transition:all .3s ease;cursor:pointer;text-align:center}
-    .proxy-card:hover{border-color:#00ff00;box-shadow:0 0 20px rgba(0,255,0,.1);transform:translateY(-2px)}
+    .proxy-card{background:linear-gradient(135deg,#1e1e1e,#1a1a1a);padding:1.5rem;border-radius:12px;border:1px solid #333;transition:all .3s ease;cursor:pointer;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.4)}
+    .proxy-card:hover{border-color:#00ff00;box-shadow:0 8px 24px rgba(0,255,0,0.2);transform:translateY(-4px)}
     .proxy-card h3{color:#fff;margin-bottom:.5rem;font-size:1rem}
     .proxy-card p{color:#666;font-size:.8rem;margin-bottom:1rem}
     .proxy-card .launch-btn{background:#333;color:#00ff00;border:1px solid #444;padding:.5rem 1rem;border-radius:4px;font-size:.8rem;cursor:pointer;transition:all .3s ease;width:100%;font-family:'JetBrains Mono',monospace}
