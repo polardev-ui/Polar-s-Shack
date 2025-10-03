@@ -1,1130 +1,657 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Polar's Shack Admin</title>
-  <link id="favicon" rel="icon" href="logo.png" type="image/png"/>
-  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet"/>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polar's Shack</title>
+    <link id="favicon" rel="icon" href="logo.png" type="image/png">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9156548662984796" crossorigin="anonymous"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'JetBrains Mono', monospace; 
+            background: linear-gradient(180deg, #0a0a0a, #111); 
+            color: #ddd; 
+            overflow-x: hidden; 
+            min-height: 100vh; 
+        }
+        
+        .container { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
+            padding: 2rem; 
+            position: relative; 
+        }
+        
+        .logo { 
+            width: 120px; 
+            height: 120px; 
+            margin-bottom: 2rem; 
+            border-radius: 12px; 
+            box-shadow: 0 0 40px rgba(0, 255, 0, 0.4); 
+            animation: float 3s ease-in-out infinite; 
+        }
+        
+        .title { 
+            font-size: clamp(2.5rem, 8vw, 4rem); 
+            font-weight: 300; 
+            margin-bottom: 1rem; 
+            color: #fff; 
+            text-align: center; 
+            position: relative; 
+        }
+        
+        .title::after { 
+            content: '_'; 
+            color: #00ff00; 
+            animation: blink 1s infinite; 
+            margin-left: 4px; 
+        }
+        
+        .subtitle { 
+            font-size: clamp(1rem, 3vw, 1.2rem); 
+            color: #888; 
+            margin-bottom: 3rem; 
+            text-align: center; 
+            max-width: 600px; 
+            line-height: 1.6; 
+        }
+        
+        .status { 
+            background: linear-gradient(135deg, #1a1a1a, #222); 
+            border: 1px solid #333; 
+            border-radius: 12px; 
+            padding: 2rem; 
+            margin-bottom: 3rem; 
+            text-align: center; 
+            max-width: 500px; 
+            width: 100%; 
+            position: relative; 
+            overflow: hidden; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        
+        .status::before { 
+            content: ''; 
+            position: absolute; 
+            top: 0; 
+            left: -100%; 
+            width: 100%; 
+            height: 2px; 
+            background: linear-gradient(90deg, transparent, #00ff00, transparent); 
+            animation: scan 2s linear infinite; 
+        }
+        
+        .status-text { 
+            color: #00ff00; 
+            font-size: 1.1rem; 
+            margin-bottom: 1rem; 
+            font-weight: 600; 
+        }
+        
+        .status-description { 
+            color: #aaa; 
+            font-size: 0.9rem; 
+            line-height: 1.5; 
+        }
+        
+        .enter-btn { 
+            background: linear-gradient(135deg, #2a2a2a, #333); 
+            color: #00ff00; 
+            border: 1px solid #444; 
+            padding: 1rem 2rem; 
+            border-radius: 8px; 
+            font-size: 1rem; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            text-decoration: none; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 0.5rem; 
+            font-family: 'JetBrains Mono', monospace; 
+            position: relative; 
+            overflow: hidden; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        .enter-btn::before { 
+            content: ''; 
+            position: absolute; 
+            top: 0; 
+            left: -100%; 
+            width: 100%; 
+            height: 100%; 
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.1), transparent); 
+            transition: left 0.5s; 
+        }
+        
+        .enter-btn:hover::before { left: 100%; }
+        
+        .enter-btn:hover { 
+            background: linear-gradient(135deg, #333, #3a3a3a); 
+            border-color: #00ff00; 
+            box-shadow: 0 0 25px rgba(0, 255, 0, 0.4); 
+            transform: translateY(-2px); 
+        }
+        
+        .features { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 1.5rem; 
+            margin-top: 3rem; 
+            max-width: 800px; 
+            width: 100%; 
+        }
+        
+        .feature { 
+            background: linear-gradient(135deg, #1a1a1a, #222); 
+            border: 1px solid #333; 
+            border-radius: 10px; 
+            padding: 1.5rem; 
+            text-align: center; 
+            transition: all 0.3s ease; 
+            position: relative; 
+            overflow: hidden; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        .feature::before { 
+            content: ''; 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            height: 2px; 
+            background: #00ff00; 
+            transform: scaleX(0); 
+            transition: transform 0.3s ease; 
+        }
+        
+        .feature:hover::before { transform: scaleX(1); }
+        
+        .feature:hover { 
+            border-color: #00ff00; 
+            box-shadow: 0 0 25px rgba(0, 255, 0, 0.2); 
+            transform: translateY(-4px); 
+        }
+        
+        .feature-icon { 
+            font-size: 2rem; 
+            color: #00ff00; 
+            margin-bottom: 1rem; 
+        }
+        
+        .feature-title { 
+            color: #fff; 
+            font-size: 1rem; 
+            margin-bottom: 0.5rem; 
+            font-weight: 600; 
+        }
+        
+        .feature-description { 
+            color: #888; 
+            font-size: 0.8rem; 
+            line-height: 1.4; 
+        }
+        
+        .background-animation { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            pointer-events: none; 
+            z-index: -1; 
+        }
+        
+        .matrix-char { 
+            position: absolute; 
+            color: #00ff00; 
+            font-family: 'JetBrains Mono', monospace; 
+            font-size: 14px; 
+            opacity: 0.1; 
+            animation: fall linear infinite; 
+        }
+        
+        @keyframes float { 
+            0%, 100% { transform: translateY(0px); } 
+            50% { transform: translateY(-10px); } 
+        }
+        
+        @keyframes blink { 
+            0%, 50% { opacity: 1; } 
+            51%, 100% { opacity: 0; } 
+        }
+        
+        @keyframes scan { 
+            0% { left: -100%; } 
+            100% { left: 100%; } 
+        }
+        
+        @keyframes fall { 
+            0% { transform: translateY(-100vh); opacity: 0; } 
+            10% { opacity: 0.1; } 
+            90% { opacity: 0.1; } 
+            100% { transform: translateY(100vh); opacity: 0; } 
+        }
+        
+        .version-wrap { 
+            position: absolute; 
+            top: 18px; 
+            right: 18px; 
+            display: flex; 
+            gap: 0.5rem; 
+            align-items: center; 
+            z-index: 50; 
+        }
+        
+        .version-btn { 
+            background: #2a2a2a; 
+            color: #00ff00; 
+            border: 1px solid #333; 
+            padding: 8px 12px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-family: 'JetBrains Mono'; 
+            font-weight: 600; 
+            font-size: 0.9rem; 
+            transition: all 0.2s;
+        }
+        
+        .version-btn:hover { 
+            background: #333; 
+            box-shadow: 0 0 15px rgba(0,255,0,0.1); 
+        }
+        
+        .changelog-modal { 
+            position: fixed; 
+            inset: 0; 
+            display: none; 
+            align-items: center; 
+            justify-content: center; 
+            background: rgba(0,0,0,0.8); 
+            z-index: 60; 
+            backdrop-filter: blur(4px);
+        }
+        
+        .changelog { 
+            background: #121212; 
+            border: 1px solid #333; 
+            width: min(900px, 92%); 
+            max-height: 80vh; 
+            overflow: auto; 
+            border-radius: 12px; 
+            padding: 1.5rem; 
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8); 
+        }
+        
+        .changelog h2 { 
+            color: #00ff00; 
+            margin-bottom: 0.5rem; 
+        }
+        
+        .changelog pre { 
+            background: #0d0d0d; 
+            color: #cfcfcf; 
+            padding: 1rem; 
+            border-radius: 8px; 
+            overflow-x: auto; 
+            font-size: 0.95rem; 
+        }
+        
+        .changelog-close { 
+            background: #2a2a2a; 
+            color: #fff; 
+            border: 1px solid #333; 
+            padding: 8px 12px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            float: right; 
+            transition: all 0.2s;
+        }
 
-  <!-- Firebase compat SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+        .changelog-close:hover {
+            background: #333;
+            border-color: #00ff00;
+        }
+        
+        .footer-links { 
+            margin-top: 2rem; 
+            display:flex; 
+            gap: 1rem; 
+            justify-content:center; 
+        }
+        
+        .footer-links a { 
+            color: #00ff00; 
+            text-decoration: none; 
+            border-bottom:1px dashed rgba(0,255,0,0.3); 
+            padding-bottom:2px; 
+            transition: all 0.2s;
+        }
 
-  <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:'JetBrains Mono','Courier New',monospace;background:#1a1a1a;color:#888;min-height:100vh}
-    
-    
-    .login-container{display:flex;justify-content:center;align-items:center;min-height:100vh;background:linear-gradient(135deg,#1a1a1a 0%,#2a2a2a 100%)}
-    .login-box{background:#2a2a2a;border:1px solid #333;border-radius:8px;padding:3rem;max-width:400px;width:100%;text-align:center}
-    .login-box h1{color:#fff;font-size:1.8rem;margin-bottom:.5rem}
-    .login-box p{color:#666;margin-bottom:2rem;font-size:.9rem}
-    .form-group{margin-bottom:1.5rem;text-align:left}
-    .form-group label{display:block;color:#888;margin-bottom:.5rem;font-size:.9rem}
-    .form-group input{width:100%;padding:1rem;background:#333;border:1px solid #444;border-radius:4px;color:#fff;font-size:.9rem;outline:none;transition:.3s;font-family:'JetBrains Mono',monospace}
-    .form-group input:focus{border-color:#00ff00;box-shadow:0 0 10px rgba(0,255,0,.2)}
-    .login-btn{width:100%;padding:1rem;background:#00ff00;color:#1a1a1a;border:none;border-radius:4px;font-size:.9rem;font-weight:600;cursor:pointer;transition:.3s;font-family:'JetBrains Mono',monospace}
-    .login-btn:hover{background:#00cc00;transform:translateY(-1px)}
-    .error-message{color:#ff6666;margin-top:1rem;font-size:.8rem;display:none}
-    .logout-btn{position:fixed;top:2rem;right:2rem;background:#ff6666;color:#fff;border:none;padding:.8rem 1.2rem;border-radius:4px;cursor:pointer;font-size:.8rem;transition:.3s;font-family:'JetBrains Mono',monospace;z-index:1000}
-    .logout-btn:hover{background:#ff4444;transform:translateY(-1px)}
-    .admin-container{display:none;padding:2rem;max-width:1400px;margin:0 auto}
-    .admin-header{background:#2a2a2a;border:1px solid #333;border-radius:8px;padding:2rem;margin-bottom:2rem;text-align:center}
-    .admin-header h1{color:#fff;font-size:2rem;margin-bottom:.5rem}
-    .admin-header p{color:#666;font-size:.9rem}
-    .admin-nav{display:flex;gap:1rem;margin:1rem 0 2rem;flex-wrap:wrap;justify-content:center}
-    .nav-btn{background:#333;color:#888;border:1px solid #444;padding:.8rem 1.5rem;border-radius:4px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.8rem;transition:.3s}
-    .nav-btn.active{background:#00ff00;color:#1a1a1a;border-color:#00ff00}
-    .nav-btn:hover{background:#444;color:#00ff00;border-color:#00ff00}
-    .nav-btn.active:hover{background:#00cc00}
-    .admin-section{display:none;background:#2a2a2a;border:1px solid #333;border-radius:8px;padding:2rem}
-    .admin-section.active{display:block}
-    .admin-section h2{color:#fff;font-size:1.3rem;margin-bottom:1.5rem;border-bottom:1px solid #333;padding-bottom:.5rem}
-    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:2rem}
-    .stat-card{background:#333;padding:1.5rem;border-radius:8px;border:1px solid #444;text-align:center}
-    .stat-number{font-size:2rem;font-weight:700;color:#00ff00;margin-bottom:.5rem}
-    .stat-label{color:#888;font-size:.8rem;text-transform:uppercase}
-    .data-table{width:100%;border-collapse:collapse;margin-bottom:2rem;background:#333;border-radius:8px;overflow:hidden}
-    .data-table th,.data-table td{padding:1rem;text-align:left;border-bottom:1px solid #444}
-    .data-table th{background:#444;color:#fff;font-weight:600;font-size:.8rem;text-transform:uppercase}
-    .data-table td{color:#888;font-size:.8rem}
-    .data-table tr:hover{background:#3a3a3a}
-    .action-btn{background:#444;color:#00ff00;border:1px solid #555;padding:.3rem .8rem;border-radius:3px;cursor:pointer;font-size:.7rem;margin-right:.5rem;transition:.3s;font-family:'JetBrains Mono',monospace}
-    .action-btn:hover{background:#555;border-color:#00ff00}
-    .action-btn.danger{color:#ff6666;border-color:#ff6666}
-    .action-btn.danger:hover{background:#ff6666;color:#fff}
-    .form-inline{display:flex;gap:1rem;align-items:end;margin-bottom:1.5rem;flex-wrap:wrap}
-    .form-inline .form-group{margin-bottom:0;flex:1;min-width:200px}
-    .form-inline button{background:#00ff00;color:#1a1a1a;border:none;padding:1rem 1.5rem;border-radius:4px;cursor:pointer;font-size:.8rem;font-weight:600;transition:.3s;font-family:'JetBrains Mono',monospace;white-space:nowrap}
-    .form-inline button:hover{background:#00cc00;transform:translateY(-1px)}
-    .form-inline button.danger{background:#ff6666;color:#fff}
-    .form-inline button.danger:hover{background:#ff4444}
-    .maintenance-toggle{background:#333;padding:1.5rem;border-radius:8px;border:1px solid #444;margin-bottom:2rem}
-    .toggle-switch{position:relative;display:inline-block;width:60px;height:34px;margin-right:1rem}
-    .toggle-switch input{opacity:0;width:0;height:0}
-    .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#444;transition:.4s;border-radius:34px}
-    .slider:before{position:absolute;content:"";height:26px;width:26px;left:4px;bottom:4px;background:#888;transition:.4s;border-radius:50%}
-    input:checked + .slider{background:#ff6666}
-    input:checked + .slider:before{transform:translateX(26px);background:#fff}
-    .system-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem;margin-bottom:2rem}
-    .control-card{background:#333;padding:1.5rem;border-radius:8px;border:1px solid #444}
-    .control-card h4{color:#fff;margin-bottom:1rem;font-size:1rem}
-    .control-card p{color:#666;font-size:.8rem;margin-bottom:1rem}
-    .status-badge{display:inline-block;padding:.2rem .6rem;border-radius:12px;font-size:.7rem;font-weight:600;text-transform:uppercase}
-    .status-badge.online{background:rgba(0,255,0,.2);color:#00ff00;border:1px solid #00ff00}
-    .status-badge.offline{background:rgba(255,102,102,.2);color:#ff6666;border:1px solid #ff6666}
-    .status-badge.maintenance{background:rgba(255,165,0,.2);color:#ffa500;border:1px solid #ffa500}
-    .real-time-indicator{position:fixed;top:2rem;left:2rem;background:#333;padding:.5rem 1rem;border-radius:4px;border:1px solid #444;font-size:.7rem;z-index:1000}
-    .real-time-indicator.connected{border-color:#00ff00;color:#00ff00}
-    .real-time-indicator.disconnected{border-color:#ff6666;color:#ff6666}
-    
-    /* Enhanced chat controls section */
-    .chat-controls{
-      background:linear-gradient(145deg,#2a2a2a,#252525);
-      border:1px solid #333;
-      border-radius:12px;
-      padding:1.75rem;
-      margin-bottom:2rem;
-      box-shadow:0 4px 15px rgba(0,0,0,0.3);
-    }
-    .chat-controls h3{
-      color:#fff;
-      font-size:1.15rem;
-      margin-bottom:1.25rem;
-      border-bottom:2px solid #00ff00;
-      padding-bottom:.75rem;
-      display:flex;
-      align-items:center;
-      gap:.5rem;
-    }
-    .chat-control-row{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      padding:1.25rem;
-      background:#333;
-      border-radius:10px;
-      margin-bottom:1rem;
-      border:1px solid #444;
-      transition:all .3s ease;
-    }
-    .chat-control-row:hover{
-      background:#3a3a3a;
-      border-color:#00ff00;
-      transform:translateX(4px);
-    }
-    .chat-control-info{flex:1}
-    .chat-control-info h4{
-      color:#fff;
-      font-size:1rem;
-      margin-bottom:.4rem;
-      font-weight:600;
-    }
-    .chat-control-info p{
-      color:#888;
-      font-size:.85rem;
-      line-height:1.4;
-    }
-    .chat-control-actions{display:flex;gap:.75rem;flex-wrap:wrap}
-    .quick-action-btn{
-      background:#444;
-      color:#00ff00;
-      border:2px solid #555;
-      padding:.75rem 1.25rem;
-      border-radius:8px;
-      cursor:pointer;
-      font-size:.85rem;
-      transition:all .3s ease;
-      font-family:'JetBrains Mono',monospace;
-      display:flex;
-      align-items:center;
-      gap:.5rem;
-      font-weight:500;
-    }
-    .quick-action-btn:hover{
-      background:#555;
-      border-color:#00ff00;
-      transform:translateY(-2px);
-      box-shadow:0 4px 12px rgba(0,255,0,0.2);
-    }
-    .quick-action-btn.danger{
-      color:#ff6666;
-      border-color:#ff6666;
-    }
-    .quick-action-btn.danger:hover{
-      background:#ff6666;
-      color:#fff;
-      box-shadow:0 4px 12px rgba(255,102,102,0.3);
-    }
-    .quick-action-btn.active{
-      background:linear-gradient(135deg,#00ff00,#00cc00);
-      color:#000;
-      border-color:#00ff00;
-      font-weight:600;
-      box-shadow:0 4px 15px rgba(0,255,0,0.3);
-    }
-    
-    /* Mod calls section */
-    .mod-calls{background:#2a2a2a;border:1px solid #333;border-radius:8px;padding:1.5rem;margin-bottom:2rem}
-    .mod-calls h3{color:#fff;font-size:1.1rem;margin-bottom:1rem;border-bottom:1px solid #333;padding-bottom:.5rem}
-    .mod-call-item{background:#333;padding:1rem;border-radius:6px;margin-bottom:.75rem;border-left:3px solid #ff6666}
-    .mod-call-item.seen{border-left-color:#444;opacity:.6}
-    .mod-call-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem}
-    .mod-call-user{color:#00ff00;font-weight:600}
-    .mod-call-time{color:#666;font-size:.75rem}
-    .mod-call-reason{color:#ddd;font-size:.85rem;margin-bottom:.75rem}
-    .mod-call-actions{display:flex;gap:.5rem}
-    
-    /* Live chat messages monitor */
-    .live-messages{background:#2a2a2a;border:1px solid #333;border-radius:8px;padding:1.5rem;margin-bottom:2rem;max-height:400px;overflow-y:auto}
-    .live-messages h3{color:#fff;font-size:1.1rem;margin-bottom:1rem;border-bottom:1px solid #333;padding-bottom:.5rem}
-    .live-msg{background:#333;padding:.75rem;border-radius:6px;margin-bottom:.5rem;font-size:.85rem}
-    .live-msg-meta{color:#888;margin-bottom:.3rem}
-    .live-msg-user{color:#00ff00;font-weight:600}
-    .live-msg-text{color:#ddd}
-    
-    @media (max-width:768px){
-      .admin-container{padding:1rem}
-      .admin-header{padding:1.5rem}
-      .stats-grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
-      .form-inline{flex-direction:column;align-items:stretch}
-      .form-inline .form-group{min-width:unset}
-      .logout-btn{top:1rem;right:1rem;padding:.6rem 1rem}
-      .real-time-indicator{top:1rem;left:1rem}
-      .chat-control-row{flex-direction:column;align-items:flex-start;gap:.75rem}
-      .chat-control-actions{width:100%}
-      .quick-action-btn{flex:1}
-    }
-  </style>
+        .footer-links a:hover {
+            border-bottom-color: #00ff00;
+            color: #0f0;
+        }
+        
+        .tos-popup-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            backdrop-filter: blur(4px);
+        }
+        
+        .tos-popup-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .tos-popup {
+            background: linear-gradient(135deg, #1a1a1a, #222);
+            border: 1px solid #333;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            color: #cfcfcf;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s ease;
+        }
+        
+        .tos-popup.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .tos-popup h2 {
+            color: #00ff00;
+            margin-bottom: 1rem;
+        }
+        
+        .tos-popup p {
+            color: #bdbdbd;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+        
+        .tos-btn {
+            position: relative;
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            float: right;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .tos-btn:hover {
+            filter: brightness(1.1);
+        }
+        
+        .tos-btn.loading {
+            background: #555;
+            color: #aaa;
+            pointer-events: none;
+        }
+        
+        .tos-btn .spinner {
+            display: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top: 2px solid #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .tos-btn.loading .spinner {
+            display: inline-block;
+        }
+        
+        @keyframes spin {
+            0% { transform: translateY(-50%) rotate(0deg); }
+            100% { transform: translateY(-50%) rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) { 
+            .container { padding: 1rem; } 
+            .logo { width: 80px; height: 80px; margin-bottom: 1.5rem; } 
+            .status { padding: 1.5rem; margin-bottom: 2rem; } 
+            .features { grid-template-columns: 1fr; gap: 1rem; margin-top: 2rem; } 
+            .feature { padding: 1rem; } 
+        }
+    </style>
 </head>
 <body>
-  <!-- live connection indicator -->
-  <div class="real-time-indicator" id="connectionStatus"><i class='bx bx-wifi'></i> connecting…</div>
-
-  <!-- login -->
-  <div class="login-container" id="loginContainer">
-    <div class="login-box">
-      <h1>admin access</h1>
-      <p>enter credentials to access the administration panel</p>
-      <form id="loginForm">
-        <div class="form-group">
-          <label for="password">password</label>
-          <input type="password" id="password" placeholder="enter admin password" required/>
+    <div id="tosPopupOverlay" class="tos-popup-overlay">
+        <div class="tos-popup" id="tosPopup">
+            <h2>New TOS and Privacy Policy</h2>
+            <p>
+                We have updated our Terms of Service and Privacy Policy. These changes will take effect on 
+                <strong>September 27th, 2025</strong>. By continuing, you agree to the new policies.
+            </p>
+            <button id="tosAgreeBtn" class="tos-btn">
+                Agree and Continue
+                <span class="spinner"></span>
+            </button>
         </div>
-        <button type="submit" class="login-btn"><i class='bx bx-log-in'></i> authenticate</button>
-        <div class="error-message" id="errorMessage"></div>
-      </form>
     </div>
-  </div>
-
-  <!-- admin -->
-  <div class="admin-container" id="adminPanel">
-    <button class="logout-btn" onclick="logout()"><i class='bx bx-log-out'></i> logout</button>
-
-    <div class="admin-header">
-      <h1>polar's shack admin</h1>
-      <p>comprehensive system administration and monitoring dashboard</p>
-    </div>
-
-    <nav class="admin-nav">
-      <button class="nav-btn active" onclick="showSection('dashboard')">dashboard</button>
-      <button class="nav-btn" onclick="showSection('chat')">chat control</button>
-      <button class="nav-btn" onclick="showSection('users')">users</button>
-      <button class="nav-btn" onclick="showSection('reports')">reports</button>
-      <button class="nav-btn" onclick="showSection('modcalls')">mod calls</button>
-      <button class="nav-btn" onclick="showSection('system')">system</button>
-      <button class="nav-btn" onclick="showSection('maintenance')">maintenance</button>
-      <button class="nav-btn" onclick="showSection('security')">security</button>
-    </nav>
-
-    <!-- Dashboard -->
-    <section class="admin-section active" id="dashboard">
-      <h2>system overview</h2>
-      <div class="stats-grid">
-        <div class="stat-card"><div class="stat-number" id="totalUsers">0</div><div class="stat-label">total users</div></div>
-        <div class="stat-card"><div class="stat-number" id="onlineUsers">0</div><div class="stat-label">online users</div></div>
-        <div class="stat-card"><div class="stat-number" id="totalReports">0</div><div class="stat-label">total reports</div></div>
-        <div class="stat-card"><div class="stat-number" id="pendingReports">0</div><div class="stat-label">pending reports</div></div>
-        <div class="stat-card"><div class="stat-number" id="proxyRequests">0</div><div class="stat-label">proxy requests</div></div>
-        <div class="stat-card"><div class="stat-number" id="systemUptime">0h</div><div class="stat-label">system uptime</div></div>
-      </div>
-
-      <div class="system-controls">
-        <div class="control-card">
-          <h4>proxy service</h4>
-          <p>custom proxy server status</p>
-          <span class="status-badge" id="proxyStatus">unknown</span>
-        </div>
-        <div class="control-card">
-          <h4>chat system</h4>
-          <p>real-time chat functionality</p>
-          <span class="status-badge online" id="chatStatus">online</span>
-        </div>
-        <div class="control-card">
-          <h4>database</h4>
-          <p>firebase connection</p>
-          <span class="status-badge online" id="dbStatus">online</span>
-        </div>
-        <div class="control-card">
-          <h4>site status</h4>
-          <p>overall website availability</p>
-          <span class="status-badge online" id="siteStatus">online</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- Enhanced Chat Control Section -->
-    <section class="admin-section" id="chat">
-      <h2><i class='bx bx-message-dots'></i> chat management & control</h2>
-      
-      <!-- Quick Actions -->
-      <div class="chat-controls">
-        <h3><i class='bx bx-bolt'></i> quick actions</h3>
+    
+    <div class="background-animation" id="matrixBg"></div>
+    
+    <div class="container">
+        <img src="logo.png" alt="Polar's Shack Logo" class="logo">
         
-        <div class="chat-control-row">
-          <div class="chat-control-info">
-            <h4>chat system status</h4>
-            <p>enable or disable the entire chat system immediately</p>
-          </div>
-          <div class="chat-control-actions">
-            <button class="quick-action-btn active" id="chatOnlineBtn" onclick="setChatOnline(true)">
-              <i class='bx bx-check-circle'></i> online
-            </button>
-            <button class="quick-action-btn danger" id="chatOfflineBtn" onclick="setChatOnline(false)">
-              <i class='bx bx-x-circle'></i> shutdown
-            </button>
-          </div>
-        </div>
+        <h1 class="title">polar's.shack</h1>
+        
+        <p class="subtitle">
+            advanced web tools and unblocked access portal
+        </p>
 
-        <div class="chat-control-row">
-          <div class="chat-control-info">
-            <h4>lock chat</h4>
-            <p>prevent non-admin users from sending messages</p>
-          </div>
-          <div class="chat-control-actions">
-            <button class="quick-action-btn" id="lockChatBtn" onclick="toggleChatLock()">
-              <i class='bx bx-lock'></i> <span id="lockChatText">lock chat</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="chat-control-row">
-          <div class="chat-control-info">
-            <h4>slowmode</h4>
-            <p>set message rate limit (seconds between messages)</p>
-          </div>
-          <div class="chat-control-actions">
-            <input type="number" id="slowmodeInput" placeholder="seconds" style="width:120px;padding:.75rem;background:#2a2a2a;border:2px solid #444;border-radius:8px;color:#fff;font-family:'JetBrains Mono',monospace;font-size:.9rem" value="0" min="0" max="60" />
-            <button class="quick-action-btn" onclick="setSlowmode()">
-              <i class='bx bx-time'></i> apply
-            </button>
-          </div>
-        </div>
-
-        <div class="chat-control-row">
-          <div class="chat-control-info">
-            <h4>clear messages</h4>
-            <p>delete recent messages from public chat</p>
-          </div>
-          <div class="chat-control-actions">
-            <input type="number" id="clearCountInput" placeholder="count" style="width:120px;padding:.75rem;background:#2a2a2a;border:2px solid #444;border-radius:8px;color:#fff;font-family:'JetBrains Mono',monospace;font-size:.9rem" value="50" min="1" max="500" />
-            <button class="quick-action-btn danger" onclick="clearMessages()">
-              <i class='bx bx-trash'></i> clear
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- User Management -->
-      <div class="chat-controls">
-        <h3><i class='bx bx-user-pin'></i> user management</h3>
-        <div class="form-inline">
-          <div class="form-group">
-            <label for="banUsername">ban user</label>
-            <input type="text" id="banUsername" placeholder="enter username"/>
-          </div>
-          <div class="form-group">
-            <label for="banReason">reason</label>
-            <input type="text" id="banReason" placeholder="ban reason"/>
-          </div>
-          <button onclick="banUser()"><i class='bx bx-block'></i> ban user</button>
+        <div class="version-wrap">
+            <button id="versionBtn" class="version-btn">v84.6.0</button>
         </div>
         
-        <div class="form-inline">
-          <div class="form-group">
-            <label for="unbanUsername">unban user</label>
-            <input type="text" id="unbanUsername" placeholder="enter username"/>
-          </div>
-          <button onclick="unbanUser()"><i class='bx bx-check'></i> unban user</button>
+        <div class="status">
+            <div class="status-text">system status: online</div>
+            <div class="status-description">
+                all services operational • secure connection established
+            </div>
         </div>
+        
+        <a href="soon/index.html" class="enter-btn">
+            <i class='bx bx-terminal'></i>
+            &gt; enter_system
+        </a>
 
-        <div class="form-inline">
-          <div class="form-group">
-            <label for="muteUsername">mute user</label>
-            <input type="text" id="muteUsername" placeholder="enter username"/>
-          </div>
-          <div class="form-group">
-            <label for="muteDuration">duration (minutes)</label>
-            <input type="number" id="muteDuration" placeholder="minutes" value="10" min="1"/>
-          </div>
-          <button onclick="muteUser()"><i class='bx bx-volume-mute'></i> mute user</button>
-        </div>
-
-        <div class="form-inline">
-          <div class="form-group">
-            <label for="kickUsername">kick user</label>
-            <input type="text" id="kickUsername" placeholder="enter username"/>
-          </div>
-          <button onclick="kickUser()"><i class='bx bx-exit'></i> kick user</button>
-        </div>
-      </div>
-
-      <!-- Live Messages Monitor -->
-      <div class="live-messages">
-        <h3><i class='bx bx-receipt'></i> live messages <span style="color:#666;font-size:.8rem">(last 20)</span></h3>
-        <div id="liveMessagesList"></div>
-      </div>
-    </section>
-
-    <!-- Mod Calls Section -->
-    <section class="admin-section" id="modcalls">
-      <h2><i class='bx bx-shield-alt'></i> moderator calls</h2>
-      <div class="mod-calls">
-        <h3><i class='bx bx-trending-up'></i> pending mod calls</h3>
-        <div id="modCallsList"></div>
-      </div>
-    </section>
-
-    <!-- Users -->
-    <section class="admin-section" id="users">
-      <h2><i class='bx bx-user-circle'></i> user management</h2>
-      <table class="data-table">
-        <thead><tr><th>username</th><th>email</th><th>first seen</th><th>last seen</th><th>status</th><th>actions</th></tr></thead>
-        <tbody id="usersTable"></tbody>
-      </table>
-    </section>
-
-    <!-- Reports -->
-    <section class="admin-section" id="reports">
-      <h2><i class='bx bx-list-check'></i> game reports</h2>
-      <table class="data-table">
-        <thead><tr><th>game</th><th>reason</th><th>description</th><th>reported</th><th>status</th></tr></thead>
-        <tbody id="reportsTable"></tbody>
-      </table>
-    </section>
-
-    <!-- System -->
-    <section class="admin-section" id="system">
-      <h2><i class='bx bx-server'></i> system management</h2>
-      <div class="form-inline">
-        <button onclick="exportData()"><i class='bx bx-download'></i> export data</button>
-        <button onclick="refreshStats()"><i class='bx bx-refresh'></i> refresh stats</button>
-      </div>
-      <h3 style="color:#fff;margin:2rem 0 1rem;">system logs</h3>
-      <div id="systemLogs"></div>
-    </section>
-
-    <!-- Maintenance -->
-    <section class="admin-section" id="maintenance">
-      <h2><i class='bx bx-wrench'></i> maintenance mode</h2>
-
-      <div class="maintenance-toggle">
-        <h3>site maintenance</h3>
-        <label class="toggle-switch">
-          <input type="checkbox" id="maintenanceToggle" onchange="toggleMaintenance()"/>
-          <span class="slider"></span>
-        </label>
-        <span id="maintenanceStatus">maintenance mode disabled</span>
-        <p style="color:#666;margin-top:1rem;font-size:.8rem;">when enabled, visitors will see a maintenance popup with update information across ALL devices</p>
-      </div>
-
-      <div class="form-inline">
-        <div class="form-group">
-          <label for="maintenanceMessage">custom maintenance message</label>
-          <input type="text" id="maintenanceMessage" placeholder="enter custom message for users" value="Polar's Shack is currently receiving a new update, and we're trying to push it to your device. This is marked as a beta update, so if anything is broken, please report the game or issue thru the play page when you select a game or app, or directly from the games / apps page. Thank you."/>
-        </div>
-        <button onclick="updateMaintenanceMessage()"><i class='bx bx-edit'></i> update message</button>
-      </div>
-
-      <div class="form-inline">
-        <button onclick="enableGlobalMaintenance()"><i class='bx bx-power-off'></i> enable global maintenance</button>
-        <button onclick="disableGlobalMaintenance()"><i class='bx bx-check-circle'></i> disable global maintenance</button>
-        <button class="danger" onclick="emergencyGlobalLockdown()"><i class='bx bx-error'></i> global emergency lockdown</button>
-      </div>
-
-      <div class="maintenance-toggle">
-        <h3>allow maintenance dismissal during lockdown</h3>
-        <label class="toggle-switch">
-          <input type="checkbox" id="allowDismissalToggle" onchange="toggleMaintenanceDismissal()"/>
-          <span class="slider"></span>
-        </label>
-        <span id="dismissalStatus">dismissal disabled during lockdown</span>
-      </div>
-    </section>
-
-    <!-- Security -->
-    <section class="admin-section" id="security">
-      <h2><i class='bx bx-lock-alt'></i> security management</h2>
-      <div class="form-inline">
-        <div class="maintenance-toggle">
-          <h3>security system</h3>
-          <label class="toggle-switch">
-            <input type="checkbox" id="securityToggle" onchange="toggleSecuritySystem()" checked/>
-            <span class="slider"></span>
-          </label>
-          <span id="securityStatus">security system enabled</span>
-        </div>
-      </div>
-
-      <div class="system-controls">
-        <div class="control-card"><h4>failed login attempts</h4><p>monitor unauthorized access attempts</p><div class="stat-number" style="font-size:1.5rem" id="failedLogins">0</div></div>
-        <div class="control-card"><h4>active sessions</h4><p>current admin sessions</p><div class="stat-number" style="font-size:1.5rem" id="activeSessions">1</div></div>
-        <div class="control-card"><h4>proxy blocks</h4><p>blocked malicious requests</p><div class="stat-number" style="font-size:1.5rem" id="proxyBlocks">0</div></div>
-        <div class="control-card"><h4>rate limits</h4><p>requests per minute limit</p><div class="stat-number" style="font-size:1.5rem" id="rateLimit">100</div></div>
-      </div>
-    </section>
-  </div>
-
-  <!-- Firebase init (ONE time) -->
-  <script>
-    // Replace with your config if different
-    const firebaseConfig = {
-      apiKey: "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs",
-      authDomain: "polars-shack.firebaseapp.com",
-      projectId: "polars-shack",
-      storageBucket: "polars-shack.firebasestorage.app",
-      messagingSenderId: "205388124682",
-      appId: "1:205388124682:web:2b0b1605517e0c6c53c5f3",
-      databaseURL: "https://polars-shack-default-rtdb.firebaseio.com"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-
-    const auth = firebase.auth();
-    const db   = firebase.firestore();
-    const rtdb = firebase.database();
-
-    auth.onAuthStateChanged(async u => {
-      if (!u) { try { await auth.signInAnonymously(); } catch(e){ console.log('anon auth failed', e); } }
-    });
-  </script>
-
-  <!-- Global maintenance popup listener -->
-  <script>
-    (function maintenanceListener(){
-      if (!window.firebase?.database) return;
-      const ref = firebase.database().ref('settings/maintenance');
-      let box;
-      function ensureBox(){
-        if (box) return box;
-        box = document.createElement('div');
-        box.id = 'ps-maintenance';
-        box.style.cssText = 'position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.85);z-index:999999;';
-        box.innerHTML = `
-          <div style="background:#2a2a2a;border:1px solid #444;border-radius:10px;max-width:620px;width:92%;padding:1.25rem;font-family:JetBrains Mono,monospace;color:#ddd;text-align:center">
-            <h2 style="color:#fff;margin:0 0 .5rem">Maintenance</h2>
-            <p id="ps-maint-msg" style="margin:.5rem 0 1rem;color:#bbb"></p>
-            <button id="ps-maint-dismiss" style="display:none;background:#333;color:#0f0;border:1px solid #444;padding:.6rem 1rem;border-radius:6px;cursor:pointer">dismiss</button>
-          </div>`;
-        document.body.appendChild(box);
-        box.querySelector('#ps-maint-dismiss').addEventListener('click', ()=>{ box.style.display='none'; });
-        return box;
-      }
-      ref.on('value', snap => {
-        const s = snap.val() || {};
-        const active = !!(s.lockdownMode || s.maintenanceMode);
-        const dismissible = !!s.allowDismissal && !s.lockdownMode;
-        const msg = s.maintenanceMessage || 'We are performing maintenance. Please check back soon.';
-        const el = ensureBox();
-        el.querySelector('#ps-maint-msg').textContent = msg;
-        el.querySelector('#ps-maint-dismiss').style.display = dismissible ? '' : 'none';
-        el.style.display = active ? 'flex' : 'none';
-      });
-    })();
-  </script>
-
-  <!-- Admin logic -->
-  <script>
-    class AdminPanel {
-      constructor(){
-        this.startTime = Date.now();
-        this.proxyServerUrl = 'https://render-proxy-6x2v.onrender.com';
-        this.securityData = {
-          failedLogins: parseInt(localStorage.getItem('failedLogins') || '0', 10),
-          proxyBlocks:  parseInt(localStorage.getItem('proxyBlocks')  || '0', 10),
-          rateLimit:    parseInt(localStorage.getItem('rateLimit')    || '100',10),
-          activeSessions: 1,
-          securityLogs: JSON.parse(localStorage.getItem('securityLogs')||'[]')
-        };
-        this.rtdb = rtdb;
-        this.db   = db;
-        this.maintenanceRef = rtdb.ref('settings/maintenance');
-        this.chatSettingsRef = db.collection('settings').doc('chat');
-        this.adminPasswordHash = '50172b3e278ccc1f2caaac89e2911df21304024b98578c4642af9d340fc73b71';
-        this.isLoggedIn = false;
-      }
-
-      init(){
-        this.setupEventListeners();
-        this.checkLoginStatus();
-        this.updateConnectionStatus();
-        this.initializeProxyCheck();
-        this.loadSecurityData();
-        this.wireRealtimeStats();
-        this.subscribeMaintenance();
-        this.loadFirebaseData();
-        this.subscribeLiveMessages();
-        this.subscribeModCalls();
-        this.subscribeChatSettings();
-      }
-
-      setupEventListeners(){
-        document.querySelectorAll('.nav-btn').forEach(btn=>{
-          btn.addEventListener('click',e=>{
-            document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-            e.target.classList.add('active');
-          });
-        });
-      }
-
-      updateConnectionStatus(){
-        const el = document.getElementById('connectionStatus');
-        el.className = 'real-time-indicator connected';
-        el.innerHTML = "<i class='bx bx-wifi'></i> Connected (Firebase)";
-      }
-
-      async initializeProxyCheck(){
-        const el = document.getElementById('proxyStatus');
-        try {
-          await fetch(this.proxyServerUrl + '/health', { mode:'no-cors' });
-          if (el){ el.className = 'status-badge online'; el.textContent = 'online'; }
-        } catch {
-          if (el){ el.className = 'status-badge offline'; el.textContent = 'offline'; }
-        }
-      }
-
-      loadSecurityData(){
-        this.updateSecurityStats();
-      }
-      
-      updateSecurityStats(){
-        document.getElementById('failedLogins').textContent  = this.securityData.failedLogins;
-        document.getElementById('activeSessions').textContent= this.securityData.activeSessions;
-        document.getElementById('proxyBlocks').textContent   = this.securityData.proxyBlocks;
-        document.getElementById('rateLimit').textContent     = this.securityData.rateLimit;
-      }
-
-
-      async hashPassword(password){
-        const enc = new TextEncoder().encode(password);
-        const hash = await crypto.subtle.digest('SHA-256', enc);
-        return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
-      }
-      
-      async handleLogin(e){
-        e.preventDefault();
-        const pwd = document.getElementById('password').value;
-        const err = document.getElementById('errorMessage');
-        try{
-          const h = await this.hashPassword(pwd);
-          if (h === this.adminPasswordHash){
-            this.isLoggedIn = true;
-            localStorage.setItem('adminLoggedIn','true');
-            localStorage.setItem('loginTime', Date.now().toString());
-            document.getElementById('loginContainer').style.display='none';
-            document.getElementById('adminPanel').style.display='block';
-            this.addSecurityLog('Admin login successful','info');
-          } else {
-            this.securityData.failedLogins++;
-            localStorage.setItem('failedLogins', String(this.securityData.failedLogins));
-            this.updateSecurityStats();
-            err.textContent = 'Invalid password. Please try again.'; err.style.display='block';
-          }
-        } catch (e){ err.textContent='Login failed. Try again.'; err.style.display='block'; }
-      }
-      
-      checkLoginStatus(){
-        const ok = localStorage.getItem('adminLoggedIn')==='true';
-        const t  = parseInt(localStorage.getItem('loginTime') || '0', 10);
-        if (ok && Date.now() - t < 24*60*60*1000){
-          this.isLoggedIn = true;
-          document.getElementById('loginContainer').style.display='none';
-          document.getElementById('adminPanel').style.display='block';
-        } else {
-          this.logout(true);
-        }
-      }
-      
-      logout(onlyShow=false){
-        this.isLoggedIn = false;
-        localStorage.removeItem('adminLoggedIn'); localStorage.removeItem('loginTime');
-        if (!onlyShow) this.addSecurityLog('Admin logged out','info');
-        document.getElementById('adminPanel').style.display='none';
-        document.getElementById('loginContainer').style.display='block';
-      }
-
-      showSection(id){
-        document.querySelectorAll('.admin-section').forEach(s=>s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-      }
-      
-      updateUptime(){
-        const el = document.getElementById('systemUptime');
-        const h = Math.floor((Date.now() - this.startTime)/ (1000*60*60));
-        el.textContent = h + 'h';
-      }
-
-      wireRealtimeStats(){
-        this.rtdb.ref('users').on('value', snap=>{
-          document.getElementById('totalUsers').textContent = String(snap.numChildren()||0);
-        });
-
-        this.rtdb.ref('onlineUsers').on('value', snap=>{
-          document.getElementById('onlineUsers').textContent = String(snap.numChildren()||0);
-        });
-
-        this.rtdb.ref('stats/proxyRequests').on('value', snap=>{
-          document.getElementById('proxyRequests').textContent = String(snap.val()||0);
-        });
-
-        setInterval(()=>this.updateUptime(), 60000);
-        this.updateUptime();
-      }
-
-      async loadFirebaseData(){
-        try{
-          const qs = await this.db.collection('game_reports').orderBy('timestamp','desc').limit(100).get();
-          const rows = [];
-          qs.forEach(d=>{
-            const r = d.data() || {};
-            rows.push({
-              id:d.id,
-              type:r.reason || r.type || 'report',
-              reason:r.reason || '-',
-              description:r.description || '',
-              status:r.status || 'pending',
-              timestamp:r.timestamp?.toDate?.() || (r.timestamp || Date.now()),
-              gameName:r.gameName || r.game || '-'
-            });
-          });
-
-          document.getElementById('totalReports').textContent   = String(rows.length);
-          document.getElementById('pendingReports').textContent = String(rows.filter(x=>x.status==='pending').length);
-
-          const body = document.getElementById('reportsTable');
-          body.innerHTML = '';
-          rows.forEach(r=>{
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td>${r.gameName}</td>
-              <td>${r.reason}</td>
-              <td>${r.description}</td>
-              <td>${new Date(r.timestamp).toLocaleString()}</td>
-              <td>${r.status}</td>`;
-            body.appendChild(tr);
-          });
-
-          // Load users
-          const usersSnap = await this.db.collection('chat_users').orderBy('username').get();
-          const usersBody = document.getElementById('usersTable');
-          usersBody.innerHTML = '';
-          usersSnap.forEach(d => {
-            const u = d.data();
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td>${u.username}</td>
-              <td>${u.email || '-'}</td>
-              <td>${u.firstSeen ? new Date(u.firstSeen.toDate()).toLocaleString() : '-'}</td>
-              <td>${u.lastSeen ? new Date(u.lastSeen.toDate()).toLocaleString() : '-'}</td>
-              <td>${u.online ? '<span class="status-badge online">online</span>' : '<span class="status-badge offline">offline</span>'}</td>
-              <td>
-                <button class="action-btn" onclick="adminPanel.viewUser('${d.id}')">view</button>
-                <button class="action-btn danger" onclick="adminPanel.quickBan('${u.username}')">ban</button>
-              </td>
-            `;
-            usersBody.appendChild(tr);
-          });
-        } catch (e){ console.log('[admin] loadFirebaseData', e); }
-      }
-
-      subscribeLiveMessages(){
-        this.db.collection('messages')
-          .where('room','==','public')
-          .orderBy('timestamp','desc')
-          .limit(20)
-          .onSnapshot(snap => {
-            const list = document.getElementById('liveMessagesList');
-            list.innerHTML = '';
-            snap.forEach(d => {
-              const msg = d.data();
-              if (msg.system) return;
-              const div = document.createElement('div');
-              div.className = 'live-msg';
-              div.innerHTML = `
-                <div class="live-msg-meta">
-                  <span class="live-msg-user">@${msg.username}</span>
-                  ${msg.isAdmin ? '<span style="color:#ff6666;font-size:.75rem;margin-left:.3rem">admin</span>' : ''}
-                  <span style="color:#666;margin-left:.5rem;font-size:.75rem">${msg.timestamp ? new Date(msg.timestamp.toDate()).toLocaleTimeString() : ''}</span>
+        <a href="https://discord.gg/E2eVsXbCyN" target="_blank" rel="noopener noreferrer" class="enter-btn" style="margin-top: 1rem;">
+            <i class='bx bxl-discord-alt'></i>
+            join_discord
+        </a>
+        
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">
+                    <i class='bx bx-shield-alt-2'></i>
                 </div>
-                <div class="live-msg-text">${msg.text}</div>
-              `;
-              list.appendChild(div);
-            });
-          });
-      }
+                <div class="feature-title">secure proxy</div>
+                <div class="feature-description">bypass restrictions safely</div>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">
+                    <i class='bx bx-game'></i>
+                </div>
+                <div class="feature-title">unblocked games</div>
+                <div class="feature-description">entertainment without limits</div>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">
+                    <i class='bx bx-search-alt'></i>
+                </div>
+                <div class="feature-title">osint tools</div>
+                <div class="feature-description">intelligence gathering</div>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">
+                    <i class='bx bx-chat'></i>
+                </div>
+                <div class="feature-title">secure chat</div>
+                <div class="feature-description">anonymous communication</div>
+            </div>
+        </div>
 
-      subscribeModCalls(){
-        this.db.collection('mod_calls')
-          .where('seen','==',false)
-          .orderBy('timestamp','desc')
-          .limit(20)
-          .onSnapshot(snap => {
-            const list = document.getElementById('modCallsList');
-            list.innerHTML = '';
-            if (snap.empty) {
-              list.innerHTML = '<p style="color:#666;text-align:center;padding:2rem">no pending mod calls</p>';
-              return;
+        <div class="footer-links">
+            <a href="privacy.html">Privacy Policy</a>
+            <a href="tos.html">Terms of Service</a>
+        </div>
+    </div>
+
+    <div id="changelogModal" class="changelog-modal" aria-hidden="true">
+        <div class="changelog" role="dialog" aria-labelledby="changelogTitle">
+            <button id="closeChangelog" class="changelog-close">Close</button>
+            <h2 id="changelogTitle">Changelog — v84.6.0</h2>
+            <pre>
+v84.6.0  — 2025-10-03
+  • major version update with comprehensive UI overhaul
+  • modernized all pages with gradient backgrounds and enhanced shadows
+  • improved chat functionality with fixed authentication buttons
+  • refined animations and hover effects across all components
+  • enhanced accessibility and performance optimizations
+
+v1.2.0  — 2025-09-25
+  • added version widget and changelog modal (click v1.2.0 in the top-right)
+  • added links to Privacy Policy and Terms of Service
+  • refined matrix animation timings and accessibility
+  • small UX fixes and performance improvements
+
+v1.1.0  — 2025-06-10
+  • initial public launch
+  • added features grid and discord invite
+
+v1.0.0  — 2025-01-12
+  • project scaffolding and core styles
+            </pre>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const overlay = document.getElementById("tosPopupOverlay");
+            const popup = document.getElementById("tosPopup");
+            const btn = document.getElementById("tosAgreeBtn");
+
+            if (!localStorage.getItem("tosAccepted_2025_09_27")) {
+                overlay.classList.add("active");
+                setTimeout(() => popup.classList.add("show"), 50);
             }
-            snap.forEach(d => {
-              const call = d.data();
-              const div = document.createElement('div');
-              div.className = 'mod-call-item';
-              div.innerHTML = `
-                <div class="mod-call-header">
-                  <span class="mod-call-user">@${call.username}</span>
-                  <span class="mod-call-time">${call.timestamp ? new Date(call.timestamp.toDate()).toLocaleString() : ''}</span>
-                </div>
-                <div class="mod-call-reason">${call.reason}</div>
-                <div class="mod-call-actions">
-                  <button class="action-btn" onclick="adminPanel.markModCallSeen('${d.id}')">mark seen</button>
-                  <button class="action-btn danger" onclick="adminPanel.quickBan('${call.username}')">ban user</button>
-                </div>
-              `;
-              list.appendChild(div);
+
+            btn.addEventListener("click", () => {
+                btn.classList.add("loading");
+                setTimeout(() => {
+                    overlay.style.opacity = "0";
+                    popup.style.opacity = "0";
+                    setTimeout(() => overlay.remove(), 400);
+                }, 2000);
+                localStorage.setItem("tosAccepted_2025_09_27", "true");
             });
-          });
-      }
-
-      async markModCallSeen(id){
-        try {
-          await this.db.collection('mod_calls').doc(id).update({ seen: true });
-        } catch (e) {
-          console.error('mark seen failed', e);
-        }
-      }
-
-      subscribeChatSettings(){
-        this.chatSettingsRef.onSnapshot(doc => {
-          if (!doc.exists) return;
-          const data = doc.data();
-          
-          // Update lock button
-          const lockBtn = document.getElementById('lockChatBtn');
-          const lockText = document.getElementById('lockChatText');
-          if (data.locked) {
-            lockBtn.classList.add('active');
-            lockText.textContent = 'unlock chat';
-          } else {
-            lockBtn.classList.remove('active');
-            lockText.textContent = 'lock chat';
-          }
-          
-          // Update slowmode input
-          if (typeof data.slowmode === 'number') {
-            document.getElementById('slowmodeInput').value = data.slowmode;
-          }
         });
-      }
+        
+        const maintenanceScript = document.createElement('script');
+        maintenanceScript.src = 'maintenance-mode.js';
+        document.head.appendChild(maintenanceScript);
 
-      subscribeMaintenance(){
-        this.maintenanceRef.on('value', snap=>{
-          const s = snap.val() || {};
-          localStorage.setItem('maintenanceMode', s.maintenanceMode ? 'true' : 'false');
-          localStorage.setItem('lockdownMode',     s.lockdownMode   ? 'true' : 'false');
-          if (typeof s.maintenanceMessage === 'string') {
-            localStorage.setItem('maintenanceMessage', s.maintenanceMessage);
-          }
-          const toggle = document.getElementById('maintenanceToggle');
-          const status = document.getElementById('maintenanceStatus');
-          const site   = document.getElementById('siteStatus');
-          toggle.checked = !!(s.maintenanceMode || s.lockdownMode);
-          if (s.lockdownMode){ status.textContent='emergency lockdown active'; status.style.color='#ff6666'; site.className='status-badge offline'; site.textContent='lockdown'; }
-          else if (s.maintenanceMode){ status.textContent='maintenance mode enabled'; status.style.color='#ffa500'; site.className='status-badge maintenance'; site.textContent='maintenance'; }
-          else { status.textContent='maintenance mode disabled'; status.style.color='#888'; site.className='status-badge online'; site.textContent='online'; }
-          const allow = !!s.allowDismissal && !s.lockdownMode;
-          document.getElementById('allowDismissalToggle').checked = allow;
-          document.getElementById('dismissalStatus').textContent = allow ? 'dismissal allowed during lockdown' : 'dismissal disabled during lockdown';
-          document.getElementById('dismissalStatus').style.color = allow ? '#00ff00' : '#ff6666';
-          if (typeof s.maintenanceMessage === 'string'){
-            const msg = document.getElementById('maintenanceMessage');
-            if (msg && msg !== document.activeElement) msg.value = s.maintenanceMessage;
-          }
-        });
-      }
-      
-      async updateServerMaintenanceState(state){
-        const uid = (firebase.auth().currentUser && firebase.auth().currentUser.uid) || 'unknown';
-        return this.maintenanceRef.update({
-          ...state,
-          updatedBy: uid,
-          updatedAt: firebase.database.ServerValue.TIMESTAMP
-        });
-      }
-      
-      async enableGlobalMaintenance(){
-        const message = document.getElementById('maintenanceMessage').value || "Polar's Shack is currently receiving a new update...";
-        try{
-          await this.updateServerMaintenanceState({ maintenanceMode:true, lockdownMode:false, allowDismissal:true, maintenanceMessage: message });
-          alert('Global maintenance enabled');
-        }catch(e){ alert('Failed: missing RTDB admin role for this UID. Create roles/<uid>/isAdmin=true.'); }
-      }
-      
-      async disableGlobalMaintenance(){
-        try{
-          await this.updateServerMaintenanceState({ maintenanceMode:false, lockdownMode:false, maintenanceMessage:'' });
-          alert('Global maintenance disabled');
-        }catch(e){ alert('Failed: missing RTDB admin role for this UID.'); }
-      }
-      
-      async emergencyGlobalLockdown(){
-        if (!confirm('Activate GLOBAL EMERGENCY LOCKDOWN?')) return;
-        try{
-          await this.updateServerMaintenanceState({
-            maintenanceMode:false, lockdownMode:true, allowDismissal:false,
-            maintenanceMessage:'EMERGENCY LOCKDOWN: This site is temporarily unavailable due to security concerns.'
-          });
-          alert('GLOBAL EMERGENCY LOCKDOWN ACTIVATED!');
-        }catch(e){ alert('Failed: missing RTDB admin role for this UID.'); }
-      }
-      
-      async toggleMaintenance(){
-        const checked = document.getElementById('maintenanceToggle').checked;
-        if (checked) return this.enableGlobalMaintenance();
-        return this.disableGlobalMaintenance();
-      }
-      
-      async updateMaintenanceMessage(){
-        const message = (document.getElementById('maintenanceMessage').value || '').trim();
-        if (!message) return alert('Please enter a maintenance message');
-        try{
-          await this.updateServerMaintenanceState({ maintenanceMessage: message });
-          alert('Maintenance message updated');
-        }catch(e){ alert('Failed: missing RTDB admin role for this UID.'); }
-      }
-      
-      toggleMaintenanceDismissal(){
-        const allow = document.getElementById('allowDismissalToggle').checked;
-        this.updateServerMaintenanceState({ allowDismissal: !!allow }).catch(()=>alert('Failed: missing RTDB admin role for this UID.'));
-      }
-
-      async setChatOnline(online){
-        try {
-          await this.chatSettingsRef.set({ chatOnline: online }, { merge: true });
-          const chatStatus = document.getElementById('chatStatus');
-          if (online) {
-            chatStatus.className = 'status-badge online';
-            chatStatus.textContent = 'online';
-            document.getElementById('chatOnlineBtn').classList.add('active');
-            document.getElementById('chatOfflineBtn').classList.remove('active');
-            alert('Chat system is now online');
-          } else {
-            chatStatus.className = 'status-badge offline';
-            chatStatus.textContent = 'shutdown';
-            document.getElementById('chatOnlineBtn').classList.remove('active');
-            document.getElementById('chatOfflineBtn').classList.add('active');
-            alert('Chat system has been shut down - all users will see shutdown popup immediately');
-          }
-        } catch (e) {
-          alert('Failed to update chat status');
-          console.error(e);
+        function createMatrixEffect() {
+            const container = document.getElementById('matrixBg');
+            const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+            
+            function createChar() {
+                const char = document.createElement('div');
+                char.className = 'matrix-char';
+                char.textContent = chars[Math.floor(Math.random() * chars.length)];
+                char.style.left = Math.random() * 100 + '%';
+                char.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                char.style.animationDelay = Math.random() * 2 + 's';
+                
+                container.appendChild(char);
+                
+                setTimeout(() => { char.remove(); }, 5000);
+            }
+            
+            for (let i = 0; i < 50; i++) { setTimeout(createChar, Math.random() * 2000); }
+            setInterval(createChar, 200);
         }
-      }
 
-      async toggleChatLock(){
-        try {
-          const doc = await this.chatSettingsRef.get();
-          const currentLocked = doc.exists && doc.data().locked;
-          await this.chatSettingsRef.set({ locked: !currentLocked }, { merge: true });
-          alert(currentLocked ? 'Chat unlocked' : 'Chat locked');
-        } catch (e) {
-          alert('Failed to toggle chat lock');
-          console.error(e);
-        }
-      }
+        createMatrixEffect();
 
-      async setSlowmode(){
-        const seconds = parseInt(document.getElementById('slowmodeInput').value, 10) || 0;
-        try {
-          await this.chatSettingsRef.set({ slowmode: seconds }, { merge: true });
-          alert(`Slowmode set to ${seconds} seconds`);
-        } catch (e) {
-          alert('Failed to set slowmode');
-          console.error(e);
-        }
-      }
-
-      async clearMessages(){
-        const count = parseInt(document.getElementById('clearCountInput').value, 10) || 50;
-        if (!confirm(`Clear ${count} messages from public chat?`)) return;
-        try {
-          const snap = await this.db.collection('messages')
-            .where('room','==','public')
-            .orderBy('timestamp','desc')
-            .limit(count)
-            .get();
-          const batch = this.db.batch();
-          snap.docs.forEach(d => batch.delete(d.ref));
-          await batch.commit();
-          alert(`Cleared ${snap.size} messages`);
-        } catch (e) {
-          alert('Failed to clear messages');
-          console.error(e);
-        }
-      }
-
-      async quickBan(username){
-        const reason = prompt(`Ban ${username}? Enter reason:`);
-        if (!reason) return;
-        try {
-          const q = await this.db.collection('chat_users').where('username','==',username).limit(1).get();
-          if (q.empty) {
-            alert('User not found');
-            return;
-          }
-          const uid = q.docs[0].id;
-          await this.db.collection('banned_users').doc(uid).set({
-            username,
-            reason,
-            bannedBy: 'admin',
-            bannedAt: firebase.firestore.FieldValue.serverTimestamp()
-          });
-          await this.db.collection('chat_users').doc(uid).update({
-            online: false,
-            banned: true,
-            banReason: reason
-          });
-          alert(`${username} has been banned`);
-        } catch (e) {
-          alert('Failed to ban user');
-          console.error(e);
-        }
-      }
-
-      viewUser(uid){
-        alert(`View user ${uid} - implement detailed user view`);
-      }
-
-      addSecurityLog(message, level='info'){
-        const entry = { ts: Date.now(), level, message };
-        this.securityData.securityLogs.unshift(entry);
-        if (this.securityData.securityLogs.length>100) this.securityData.securityLogs.pop();
-        localStorage.setItem('securityLogs', JSON.stringify(this.securityData.securityLogs));
-      }
-      
-      toggleSecuritySystem(){
-        const on = document.getElementById('securityToggle').checked;
-        const s = document.getElementById('securityStatus');
-        s.textContent = on ? 'security system enabled' : 'security system disabled';
-        s.style.color = on ? '#4CAF50' : '#ff6666';
-      }
-    }
-
-    const adminPanel = new AdminPanel();
-
-    document.getElementById('loginForm').addEventListener('submit', (e)=>adminPanel.handleLogin(e));
-
-    window.showSection               = (id)=>adminPanel.showSection(id);
-    window.logout                    = ()=>adminPanel.logout();
-    window.toggleMaintenance         = ()=>adminPanel.toggleMaintenance();
-    window.updateMaintenanceMessage  = ()=>adminPanel.updateMaintenanceMessage();
-    window.enableGlobalMaintenance   = ()=>adminPanel.enableGlobalMaintenance();
-    window.disableGlobalMaintenance  = ()=>adminPanel.disableGlobalMaintenance();
-    window.emergencyGlobalLockdown   = ()=>adminPanel.emergencyGlobalLockdown();
-    window.toggleMaintenanceDismissal= ()=>adminPanel.toggleMaintenanceDismissal();
-    window.toggleSecuritySystem      = ()=>adminPanel.toggleSecuritySystem();
-    window.setChatOnline             = (online)=>adminPanel.setChatOnline(online);
-    window.toggleChatLock            = ()=>adminPanel.toggleChatLock();
-    window.setSlowmode               = ()=>adminPanel.setSlowmode();
-    window.clearMessages             = ()=>adminPanel.clearMessages();
-    window.banUser                   = ()=>{ const u=document.getElementById('banUsername').value; const r=document.getElementById('banReason').value; if(u) adminPanel.quickBan(u); };
-    window.unbanUser                 = async ()=>{
-      const username = document.getElementById('unbanUsername').value.trim();
-      if (!username) return alert('Please enter a username');
-      try {
-        const q = await adminPanel.db.collection('chat_users').where('username','==',username).limit(1).get();
-        if (q.empty) return alert('User not found');
-        const uid = q.docs[0].id;
-        await adminPanel.db.collection('banned_users').doc(uid).delete();
-        await adminPanel.db.collection('chat_users').doc(uid).update({
-          banned: false,
-          banReason: firebase.firestore.FieldValue.delete()
+        document.addEventListener("visibilitychange", function () {
+            if (document.hidden) {
+                document.title = "Dashboard";
+                document.getElementById("favicon").href = "https://s3.amazonaws.com/cdn.app.cte.virginia.edu/tools/images/XmeGg2PHFfRHaj3upWvncc2gmaG91fApdtDC8bdU.png";
+            } else {
+                document.title = "Polar's Shack";
+                document.getElementById("favicon").href = "logo.png";
+            }
         });
-        document.getElementById('unbanUsername').value = '';
-        alert(`${username} has been unbanned`);
-      } catch (e) {
-        alert('Failed to unban user');
-        console.error(e);
-      }
-    };
-    window.muteUser                  = async ()=>{
-      const username = document.getElementById('muteUsername').value.trim();
-      const duration = parseInt(document.getElementById('muteDuration').value, 10) || 10;
-      if (!username) return alert('Please enter a username');
-      try {
-        const q = await adminPanel.db.collection('chat_users').where('username','==',username).limit(1).get();
-        if (q.empty) return alert('User not found');
-        const uid = q.docs[0].id;
-        const muteUntil = Date.now() + (duration * 60 * 1000);
-        await adminPanel.db.collection('chat_users').doc(uid).update({
-          muted: true,
-          muteUntil: firebase.firestore.Timestamp.fromMillis(muteUntil)
+
+        window.addEventListener('load', () => {
+            document.body.style.opacity = '0';
+            document.body.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => { document.body.style.opacity = '1'; }, 100);
         });
-        document.getElementById('muteUsername').value = '';
-        alert(`${username} has been muted for ${duration} minutes`);
-      } catch (e) {
-        alert('Failed to mute user');
-        console.error(e);
-      }
-    };
-    window.kickUser                  = async ()=>{
-      const username = document.getElementById('kickUsername').value.trim();
-      if (!username) return alert('Please enter a username');
-      try {
-        const q = await adminPanel.db.collection('chat_users').where('username','==',username).limit(1).get();
-        if (q.empty) return alert('User not found');
-        const uid = q.docs[0].id;
-        await adminPanel.db.collection('chat_users').doc(uid).update({
-          online: false,
-          kicked: true,
-          kickedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        document.getElementById('kickUsername').value = '';
-        alert(`${username} has been kicked from chat`);
-      } catch (e) {
-        alert('Failed to kick user');
-        console.error(e);
-      }
-    };
-    window.exportData                = ()=>alert('Export data - implement');
-    window.refreshStats              = ()=>{ adminPanel.loadFirebaseData(); alert('Stats refreshed'); };
 
-    adminPanel.init();
+        const versionBtn = document.getElementById('versionBtn');
+        const changelogModal = document.getElementById('changelogModal');
+        const closeChangelog = document.getElementById('closeChangelog');
 
-    document.addEventListener('visibilitychange', ()=>{
-      if (document.hidden){
-        document.title = "Dashboard";
-        document.getElementById("favicon").href = "https://s3.amazonaws.com/cdn.app.cte.virginia.edu/tools/images/XmeGg2PHFfRHaj3upWvncc2gmaG91fApdtDC8bdU.png";
-      } else {
-        document.title = "Polar's Shack - Admin";
-        document.getElementById("favicon").href = "logo.png";
-      }
-    });
-  </script>
+        function openChangelog() {
+            changelogModal.style.display = 'flex';
+            changelogModal.setAttribute('aria-hidden', 'false');
+            closeChangelog.focus();
+        }
+        
+        function closeChangelogFn() {
+            changelogModal.style.display = 'none';
+            changelogModal.setAttribute('aria-hidden', 'true');
+            versionBtn.focus();
+        }
 
-  <script src="soon/analytics.js"></script>
-  <script> if (window.initAnalytics) initAnalytics('/admin.html'); </script>
+        versionBtn.addEventListener('click', openChangelog);
+        closeChangelog.addEventListener('click', closeChangelogFn);
+        changelogModal.addEventListener('click', (e) => { if (e.target === changelogModal) closeChangelogFn(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && changelogModal.style.display === 'flex') closeChangelogFn(); });
+
+        window.APP = window.APP || {};
+        window.APP.version = 'v84.6.0';
+        versionBtn.textContent = window.APP.version;
+    </script>
 </body>
 </html>
