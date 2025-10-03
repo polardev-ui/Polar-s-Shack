@@ -35,6 +35,7 @@
             width: 100%;
             z-index: 1000;
             border-bottom: 1px solid #333;
+            backdrop-filter: blur(10px);
         }
 
         .nav-container {
@@ -126,21 +127,23 @@
         .main-content {
             margin-top: 80px;
             padding: 2rem;
-            max-width: 1200px;
+            max-width: 1400px;
             margin-left: auto;
             margin-right: auto;
         }
 
         .page-header {
-            margin-bottom: 3rem;
+            margin-bottom: 2.5rem;
+            text-align: center;
         }
 
         .page-header h1 {
-            font-size: clamp(2rem, 6vw, 2.5rem);
-            font-weight: 400;
+            font-size: clamp(2.5rem, 6vw, 3.5rem);
+            font-weight: 600;
             margin-bottom: 1rem;
             color: #fff;
             position: relative;
+            display: inline-block;
         }
 
         .page-header h1::after {
@@ -151,23 +154,33 @@
         }
 
         .page-header p {
-            font-size: clamp(0.9rem, 2.5vw, 1rem);
-            color: #666;
-            max-width: 600px;
+            font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+            color: #888;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
         }
 
         .search-container {
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
             position: relative;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .search-wrapper {
+            position: relative;
+            margin-bottom: 1rem;
         }
 
         .search-input {
             width: 100%;
-            padding: 1rem;
+            padding: 1.2rem 3.5rem 1.2rem 1.2rem;
             background: #2a2a2a;
-            border: 1px solid #333;
-            border-radius: 8px;
-            color: #888;
+            border: 2px solid #333;
+            border-radius: 12px;
+            color: #fff;
             font-size: 1rem;
             outline: none;
             transition: all 0.3s ease;
@@ -176,81 +189,155 @@
 
         .search-input:focus {
             border-color: #00ff00;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
+            box-shadow: 0 0 0 3px rgba(0, 255, 0, 0.1);
+            background: #2d2d2d;
         }
 
         .search-icon {
             position: absolute;
-            right: 1rem;
+            right: 1.2rem;
             top: 50%;
             transform: translateY(-50%);
             color: #666;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
+            pointer-events: none;
+        }
+
+        .filter-tags {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-tag {
+            padding: 0.5rem 1rem;
+            background: #2a2a2a;
+            border: 1px solid #333;
+            border-radius: 20px;
+            color: #888;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .filter-tag:hover {
+            border-color: #00ff00;
+            color: #00ff00;
+            background: #2d2d2d;
+        }
+
+        .filter-tag.active {
+            background: #00ff00;
+            color: #1a1a1a;
+            border-color: #00ff00;
+            font-weight: 600;
         }
 
         .games-stats {
-            background: #2a2a2a;
+            background: linear-gradient(135deg, #2a2a2a 0%, #252525 100%);
             border: 1px solid #333;
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 3rem;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .games-stats::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00ff00, transparent);
+            animation: scan 3s linear infinite;
         }
 
         .games-count {
-            font-size: 2rem;
+            font-size: 3rem;
             color: #00ff00;
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
         }
 
         .games-label {
             color: #888;
-            font-size: 0.9rem;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
 
         .games-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
         }
 
         .game-card {
-            background: #2a2a2a;
+            background: linear-gradient(135deg, #2a2a2a 0%, #242424 100%);
             border: 1px solid #333;
-            border-radius: 8px;
+            border-radius: 16px;
             overflow: hidden;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
+            position: relative;
+        }
+
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(0, 255, 0, 0.05) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
         }
 
         .game-card:hover {
             border-color: #00ff00;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
-            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 255, 0, 0.15);
+            transform: translateY(-4px);
+        }
+
+        .game-card:hover::before {
+            opacity: 1;
         }
 
         .game-image {
             width: 100%;
-            height: 160px;
-            object-fit: cover;
-            background: #333;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            height: 180px;
             position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #333, #2a2a2a);
         }
 
         .game-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .game-card:hover .game-image img {
+            transform: scale(1.05);
         }
 
         .game-image.placeholder {
-            background: linear-gradient(135deg, #333, #444);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: #666;
-            font-size: 3rem;
+            font-size: 3.5rem;
         }
 
         .game-info {
@@ -259,71 +346,103 @@
 
         .game-title {
             color: #fff;
-            font-size: 1rem;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
             line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .game-description {
-            color: #666;
-            font-size: 0.8rem;
-            line-height: 1.4;
-            margin-bottom: 1rem;
+            color: #888;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            margin-bottom: 1.25rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .game-actions {
             display: flex;
-            gap: 0.5rem;
+            gap: 0.75rem;
         }
 
         .play-btn {
             flex: 1;
             background: #00ff00;
             color: #1a1a1a;
-            border: 1px solid #00ff00;
-            padding: 0.6rem;
-            border-radius: 4px;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 8px;
             cursor: pointer;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
             text-decoration: none;
             text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
         .play-btn:hover {
             background: #00cc00;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 255, 0, 0.3);
+        }
+
+        .play-btn:active {
+            transform: translateY(0);
         }
 
         .report-btn {
-            background: #444;
+            background: #333;
             color: #888;
-            border: 1px solid #555;
-            padding: 0.6rem;
-            border-radius: 4px;
+            border: 1px solid #444;
+            padding: 0.75rem;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 0.8rem;
-            transition: all 0.3s ease;
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 48px;
         }
 
         .report-btn:hover {
-            background: #555;
+            background: #3a3a3a;
             color: #ff6666;
             border-color: #ff6666;
+            transform: translateY(-1px);
         }
 
         .no-results {
             text-align: center;
             color: #666;
-            font-size: 1.1rem;
-            margin: 3rem 0;
+            font-size: 1.2rem;
+            margin: 4rem 0;
+            padding: 3rem;
+            background: #2a2a2a;
+            border-radius: 16px;
+            border: 1px dashed #333;
         }
 
         @keyframes blink {
             0%, 50% { opacity: 1; }
             51%, 100% { opacity: 0; }
+        }
+
+        @keyframes scan {
+            0% { left: -100%; }
+            100% { left: 100%; }
         }
 
         @media (max-width: 768px) {
@@ -336,21 +455,38 @@
             }
 
             .main-content {
-                padding: 1rem;
+                padding: 1.5rem 1rem;
                 margin-top: 70px;
             }
 
             .games-grid {
                 grid-template-columns: 1fr;
-                gap: 1rem;
+                gap: 1.5rem;
             }
 
             .game-image {
-                height: 140px;
+                height: 160px;
             }
 
             .game-info {
-                padding: 1rem;
+                padding: 1.25rem;
+            }
+
+            .games-stats {
+                padding: 1.5rem;
+            }
+
+            .games-count {
+                font-size: 2.5rem;
+            }
+
+            .filter-tags {
+                gap: 0.5rem;
+            }
+
+            .filter-tag {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.8rem;
             }
         }
     </style>
@@ -399,8 +535,18 @@
         </section>
 
         <div class="search-container">
-            <input type="text" class="search-input" id="searchInput" placeholder="search games...">
-            <i class='bx bx-search search-icon'></i>
+            <div class="search-wrapper">
+                <input type="text" class="search-input" id="searchInput" placeholder="search games by name or description...">
+                <i class='bx bx-search search-icon'></i>
+            </div>
+            <div class="filter-tags">
+                <div class="filter-tag active" data-filter="all">all games</div>
+                <div class="filter-tag" data-filter="action">action</div>
+                <div class="filter-tag" data-filter="puzzle">puzzle</div>
+                <div class="filter-tag" data-filter="racing">racing</div>
+                <div class="filter-tag" data-filter="shooter">shooter</div>
+                <div class="filter-tag" data-filter="multiplayer">multiplayer</div>
+            </div>
         </div>
 
         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9156548662984796"
@@ -426,6 +572,7 @@
         </section>
 
         <div class="no-results" id="noResults" style="display: none;">
+            <i class='bx bx-search-alt' style="font-size: 3rem; display: block; margin-bottom: 1rem; color: #444;"></i>
             no games found matching your search.
         </div>
     </main>
@@ -620,11 +767,13 @@
             constructor() {
                 this.allGames = games;
                 this.filteredGames = games;
+                this.currentFilter = 'all';
                 this.init();
             }
 
             init() {
                 this.setupSearch();
+                this.setupFilters();
                 this.renderGames();
                 this.updateGameCount();
             }
@@ -636,17 +785,31 @@
                 });
             }
 
+            setupFilters() {
+                const filterTags = document.querySelectorAll('.filter-tag');
+                filterTags.forEach(tag => {
+                    tag.addEventListener('click', () => {
+                        filterTags.forEach(t => t.classList.remove('active'));
+                        tag.classList.add('active');
+                        this.currentFilter = tag.dataset.filter;
+                        this.filterGames(document.getElementById('searchInput').value);
+                    });
+                });
+            }
+
             filterGames(searchTerm) {
                 const term = searchTerm.toLowerCase().trim();
                 
-                if (!term) {
-                    this.filteredGames = this.allGames;
-                } else {
-                    this.filteredGames = this.allGames.filter(game => 
+                this.filteredGames = this.allGames.filter(game => {
+                    const matchesSearch = !term || 
                         game.name.toLowerCase().includes(term) ||
-                        (game.description && game.description.toLowerCase().includes(term))
-                    );
-                }
+                        (game.description && game.description.toLowerCase().includes(term));
+                    
+                    const matchesFilter = this.currentFilter === 'all' || 
+                        (game.description && game.description.toLowerCase().includes(this.currentFilter));
+                    
+                    return matchesSearch && matchesFilter;
+                });
 
                 this.renderGames();
                 this.updateGameCount();
