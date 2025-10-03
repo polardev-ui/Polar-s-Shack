@@ -812,11 +812,16 @@ body {
     let currentUser = null;
     let currentRoom = 'public';
     let unsubscribeMessages = null;
+    let dmRooms = [];
 
     document.getElementById('signUpBtn').addEventListener('click', signUp);
     document.getElementById('signInBtn').addEventListener('click', signIn);
     document.getElementById('logoutBtn').addEventListener('click', logout);
     document.getElementById('settingsBtn').addEventListener('click', () => {
+      if (currentUser) {
+        document.getElementById('newUsername').value = currentUser.username;
+        document.getElementById('userBio').value = currentUser.bio || '';
+      }
       document.getElementById('settingsModal').classList.add('active');
     });
     document.getElementById('closeSettingsBtn').addEventListener('click', () => {
@@ -827,6 +832,132 @@ body {
     });
     document.getElementById('closeBanBtn').addEventListener('click', () => {
       document.getElementById('banModal').classList.remove('active');
+    });
+
+    document.getElementById('updateUsernameBtn').addEventListener('click', async () => {
+      const newUsername = document.getElementById('newUsername').value.trim();
+      
+      if (!newUsername) {
+        document.getElementById('settingsError').textContent = 'Username cannot be empty';
+        document.getElementById('settingsError').style.display = 'block';
+        return;
+      }
+
+      if (containsOffensive(newUsername)) {
+        document.getElementById('settingsError').textContent = 'Username contains inappropriate content';
+        document.getElementById('settingsError').style.display = 'block';
+        return;
+      }
+
+      // Check if username is already taken
+      const usernameQuery = await db.collection('users').where('username', '==', newUsername).get();
+      if (!usernameQuery.empty && usernameQuery.docs[0].id !== currentUser.uid) {
+        document.getElementById('settingsError').textContent = 'Username already taken';
+        document.getElementById('settingsError').style.display = 'block';
+        return;
+      }
+
+      try {
+        await db.collection('users').doc(currentUser.uid).update({ username: newUsername });
+        currentUser.username = newUsername;
+        document.getElementById('meDisplay').textContent = `@${newUsername}`;
+        document.getElementById('settingsError').textContent = 'Username updated successfully!';
+        document.getElementById('settingsError').style.color = '#00ff00';
+        document.getElementById('settingsError').style.display = 'block';
+        setTimeout(() => {
+          document.getElementById('settingsError').style.display = 'none';
+          document.getElementById('settingsError').style.color = '#ff6666';
+        }, 3000);
+      } catch (error) {
+        document.getElementById('settingsError').textContent = 'Failed to update username';
+        document.getElementById('settingsError').style.display = 'block';
+      }
+    });
+
+    document.getElementById('updateBioBtn').addEventListener('click', async () => {
+      const newBio = document.getElementById('userBio').value.trim();
+
+      if (containsOffensive(newBio)) {
+        document.getElementById('settingsError').textContent = 'Bio contains inappropriate content';
+        document.getElementById('settingsError').style.display = 'block';
+        return;
+      }
+
+      try {
+        await db.collection('users').doc(currentUser.uid).update({ bio: newBio });
+        currentUser.bio = newBio;
+        document.getElementById('settingsError').textContent = 'Bio updated successfully!';
+        document.getElementById('settingsError').style.color = '#00ff00';
+        document.getElementById('settingsError').style.display = 'block';
+        setTimeout(() => {
+          document.getElementById('settingsError').style.display = 'none';
+          document.getElementById('settingsError').style.color = '#ff6666';
+        }, 3000);
+      } catch (error) {
+        document.getElementById('settingsError').textContent = 'Failed to update bio';
+        document.getElementById('settingsError').style.display = 'block';
+      }
+    });
+
+    document.getElementById('soundToggle').addEventListener('click', function() {
+      this.classList.toggle('active');
+      const enabled = this.classList.contains('active');
+      localStorage.setItem('soundNotifications', enabled);
+    });
+
+    document.getElementById('desktopToggle').addEventListener('click', function() {
+      this.classList.toggle('active');
+      const enabled = this.classList.contains('active');
+      localStorage.setItem('desktopNotifications', enabled);
+      if (enabled && 'Notification' in window) {
+        Notification.requestPermission();
+      }
+    });
+
+    document.getElementById('onlineToggle').addEventListener('click', async function() {
+      this.classList.toggle('active');
+      const enabled = this.classList.contains('active');
+      if (currentUser) {
+        await db.collection('users').doc(currentUser.uid).update({ showOnlineStatus: enabled });
+      }
+    });
+
+    document.getElementById('dmUserBtn').addEventListener('click', async () => {
+      const profileUsername = document.getElementById('profileUsername').textContent;
+      
+      // Find the user by username
+      const userQuery = await db.collection('users').where('username', '==', profileUsername).get();
+      if (userQuery.empty) return;
+      
+      const targetUser = { uid: userQuery.docs[0].id, ...userQuery.docs[0].data() };
+      
+      // Create DM room ID (sorted UIDs to ensure consistency)
+      const roomId = [currentUser.uid, targetUser.uid].sort().join('_');
+      
+      // Check if DM room already exists
+      if (!dmRooms.find(room => room.id === roomId)) {
+        dmRooms.push({
+          id: roomId,
+          name: `@${targetUser.username}`,
+          type: 'dm',
+          participants: [currentUser.uid, targetUser.uid]
+        });
+        
+        // Save DM room to user's account
+        await db.collection('users').doc(currentUser.uid).update({
+          dmRooms: firebase.firestore.FieldValue.arrayUnion({
+            roomId,
+            withUser: targetUser.uid,
+            withUsername: targetUser.username
+          })
+        });
+        
+        renderRoomTabs();
+      }
+      
+      // Switch to DM room
+      switchRoom(roomId);
+      document.getElementById('profileModal').classList.remove('active');
     });
 
     document.getElementById('cancelReply').addEventListener('click', () => {
@@ -872,37 +1003,70 @@ body {
       if (contextMenuTarget) {
         const username = contextMenuTarget.querySelector('.username').textContent;
         const content = contextMenuTarget.querySelector('.content').textContent;
-        reportMessage(username, content);
+        const timestamp = contextMenuTarget.querySelector('.meta span:last-child').textContent;
+        reportMessage(username, content, timestamp);
       }
     });
 
-    function reportMessage(username, content) {
+    async function reportMessage(username, content, timestamp) {
       const reportData = {
         reporter: currentUser.username,
+        reporterUid: currentUser.uid,
         reportedUser: username,
         message: content,
-        timestamp: Date.now()
+        messageTime: timestamp,
+        room: currentRoom,
+        timestamp: Date.now(),
+        status: 'pending'
       };
 
-      db.collection('reports').add(reportData).then(() => {
-        // Notify all online admins
-        db.collection('users').where('isAdmin', '==', true).get().then(snapshot => {
-          snapshot.forEach(doc => {
-            const adminData = doc.data();
-            if (adminData.online) {
-              notifyAdmin(adminData.username, username, content);
-            }
+      try {
+        // Save report to database
+        await db.collection('reports').add(reportData);
+        
+        // Show confirmation to reporter
+        alert('Message reported successfully. Admins will review it shortly.');
+        
+        // Notify all online admins in real-time
+        const adminsSnapshot = await db.collection('users').where('isAdmin', '==', true).where('online', '==', true).get();
+        
+        adminsSnapshot.forEach(async (doc) => {
+          const adminData = doc.data();
+          // Create notification for admin
+          await db.collection('notifications').add({
+            recipientUid: doc.id,
+            type: 'report',
+            title: 'New Message Report',
+            body: `User "${username}" reported by ${currentUser.username}`,
+            message: content,
+            timestamp: Date.now(),
+            read: false
           });
         });
-      });
+        
+        // Show notification to admins who are currently online
+        notifyOnlineAdmins(username, content, timestamp);
+      } catch (error) {
+        console.error('[v0] Report error:', error);
+        alert('Failed to submit report. Please try again.');
+      }
     }
 
-    function notifyAdmin(adminUsername, reportedUser, message) {
-      const notif = document.getElementById('adminNotification');
-      document.getElementById('notifBody').textContent = `User "${reportedUser}" reported for message: "${message}"`;
-      document.getElementById('notifMeta').textContent = `Reported by: ${currentUser.username} at ${new Date().toLocaleTimeString()}`;
-      notif.classList.add('active');
-      setTimeout(() => notif.classList.remove('active'), 10000);
+    function notifyOnlineAdmins(reportedUser, message, timestamp) {
+      // Listen for admin notifications if current user is admin
+      if (currentUser && currentUser.isAdmin) {
+        const notif = document.getElementById('adminNotification');
+        document.getElementById('notifBody').innerHTML = `
+          <strong>Reported User:</strong> ${reportedUser}<br>
+          <strong>Message:</strong> "${message}"<br>
+          <strong>Time:</strong> ${timestamp}
+        `;
+        document.getElementById('notifMeta').textContent = `Reported by: ${currentUser.username} at ${new Date().toLocaleTimeString()}`;
+        notif.classList.add('active');
+        
+        // Auto-hide after 15 seconds
+        setTimeout(() => notif.classList.remove('active'), 15000);
+      }
     }
 
     function closeAdminNotif() {
@@ -937,7 +1101,10 @@ body {
           createdAt: Date.now(),
           isAdmin: false,
           isBanned: false,
-          online: true
+          online: true,
+          bio: '',
+          dmRooms: [],
+          showOnlineStatus: true
         });
         document.getElementById('authModal').classList.remove('active');
       } catch (error) {
@@ -1002,8 +1169,26 @@ body {
           document.getElementById('meDisplay').textContent = `@${currentUser.username}`;
           await db.collection('users').doc(user.uid).update({ online: true });
           
+          if (currentUser.dmRooms && currentUser.dmRooms.length > 0) {
+            dmRooms = currentUser.dmRooms.map(dm => ({
+              id: dm.roomId,
+              name: `@${dm.withUsername}`,
+              type: 'dm',
+              participants: [currentUser.uid, dm.withUser]
+            }));
+            renderRoomTabs();
+          }
+          
           loadMessages();
           loadOnlineUsers();
+          
+          // Load saved settings
+          const soundEnabled = localStorage.getItem('soundNotifications') !== 'false';
+          const desktopEnabled = localStorage.getItem('desktopNotifications') === 'true';
+          if (soundEnabled) document.getElementById('soundToggle').classList.add('active');
+          if (desktopEnabled) document.getElementById('desktopToggle').classList.add('active');
+          if (currentUser.showOnlineStatus !== false) document.getElementById('onlineToggle').classList.add('active');
+          
           console.log('[v0] Messages and users loaded');
         } else {
           console.error('[v0] User document does not exist');
@@ -1014,6 +1199,75 @@ body {
         document.getElementById('meDisplay').textContent = '@guest';
       }
     });
+
+    function switchRoom(roomId) {
+      currentRoom = roomId;
+      loadMessages();
+      
+      // Update active tab
+      document.querySelectorAll('.room-tab').forEach(tab => {
+        tab.classList.remove('active');
+        if (tab.dataset.room === roomId) {
+          tab.classList.add('active');
+        }
+      });
+      
+      // Update chat title
+      const room = dmRooms.find(r => r.id === roomId);
+      if (room) {
+        document.getElementById('chatTitle').textContent = `DM with ${room.name}`;
+      } else {
+        document.getElementById('chatTitle').textContent = 'public chat';
+      }
+    }
+
+    function renderRoomTabs() {
+      const tabsContainer = document.getElementById('roomTabs');
+      tabsContainer.innerHTML = `
+        <div class="room-tab ${currentRoom === 'public' ? 'active' : ''}" data-room="public">
+          <i class='bx bx-globe'></i> public chat
+        </div>
+      `;
+      
+      dmRooms.forEach(room => {
+        const tab = document.createElement('div');
+        tab.className = `room-tab ${currentRoom === room.id ? 'active' : ''}`;
+        tab.dataset.room = room.id;
+        tab.innerHTML = `
+          <i class='bx bx-message'></i> ${room.name}
+          <span class="close-dm" data-room="${room.id}">×</span>
+        `;
+        tab.addEventListener('click', (e) => {
+          if (!e.target.classList.contains('close-dm')) {
+            switchRoom(room.id);
+          }
+        });
+        
+        // Close DM functionality
+        tab.querySelector('.close-dm').addEventListener('click', async (e) => {
+          e.stopPropagation();
+          dmRooms = dmRooms.filter(r => r.id !== room.id);
+          await db.collection('users').doc(currentUser.uid).update({
+            dmRooms: dmRooms.map(r => ({
+              roomId: r.id,
+              withUser: r.participants.find(uid => uid !== currentUser.uid),
+              withUsername: r.name.substring(1)
+            }))
+          });
+          if (currentRoom === room.id) {
+            switchRoom('public');
+          }
+          renderRoomTabs();
+        });
+        
+        tabsContainer.appendChild(tab);
+      });
+      
+      // Add click handlers to public tab
+      tabsContainer.querySelector('[data-room="public"]').addEventListener('click', () => {
+        switchRoom('public');
+      });
+    }
 
     function loadMessages() {
       if (unsubscribeMessages) unsubscribeMessages();
@@ -1128,6 +1382,12 @@ body {
 
       await db.collection('messages').add(messageData);
       input.value = '';
+      
+      // Play sound notification if enabled
+      if (localStorage.getItem('soundNotifications') !== 'false') {
+        // You can add a sound file here
+        // new Audio('/notification.mp3').play();
+      }
     }
 
     window.addEventListener('beforeunload', () => {
