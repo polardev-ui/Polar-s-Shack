@@ -17,6 +17,8 @@
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:'JetBrains Mono','Courier New',monospace;background:#1a1a1a;color:#888;min-height:100vh}
+    
+    
     .login-container{display:flex;justify-content:center;align-items:center;min-height:100vh;background:linear-gradient(135deg,#1a1a1a 0%,#2a2a2a 100%)}
     .login-box{background:#2a2a2a;border:1px solid #333;border-radius:8px;padding:3rem;max-width:400px;width:100%;text-align:center}
     .login-box h1{color:#fff;font-size:1.8rem;margin-bottom:.5rem}
@@ -79,6 +81,112 @@
     .real-time-indicator{position:fixed;top:2rem;left:2rem;background:#333;padding:.5rem 1rem;border-radius:4px;border:1px solid #444;font-size:.7rem;z-index:1000}
     .real-time-indicator.connected{border-color:#00ff00;color:#00ff00}
     .real-time-indicator.disconnected{border-color:#ff6666;color:#ff6666}
+    
+    /* Enhanced chat controls section */
+    .chat-controls{
+      background:linear-gradient(145deg,#2a2a2a,#252525);
+      border:1px solid #333;
+      border-radius:12px;
+      padding:1.75rem;
+      margin-bottom:2rem;
+      box-shadow:0 4px 15px rgba(0,0,0,0.3);
+    }
+    .chat-controls h3{
+      color:#fff;
+      font-size:1.15rem;
+      margin-bottom:1.25rem;
+      border-bottom:2px solid #00ff00;
+      padding-bottom:.75rem;
+      display:flex;
+      align-items:center;
+      gap:.5rem;
+    }
+    .chat-control-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:1.25rem;
+      background:#333;
+      border-radius:10px;
+      margin-bottom:1rem;
+      border:1px solid #444;
+      transition:all .3s ease;
+    }
+    .chat-control-row:hover{
+      background:#3a3a3a;
+      border-color:#00ff00;
+      transform:translateX(4px);
+    }
+    .chat-control-info{flex:1}
+    .chat-control-info h4{
+      color:#fff;
+      font-size:1rem;
+      margin-bottom:.4rem;
+      font-weight:600;
+    }
+    .chat-control-info p{
+      color:#888;
+      font-size:.85rem;
+      line-height:1.4;
+    }
+    .chat-control-actions{display:flex;gap:.75rem;flex-wrap:wrap}
+    .quick-action-btn{
+      background:#444;
+      color:#00ff00;
+      border:2px solid #555;
+      padding:.75rem 1.25rem;
+      border-radius:8px;
+      cursor:pointer;
+      font-size:.85rem;
+      transition:all .3s ease;
+      font-family:'JetBrains Mono',monospace;
+      display:flex;
+      align-items:center;
+      gap:.5rem;
+      font-weight:500;
+    }
+    .quick-action-btn:hover{
+      background:#555;
+      border-color:#00ff00;
+      transform:translateY(-2px);
+      box-shadow:0 4px 12px rgba(0,255,0,0.2);
+    }
+    .quick-action-btn.danger{
+      color:#ff6666;
+      border-color:#ff6666;
+    }
+    .quick-action-btn.danger:hover{
+      background:#ff6666;
+      color:#fff;
+      box-shadow:0 4px 12px rgba(255,102,102,0.3);
+    }
+    .quick-action-btn.active{
+      background:linear-gradient(135deg,#00ff00,#00cc00);
+      color:#000;
+      border-color:#00ff00;
+      font-weight:600;
+      box-shadow:0 4px 15px rgba(0,255,0,0.3);
+    }
+    
+    /* Mod calls section */
+    .mod-calls{background:#2a2a2a;border:1px solid #333;border-radius:8px;padding:1.5rem;margin-bottom:2rem}
+    .mod-calls h3{color:#fff;font-size:1.1rem;margin-bottom:1rem;border-bottom:1px solid #333;padding-bottom:.5rem}
+    .mod-call-item{background:#333;padding:1rem;border-radius:6px;margin-bottom:.75rem;border-left:3px solid #ff6666}
+    .mod-call-item.seen{border-left-color:#444;opacity:.6}
+    .mod-call-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem}
+    .mod-call-user{color:#00ff00;font-weight:600}
+    .mod-call-time{color:#666;font-size:.75rem}
+    .mod-call-reason{color:#ddd;font-size:.85rem;margin-bottom:.75rem}
+    .mod-call-actions{display:flex;gap:.5rem}
+    
+    /* Live chat messages monitor */
+    .live-messages{background:#2a2a2a;border:1px solid #333;border-radius:8px;padding:1.5rem;margin-bottom:2rem;max-height:400px;overflow-y:auto}
+    .live-messages h3{color:#fff;font-size:1.1rem;margin-bottom:1rem;border-bottom:1px solid #333;padding-bottom:.5rem}
+    .live-msg{background:#333;padding:.75rem;border-radius:6px;margin-bottom:.5rem;font-size:.85rem}
+    .live-msg-meta{color:#888;margin-bottom:.3rem}
+    .live-msg-user{color:#00ff00;font-weight:600}
+    .live-msg-text{color:#ddd}
+    
     @media (max-width:768px){
       .admin-container{padding:1rem}
       .admin-header{padding:1.5rem}
@@ -87,6 +195,9 @@
       .form-inline .form-group{min-width:unset}
       .logout-btn{top:1rem;right:1rem;padding:.6rem 1rem}
       .real-time-indicator{top:1rem;left:1rem}
+      .chat-control-row{flex-direction:column;align-items:flex-start;gap:.75rem}
+      .chat-control-actions{width:100%}
+      .quick-action-btn{flex:1}
     }
   </style>
 </head>
@@ -121,9 +232,10 @@
 
     <nav class="admin-nav">
       <button class="nav-btn active" onclick="showSection('dashboard')">dashboard</button>
+      <button class="nav-btn" onclick="showSection('chat')">chat control</button>
       <button class="nav-btn" onclick="showSection('users')">users</button>
       <button class="nav-btn" onclick="showSection('reports')">reports</button>
-      <button class="nav-btn" onclick="showSection('chat')">chat logs</button>
+      <button class="nav-btn" onclick="showSection('modcalls')">mod calls</button>
       <button class="nav-btn" onclick="showSection('system')">system</button>
       <button class="nav-btn" onclick="showSection('maintenance')">maintenance</button>
       <button class="nav-btn" onclick="showSection('security')">security</button>
@@ -165,44 +277,152 @@
       </div>
     </section>
 
+    <!-- Enhanced Chat Control Section -->
+    <section class="admin-section" id="chat">
+      <h2><i class='bx bx-message-dots'></i> chat management & control</h2>
+      
+      <!-- Quick Actions -->
+      <div class="chat-controls">
+        <h3><i class='bx bx-bolt'></i> quick actions</h3>
+        
+        <div class="chat-control-row">
+          <div class="chat-control-info">
+            <h4>chat system status</h4>
+            <p>enable or disable the entire chat system immediately</p>
+          </div>
+          <div class="chat-control-actions">
+            <button class="quick-action-btn active" id="chatOnlineBtn" onclick="setChatOnline(true)">
+              <i class='bx bx-check-circle'></i> online
+            </button>
+            <button class="quick-action-btn danger" id="chatOfflineBtn" onclick="setChatOnline(false)">
+              <i class='bx bx-x-circle'></i> shutdown
+            </button>
+          </div>
+        </div>
+
+        <div class="chat-control-row">
+          <div class="chat-control-info">
+            <h4>lock chat</h4>
+            <p>prevent non-admin users from sending messages</p>
+          </div>
+          <div class="chat-control-actions">
+            <button class="quick-action-btn" id="lockChatBtn" onclick="toggleChatLock()">
+              <i class='bx bx-lock'></i> <span id="lockChatText">lock chat</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="chat-control-row">
+          <div class="chat-control-info">
+            <h4>slowmode</h4>
+            <p>set message rate limit (seconds between messages)</p>
+          </div>
+          <div class="chat-control-actions">
+            <input type="number" id="slowmodeInput" placeholder="seconds" style="width:120px;padding:.75rem;background:#2a2a2a;border:2px solid #444;border-radius:8px;color:#fff;font-family:'JetBrains Mono',monospace;font-size:.9rem" value="0" min="0" max="60" />
+            <button class="quick-action-btn" onclick="setSlowmode()">
+              <i class='bx bx-time'></i> apply
+            </button>
+          </div>
+        </div>
+
+        <div class="chat-control-row">
+          <div class="chat-control-info">
+            <h4>clear messages</h4>
+            <p>delete recent messages from public chat</p>
+          </div>
+          <div class="chat-control-actions">
+            <input type="number" id="clearCountInput" placeholder="count" style="width:120px;padding:.75rem;background:#2a2a2a;border:2px solid #444;border-radius:8px;color:#fff;font-family:'JetBrains Mono',monospace;font-size:.9rem" value="50" min="1" max="500" />
+            <button class="quick-action-btn danger" onclick="clearMessages()">
+              <i class='bx bx-trash'></i> clear
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- User Management -->
+      <div class="chat-controls">
+        <h3><i class='bx bx-user-pin'></i> user management</h3>
+        <div class="form-inline">
+          <div class="form-group">
+            <label for="banUsername">ban user</label>
+            <input type="text" id="banUsername" placeholder="enter username"/>
+          </div>
+          <div class="form-group">
+            <label for="banReason">reason</label>
+            <input type="text" id="banReason" placeholder="ban reason"/>
+          </div>
+          <button onclick="banUser()"><i class='bx bx-block'></i> ban user</button>
+        </div>
+        
+        <div class="form-inline">
+          <div class="form-group">
+            <label for="unbanUsername">unban user</label>
+            <input type="text" id="unbanUsername" placeholder="enter username"/>
+          </div>
+          <button onclick="unbanUser()"><i class='bx bx-check'></i> unban user</button>
+        </div>
+
+        <div class="form-inline">
+          <div class="form-group">
+            <label for="muteUsername">mute user</label>
+            <input type="text" id="muteUsername" placeholder="enter username"/>
+          </div>
+          <div class="form-group">
+            <label for="muteDuration">duration (minutes)</label>
+            <input type="number" id="muteDuration" placeholder="minutes" value="10" min="1"/>
+          </div>
+          <button onclick="muteUser()"><i class='bx bx-volume-mute'></i> mute user</button>
+        </div>
+
+        <div class="form-inline">
+          <div class="form-group">
+            <label for="kickUsername">kick user</label>
+            <input type="text" id="kickUsername" placeholder="enter username"/>
+          </div>
+          <button onclick="kickUser()"><i class='bx bx-exit'></i> kick user</button>
+        </div>
+      </div>
+
+      <!-- Live Messages Monitor -->
+      <div class="live-messages">
+        <h3><i class='bx bx-receipt'></i> live messages <span style="color:#666;font-size:.8rem">(last 20)</span></h3>
+        <div id="liveMessagesList"></div>
+      </div>
+    </section>
+
+    <!-- Mod Calls Section -->
+    <section class="admin-section" id="modcalls">
+      <h2><i class='bx bx-shield-alt'></i> moderator calls</h2>
+      <div class="mod-calls">
+        <h3><i class='bx bx-trending-up'></i> pending mod calls</h3>
+        <div id="modCallsList"></div>
+      </div>
+    </section>
+
     <!-- Users -->
     <section class="admin-section" id="users">
-      <h2>user management</h2>
+      <h2><i class='bx bx-user-circle'></i> user management</h2>
       <table class="data-table">
-        <thead><tr><th>device id</th><th>first seen</th><th>last seen</th><th>last page</th></tr></thead>
+        <thead><tr><th>username</th><th>email</th><th>first seen</th><th>last seen</th><th>status</th><th>actions</th></tr></thead>
         <tbody id="usersTable"></tbody>
       </table>
     </section>
 
     <!-- Reports -->
     <section class="admin-section" id="reports">
-      <h2>game reports</h2>
+      <h2><i class='bx bx-list-check'></i> game reports</h2>
       <table class="data-table">
         <thead><tr><th>game</th><th>reason</th><th>description</th><th>reported</th><th>status</th></tr></thead>
         <tbody id="reportsTable"></tbody>
       </table>
     </section>
 
-    <!-- Chat (placeholder hooks to your chat admin) -->
-    <section class="admin-section" id="chat">
-      <h2>chat management</h2>
-      <div class="form-inline">
-        <div class="form-group"><label for="banUsername">ban user:</label><input type="text" id="banUsername" placeholder="enter username"/></div>
-        <button onclick="banUser()">ban user</button>
-      </div>
-      <div class="form-inline">
-        <div class="form-group"><label for="unbanUsername">unban user:</label><input type="text" id="unbanUsername" placeholder="enter username"/></div>
-        <button onclick="unbanUser()">unban user</button>
-      </div>
-      <h3 style="color:#fff;margin:2rem 0 1rem;">recent chat messages</h3>
-      <div id="chatLogs"></div>
-    </section>
-
     <!-- System -->
     <section class="admin-section" id="system">
-      <h2>system management</h2>
+      <h2><i class='bx bx-server'></i> system management</h2>
       <div class="form-inline">
-        <button onclick="exportData()">export data</button>
+        <button onclick="exportData()"><i class='bx bx-download'></i> export data</button>
+        <button onclick="refreshStats()"><i class='bx bx-refresh'></i> refresh stats</button>
       </div>
       <h3 style="color:#fff;margin:2rem 0 1rem;">system logs</h3>
       <div id="systemLogs"></div>
@@ -210,7 +430,7 @@
 
     <!-- Maintenance -->
     <section class="admin-section" id="maintenance">
-      <h2>maintenance mode</h2>
+      <h2><i class='bx bx-wrench'></i> maintenance mode</h2>
 
       <div class="maintenance-toggle">
         <h3>site maintenance</h3>
@@ -227,13 +447,13 @@
           <label for="maintenanceMessage">custom maintenance message</label>
           <input type="text" id="maintenanceMessage" placeholder="enter custom message for users" value="Polar's Shack is currently receiving a new update, and we're trying to push it to your device. This is marked as a beta update, so if anything is broken, please report the game or issue thru the play page when you select a game or app, or directly from the games / apps page. Thank you."/>
         </div>
-        <button onclick="updateMaintenanceMessage()">update message</button>
+        <button onclick="updateMaintenanceMessage()"><i class='bx bx-edit'></i> update message</button>
       </div>
 
       <div class="form-inline">
-        <button onclick="enableGlobalMaintenance()">enable global maintenance</button>
-        <button onclick="disableGlobalMaintenance()">disable global maintenance</button>
-        <button class="danger" onclick="emergencyGlobalLockdown()">global emergency lockdown</button>
+        <button onclick="enableGlobalMaintenance()"><i class='bx bx-power-off'></i> enable global maintenance</button>
+        <button onclick="disableGlobalMaintenance()"><i class='bx bx-check-circle'></i> disable global maintenance</button>
+        <button class="danger" onclick="emergencyGlobalLockdown()"><i class='bx bx-error'></i> global emergency lockdown</button>
       </div>
 
       <div class="maintenance-toggle">
@@ -246,9 +466,9 @@
       </div>
     </section>
 
-    <!-- Security (local UI only) -->
+    <!-- Security -->
     <section class="admin-section" id="security">
-      <h2>security management</h2>
+      <h2><i class='bx bx-lock-alt'></i> security management</h2>
       <div class="form-inline">
         <div class="maintenance-toggle">
           <h3>security system</h3>
@@ -279,20 +499,20 @@
       storageBucket: "polars-shack.firebasestorage.app",
       messagingSenderId: "205388124682",
       appId: "1:205388124682:web:2b0b1605517e0c6c53c5f3",
-      databaseURL: "https://polars-shack-default-rtdb.firebaseio.com"   // RTDB
+      databaseURL: "https://polars-shack-default-rtdb.firebaseio.com"
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 
     const auth = firebase.auth();
-    const db   = firebase.firestore();     // game_reports live here
-    const rtdb = firebase.database();      // users/online/stats/maintenance live here
+    const db   = firebase.firestore();
+    const rtdb = firebase.database();
 
     auth.onAuthStateChanged(async u => {
       if (!u) { try { await auth.signInAnonymously(); } catch(e){ console.log('anon auth failed', e); } }
     });
   </script>
 
-  <!-- Global maintenance popup listener (works on ALL pages) -->
+  <!-- Global maintenance popup listener -->
   <script>
     (function maintenanceListener(){
       if (!window.firebase?.database) return;
@@ -331,7 +551,7 @@
     class AdminPanel {
       constructor(){
         this.startTime = Date.now();
-        this.proxyServerUrl = 'https://render-proxy-6x2v.onrender.com'; // optional, best-effort check
+        this.proxyServerUrl = 'https://render-proxy-6x2v.onrender.com';
         this.securityData = {
           failedLogins: parseInt(localStorage.getItem('failedLogins') || '0', 10),
           proxyBlocks:  parseInt(localStorage.getItem('proxyBlocks')  || '0', 10),
@@ -342,8 +562,8 @@
         this.rtdb = rtdb;
         this.db   = db;
         this.maintenanceRef = rtdb.ref('settings/maintenance');
-        // local password gate (extra barrier)
-        this.adminPasswordHash = '50172b3e278ccc1f2caaac89e2911df21304024b98578c4642af9d340fc73b71'; // Mango030911!
+        this.chatSettingsRef = db.collection('settings').doc('chat');
+        this.adminPasswordHash = '50172b3e278ccc1f2caaac89e2911df21304024b98578c4642af9d340fc73b71';
         this.isLoggedIn = false;
       }
 
@@ -353,15 +573,12 @@
         this.updateConnectionStatus();
         this.initializeProxyCheck();
         this.loadSecurityData();
-
-        // Live RTDB wires
         this.wireRealtimeStats();
         this.subscribeMaintenance();
-
-        // Firestore (reports)
         this.loadFirebaseData();
-
-        // anon auth ensures RTDB perms; UI shows connected regardless
+        this.subscribeLiveMessages();
+        this.subscribeModCalls();
+        this.subscribeChatSettings();
       }
 
       setupEventListeners(){
@@ -382,7 +599,6 @@
       async initializeProxyCheck(){
         const el = document.getElementById('proxyStatus');
         try {
-          // Render blocks CORS; do best-effort ping
           await fetch(this.proxyServerUrl + '/health', { mode:'no-cors' });
           if (el){ el.className = 'status-badge online'; el.textContent = 'online'; }
         } catch {
@@ -393,6 +609,7 @@
       loadSecurityData(){
         this.updateSecurityStats();
       }
+      
       updateSecurityStats(){
         document.getElementById('failedLogins').textContent  = this.securityData.failedLogins;
         document.getElementById('activeSessions').textContent= this.securityData.activeSessions;
@@ -400,12 +617,13 @@
         document.getElementById('rateLimit').textContent     = this.securityData.rateLimit;
       }
 
-      // ---------- AUTH WALL ----------
+
       async hashPassword(password){
         const enc = new TextEncoder().encode(password);
         const hash = await crypto.subtle.digest('SHA-256', enc);
         return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
       }
+      
       async handleLogin(e){
         e.preventDefault();
         const pwd = document.getElementById('password').value;
@@ -427,6 +645,7 @@
           }
         } catch (e){ err.textContent='Login failed. Try again.'; err.style.display='block'; }
       }
+      
       checkLoginStatus(){
         const ok = localStorage.getItem('adminLoggedIn')==='true';
         const t  = parseInt(localStorage.getItem('loginTime') || '0', 10);
@@ -438,6 +657,7 @@
           this.logout(true);
         }
       }
+      
       logout(onlyShow=false){
         this.isLoggedIn = false;
         localStorage.removeItem('adminLoggedIn'); localStorage.removeItem('loginTime');
@@ -446,54 +666,34 @@
         document.getElementById('loginContainer').style.display='block';
       }
 
-      // ---------- UI ----------
       showSection(id){
         document.querySelectorAll('.admin-section').forEach(s=>s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
       }
+      
       updateUptime(){
         const el = document.getElementById('systemUptime');
         const h = Math.floor((Date.now() - this.startTime)/ (1000*60*60));
         el.textContent = h + 'h';
       }
 
-      // ---------- RTDB live stats ----------
       wireRealtimeStats(){
-        // total users (unique devices)
         this.rtdb.ref('users').on('value', snap=>{
           document.getElementById('totalUsers').textContent = String(snap.numChildren()||0);
-          // also render simple table (first 100)
-          const body = document.getElementById('usersTable');
-          body.innerHTML = '';
-          let i = 0;
-          snap.forEach(child=>{
-            if (i++ > 100) return;
-            const u = child.val() || {};
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${child.key}</td>
-              <td>${u.firstSeen ? new Date(u.firstSeen).toLocaleString() : '-'}</td>
-              <td>${u.lastSeen ? new Date(u.lastSeen).toLocaleString() : '-'}</td>
-              <td>${u.lastPage || '-'}</td>`;
-            body.appendChild(tr);
-          });
         });
 
-        // online users (sessions)
         this.rtdb.ref('onlineUsers').on('value', snap=>{
           document.getElementById('onlineUsers').textContent = String(snap.numChildren()||0);
         });
 
-        // proxy requests counter (optional)
         this.rtdb.ref('stats/proxyRequests').on('value', snap=>{
           document.getElementById('proxyRequests').textContent = String(snap.val()||0);
         });
 
-        // uptime ticker
         setInterval(()=>this.updateUptime(), 60000);
         this.updateUptime();
       }
 
-      // ---------- Firestore reports ----------
       async loadFirebaseData(){
         try{
           const qs = await this.db.collection('game_reports').orderBy('timestamp','desc').limit(100).get();
@@ -526,10 +726,119 @@
               <td>${r.status}</td>`;
             body.appendChild(tr);
           });
+
+          // Load users
+          const usersSnap = await this.db.collection('chat_users').orderBy('username').get();
+          const usersBody = document.getElementById('usersTable');
+          usersBody.innerHTML = '';
+          usersSnap.forEach(d => {
+            const u = d.data();
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${u.username}</td>
+              <td>${u.email || '-'}</td>
+              <td>${u.firstSeen ? new Date(u.firstSeen.toDate()).toLocaleString() : '-'}</td>
+              <td>${u.lastSeen ? new Date(u.lastSeen.toDate()).toLocaleString() : '-'}</td>
+              <td>${u.online ? '<span class="status-badge online">online</span>' : '<span class="status-badge offline">offline</span>'}</td>
+              <td>
+                <button class="action-btn" onclick="adminPanel.viewUser('${d.id}')">view</button>
+                <button class="action-btn danger" onclick="adminPanel.quickBan('${u.username}')">ban</button>
+              </td>
+            `;
+            usersBody.appendChild(tr);
+          });
         } catch (e){ console.log('[admin] loadFirebaseData', e); }
       }
 
-      // ---------- Maintenance (RTDB) ----------
+      subscribeLiveMessages(){
+        this.db.collection('messages')
+          .where('room','==','public')
+          .orderBy('timestamp','desc')
+          .limit(20)
+          .onSnapshot(snap => {
+            const list = document.getElementById('liveMessagesList');
+            list.innerHTML = '';
+            snap.forEach(d => {
+              const msg = d.data();
+              if (msg.system) return;
+              const div = document.createElement('div');
+              div.className = 'live-msg';
+              div.innerHTML = `
+                <div class="live-msg-meta">
+                  <span class="live-msg-user">@${msg.username}</span>
+                  ${msg.isAdmin ? '<span style="color:#ff6666;font-size:.75rem;margin-left:.3rem">admin</span>' : ''}
+                  <span style="color:#666;margin-left:.5rem;font-size:.75rem">${msg.timestamp ? new Date(msg.timestamp.toDate()).toLocaleTimeString() : ''}</span>
+                </div>
+                <div class="live-msg-text">${msg.text}</div>
+              `;
+              list.appendChild(div);
+            });
+          });
+      }
+
+      subscribeModCalls(){
+        this.db.collection('mod_calls')
+          .where('seen','==',false)
+          .orderBy('timestamp','desc')
+          .limit(20)
+          .onSnapshot(snap => {
+            const list = document.getElementById('modCallsList');
+            list.innerHTML = '';
+            if (snap.empty) {
+              list.innerHTML = '<p style="color:#666;text-align:center;padding:2rem">no pending mod calls</p>';
+              return;
+            }
+            snap.forEach(d => {
+              const call = d.data();
+              const div = document.createElement('div');
+              div.className = 'mod-call-item';
+              div.innerHTML = `
+                <div class="mod-call-header">
+                  <span class="mod-call-user">@${call.username}</span>
+                  <span class="mod-call-time">${call.timestamp ? new Date(call.timestamp.toDate()).toLocaleString() : ''}</span>
+                </div>
+                <div class="mod-call-reason">${call.reason}</div>
+                <div class="mod-call-actions">
+                  <button class="action-btn" onclick="adminPanel.markModCallSeen('${d.id}')">mark seen</button>
+                  <button class="action-btn danger" onclick="adminPanel.quickBan('${call.username}')">ban user</button>
+                </div>
+              `;
+              list.appendChild(div);
+            });
+          });
+      }
+
+      async markModCallSeen(id){
+        try {
+          await this.db.collection('mod_calls').doc(id).update({ seen: true });
+        } catch (e) {
+          console.error('mark seen failed', e);
+        }
+      }
+
+      subscribeChatSettings(){
+        this.chatSettingsRef.onSnapshot(doc => {
+          if (!doc.exists) return;
+          const data = doc.data();
+          
+          // Update lock button
+          const lockBtn = document.getElementById('lockChatBtn');
+          const lockText = document.getElementById('lockChatText');
+          if (data.locked) {
+            lockBtn.classList.add('active');
+            lockText.textContent = 'unlock chat';
+          } else {
+            lockBtn.classList.remove('active');
+            lockText.textContent = 'lock chat';
+          }
+          
+          // Update slowmode input
+          if (typeof data.slowmode === 'number') {
+            document.getElementById('slowmodeInput').value = data.slowmode;
+          }
+        });
+      }
+
       subscribeMaintenance(){
         this.maintenanceRef.on('value', snap=>{
           const s = snap.val() || {};
@@ -555,8 +864,8 @@
           }
         });
       }
+      
       async updateServerMaintenanceState(state){
-        // Requires RTDB rule: roles/<uid>/isAdmin == true
         const uid = (firebase.auth().currentUser && firebase.auth().currentUser.uid) || 'unknown';
         return this.maintenanceRef.update({
           ...state,
@@ -564,6 +873,7 @@
           updatedAt: firebase.database.ServerValue.TIMESTAMP
         });
       }
+      
       async enableGlobalMaintenance(){
         const message = document.getElementById('maintenanceMessage').value || "Polar's Shack is currently receiving a new update...";
         try{
@@ -571,12 +881,14 @@
           alert('Global maintenance enabled');
         }catch(e){ alert('Failed: missing RTDB admin role for this UID. Create roles/<uid>/isAdmin=true.'); }
       }
+      
       async disableGlobalMaintenance(){
         try{
           await this.updateServerMaintenanceState({ maintenanceMode:false, lockdownMode:false, maintenanceMessage:'' });
           alert('Global maintenance disabled');
         }catch(e){ alert('Failed: missing RTDB admin role for this UID.'); }
       }
+      
       async emergencyGlobalLockdown(){
         if (!confirm('Activate GLOBAL EMERGENCY LOCKDOWN?')) return;
         try{
@@ -587,12 +899,13 @@
           alert('GLOBAL EMERGENCY LOCKDOWN ACTIVATED!');
         }catch(e){ alert('Failed: missing RTDB admin role for this UID.'); }
       }
+      
       async toggleMaintenance(){
-        // local toggle just mirrors current RTDB flags quickly
         const checked = document.getElementById('maintenanceToggle').checked;
         if (checked) return this.enableGlobalMaintenance();
         return this.disableGlobalMaintenance();
       }
+      
       async updateMaintenanceMessage(){
         const message = (document.getElementById('maintenanceMessage').value || '').trim();
         if (!message) return alert('Please enter a maintenance message');
@@ -601,22 +914,116 @@
           alert('Maintenance message updated');
         }catch(e){ alert('Failed: missing RTDB admin role for this UID.'); }
       }
+      
       toggleMaintenanceDismissal(){
         const allow = document.getElementById('allowDismissalToggle').checked;
         this.updateServerMaintenanceState({ allowDismissal: !!allow }).catch(()=>alert('Failed: missing RTDB admin role for this UID.'));
       }
 
-      // ---------- Misc/UI helpers ----------
+      async setChatOnline(online){
+        try {
+          await this.chatSettingsRef.set({ chatOnline: online }, { merge: true });
+          const chatStatus = document.getElementById('chatStatus');
+          if (online) {
+            chatStatus.className = 'status-badge online';
+            chatStatus.textContent = 'online';
+            document.getElementById('chatOnlineBtn').classList.add('active');
+            document.getElementById('chatOfflineBtn').classList.remove('active');
+            alert('Chat system is now online');
+          } else {
+            chatStatus.className = 'status-badge offline';
+            chatStatus.textContent = 'shutdown';
+            document.getElementById('chatOnlineBtn').classList.remove('active');
+            document.getElementById('chatOfflineBtn').classList.add('active');
+            alert('Chat system has been shut down - all users will see shutdown popup immediately');
+          }
+        } catch (e) {
+          alert('Failed to update chat status');
+          console.error(e);
+        }
+      }
+
+      async toggleChatLock(){
+        try {
+          const doc = await this.chatSettingsRef.get();
+          const currentLocked = doc.exists && doc.data().locked;
+          await this.chatSettingsRef.set({ locked: !currentLocked }, { merge: true });
+          alert(currentLocked ? 'Chat unlocked' : 'Chat locked');
+        } catch (e) {
+          alert('Failed to toggle chat lock');
+          console.error(e);
+        }
+      }
+
+      async setSlowmode(){
+        const seconds = parseInt(document.getElementById('slowmodeInput').value, 10) || 0;
+        try {
+          await this.chatSettingsRef.set({ slowmode: seconds }, { merge: true });
+          alert(`Slowmode set to ${seconds} seconds`);
+        } catch (e) {
+          alert('Failed to set slowmode');
+          console.error(e);
+        }
+      }
+
+      async clearMessages(){
+        const count = parseInt(document.getElementById('clearCountInput').value, 10) || 50;
+        if (!confirm(`Clear ${count} messages from public chat?`)) return;
+        try {
+          const snap = await this.db.collection('messages')
+            .where('room','==','public')
+            .orderBy('timestamp','desc')
+            .limit(count)
+            .get();
+          const batch = this.db.batch();
+          snap.docs.forEach(d => batch.delete(d.ref));
+          await batch.commit();
+          alert(`Cleared ${snap.size} messages`);
+        } catch (e) {
+          alert('Failed to clear messages');
+          console.error(e);
+        }
+      }
+
+      async quickBan(username){
+        const reason = prompt(`Ban ${username}? Enter reason:`);
+        if (!reason) return;
+        try {
+          const q = await this.db.collection('chat_users').where('username','==',username).limit(1).get();
+          if (q.empty) {
+            alert('User not found');
+            return;
+          }
+          const uid = q.docs[0].id;
+          await this.db.collection('banned_users').doc(uid).set({
+            username,
+            reason,
+            bannedBy: 'admin',
+            bannedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          await this.db.collection('chat_users').doc(uid).update({
+            online: false,
+            banned: true,
+            banReason: reason
+          });
+          alert(`${username} has been banned`);
+        } catch (e) {
+          alert('Failed to ban user');
+          console.error(e);
+        }
+      }
+
+      viewUser(uid){
+        alert(`View user ${uid} - implement detailed user view`);
+      }
+
       addSecurityLog(message, level='info'){
         const entry = { ts: Date.now(), level, message };
         this.securityData.securityLogs.unshift(entry);
         if (this.securityData.securityLogs.length>100) this.securityData.securityLogs.pop();
         localStorage.setItem('securityLogs', JSON.stringify(this.securityData.securityLogs));
       }
-      // stubs
-      banUser(){ alert('hook up to your chat admin logic'); }
-      unbanUser(){ alert('hook up to your chat admin logic'); }
-      exportData(){ alert('implement as needed'); }
+      
       toggleSecuritySystem(){
         const on = document.getElementById('securityToggle').checked;
         const s = document.getElementById('securityStatus');
@@ -625,13 +1032,10 @@
       }
     }
 
-    // Create panel ONCE and wire globals
     const adminPanel = new AdminPanel();
 
-    // login submit
     document.getElementById('loginForm').addEventListener('submit', (e)=>adminPanel.handleLogin(e));
 
-    // wire functions for onclick HTML
     window.showSection               = (id)=>adminPanel.showSection(id);
     window.logout                    = ()=>adminPanel.logout();
     window.toggleMaintenance         = ()=>adminPanel.toggleMaintenance();
@@ -641,14 +1045,74 @@
     window.emergencyGlobalLockdown   = ()=>adminPanel.emergencyGlobalLockdown();
     window.toggleMaintenanceDismissal= ()=>adminPanel.toggleMaintenanceDismissal();
     window.toggleSecuritySystem      = ()=>adminPanel.toggleSecuritySystem();
-    window.banUser                   = ()=>adminPanel.banUser();
-    window.unbanUser                 = ()=>adminPanel.unbanUser();
-    window.exportData                = ()=>adminPanel.exportData();
+    window.setChatOnline             = (online)=>adminPanel.setChatOnline(online);
+    window.toggleChatLock            = ()=>adminPanel.toggleChatLock();
+    window.setSlowmode               = ()=>adminPanel.setSlowmode();
+    window.clearMessages             = ()=>adminPanel.clearMessages();
+    window.banUser                   = ()=>{ const u=document.getElementById('banUsername').value; const r=document.getElementById('banReason').value; if(u) adminPanel.quickBan(u); };
+    window.unbanUser                 = async ()=>{
+      const username = document.getElementById('unbanUsername').value.trim();
+      if (!username) return alert('Please enter a username');
+      try {
+        const q = await adminPanel.db.collection('chat_users').where('username','==',username).limit(1).get();
+        if (q.empty) return alert('User not found');
+        const uid = q.docs[0].id;
+        await adminPanel.db.collection('banned_users').doc(uid).delete();
+        await adminPanel.db.collection('chat_users').doc(uid).update({
+          banned: false,
+          banReason: firebase.firestore.FieldValue.delete()
+        });
+        document.getElementById('unbanUsername').value = '';
+        alert(`${username} has been unbanned`);
+      } catch (e) {
+        alert('Failed to unban user');
+        console.error(e);
+      }
+    };
+    window.muteUser                  = async ()=>{
+      const username = document.getElementById('muteUsername').value.trim();
+      const duration = parseInt(document.getElementById('muteDuration').value, 10) || 10;
+      if (!username) return alert('Please enter a username');
+      try {
+        const q = await adminPanel.db.collection('chat_users').where('username','==',username).limit(1).get();
+        if (q.empty) return alert('User not found');
+        const uid = q.docs[0].id;
+        const muteUntil = Date.now() + (duration * 60 * 1000);
+        await adminPanel.db.collection('chat_users').doc(uid).update({
+          muted: true,
+          muteUntil: firebase.firestore.Timestamp.fromMillis(muteUntil)
+        });
+        document.getElementById('muteUsername').value = '';
+        alert(`${username} has been muted for ${duration} minutes`);
+      } catch (e) {
+        alert('Failed to mute user');
+        console.error(e);
+      }
+    };
+    window.kickUser                  = async ()=>{
+      const username = document.getElementById('kickUsername').value.trim();
+      if (!username) return alert('Please enter a username');
+      try {
+        const q = await adminPanel.db.collection('chat_users').where('username','==',username).limit(1).get();
+        if (q.empty) return alert('User not found');
+        const uid = q.docs[0].id;
+        await adminPanel.db.collection('chat_users').doc(uid).update({
+          online: false,
+          kicked: true,
+          kickedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        document.getElementById('kickUsername').value = '';
+        alert(`${username} has been kicked from chat`);
+      } catch (e) {
+        alert('Failed to kick user');
+        console.error(e);
+      }
+    };
+    window.exportData                = ()=>alert('Export data - implement');
+    window.refreshStats              = ()=>{ adminPanel.loadFirebaseData(); alert('Stats refreshed'); };
 
-    // boot
     adminPanel.init();
 
-    // tab title flair
     document.addEventListener('visibilitychange', ()=>{
       if (document.hidden){
         document.title = "Dashboard";
@@ -660,7 +1124,6 @@
     });
   </script>
 
-  <!-- Presence & counters (OPTIONAL on admin page, REQUIRED on user pages) -->
   <script src="soon/analytics.js"></script>
   <script> if (window.initAnalytics) initAnalytics('/admin.html'); </script>
 </body>
