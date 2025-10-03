@@ -12,18 +12,18 @@
   <style>
     /* --- your CSS unchanged --- */
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:'JetBrains Mono','Courier New',monospace;background:#1a1a1a;color:#888;height:100vh;overflow:hidden}
-    .proxy-container{height:100vh;display:flex;flex-direction:column;background:#2a2a2a}
-    .proxy-toolbar{background:#333;padding:.8rem;border-bottom:1px solid #444;display:flex;align-items:center;gap:.8rem;flex-wrap:wrap}
+    body{font-family:'JetBrains Mono','Courier New',monospace;background:linear-gradient(180deg,#0b0b0b,#111);color:#888;height:100vh;overflow:hidden}
+    .proxy-container{height:100vh;display:flex;flex-direction:column;background:linear-gradient(180deg,#1a1a1a,#1e1e1e)}
+    .proxy-toolbar{background:#1a1a1a;padding:.8rem;border-bottom:1px solid #444;display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;backdrop-filter:blur(10px)}
     .nav-controls{display:flex;gap:.3rem}
-    .nav-btn{background:#444;border:1px solid #555;color:#888;padding:.4rem .6rem;border-radius:3px;cursor:pointer;transition:all .3s ease;font-size:.8rem;min-width:30px;height:30px;display:flex;align-items:center;justify-content:center}
-    .nav-btn:hover:not(:disabled){background:#555;color:#00ff00}
+    .nav-btn{background:#2a2a2a;border:1px solid #555;color:#888;padding:.4rem .6rem;border-radius:6px;cursor:pointer;transition:all .3s ease;font-size:.8rem;min-width:30px;height:30px;display:flex;align-items:center;justify-content:center}
+    .nav-btn:hover:not(:disabled){background:#333;color:#00ff00;box-shadow:0 2px 8px rgba(0,255,0,0.2)}
     .nav-btn:disabled{opacity:.4;cursor:not-allowed}
     .url-container{flex:1;display:flex;gap:.5rem;min-width:200px}
     .url-input{flex:1;padding:.4rem .8rem;background:#2a2a2a;border:1px solid #444;border-radius:3px;color:#fff;font-size:.85rem;outline:none;transition:all .3s ease;font-family:'JetBrains Mono',monospace}
     .url-input:focus{border-color:#00ff00;box-shadow:0 0 8px rgba(0,255,0,.2)}
-    .go-button{background:#00ff00;color:#1a1a1a;border:none;padding:.4rem .8rem;border-radius:3px;cursor:pointer;font-weight:600;transition:all .3s ease;font-family:'JetBrains Mono',monospace;font-size:.8rem}
-    .go-button:hover{background:#00cc00}
+    .go-button{background:#00ff00;color:#1a1a1a;border:none;padding:.4rem .8rem;border-radius:6px;cursor:pointer;font-weight:700;transition:all .3s ease;font-family:'JetBrains Mono',monospace;font-size:.8rem}
+    .go-button:hover{background:#00cc00;box-shadow:0 2px 12px rgba(0,255,0,0.4)}
     .proxy-info{display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:#666}
     .status-indicator{width:6px;height:6px;border-radius:50%;background:#00ff00;animation:pulse 2s infinite}
     .content-area{flex:1;position:relative;background:#fff}
@@ -369,8 +369,6 @@ Advanced features coming soon!
     function goHome(){ proxy.goHome(); }
     function openSettings(){ proxy.openSettings(); }
     function retryConnection(){ proxy.retryConnection(); }
-
-    // ... (existing JavaScript code ends here)
 
     // --- SERVICE WORKER REGISTRATION (CRITICAL FIX) ---
     // This must run before any resource loads to intercept traffic.
