@@ -636,24 +636,42 @@ body {
   <div id="authModal" class="modal-overlay active">
     <div class="modal-content">
       <h2>sign in / sign up</h2>
-      <div class="form-group">
-        <label for="authEmail">email</label>
-        <input id="authEmail" type="email" placeholder="your@email.com" />
+      <div id="signInForm">
+        <div class="form-group">
+          <label for="signInUsername">username</label>
+          <input id="signInUsername" placeholder="your username" />
+        </div>
+        <div class="form-group">
+          <label for="signInPassword">password</label>
+          <input id="signInPassword" type="password" placeholder="your password" />
+        </div>
+        <div class="btn-group">
+          <button id="signInBtn" class="btn btn-primary">sign in</button>
+          <button id="showSignUpBtn" class="btn btn-secondary">need an account?</button>
+        </div>
+        <p id="signInError" class="error-msg"></p>
       </div>
-      <div class="form-group">
-        <label for="authUsername">username</label>
-        <input id="authUsername" placeholder="choose a unique username" />
+
+      <div id="signUpForm" style="display:none;">
+        <div class="form-group">
+          <label for="authEmail">email</label>
+          <input id="authEmail" type="email" placeholder="your@email.com" />
+        </div>
+        <div class="form-group">
+          <label for="authUsername">username</label>
+          <input id="authUsername" placeholder="choose a unique username" />
+        </div>
+        <div class="form-group">
+          <label for="authPassword">password</label>
+          <input id="authPassword" type="password" placeholder="secure password" />
+        </div>
+        <div class="btn-group">
+          <button id="signUpBtn" class="btn btn-primary">sign up</button>
+          <button id="showSignInBtn" class="btn btn-secondary">have an account?</button>
+        </div>
+        <p class="info-msg">email verification required for new accounts</p>
+        <p id="authError" class="error-msg"></p>
       </div>
-      <div class="form-group">
-        <label for="authPassword">password</label>
-        <input id="authPassword" type="password" placeholder="secure password" />
-      </div>
-      <div class="btn-group">
-        <button id="signInBtn" class="btn btn-primary">sign in</button>
-        <button id="signUpBtn" class="btn btn-secondary">sign up</button>
-      </div>
-      <p class="info-msg">email verification required for new accounts</p>
-      <p id="authError" class="error-msg"></p>
     </div>
   </div>
 
@@ -929,15 +947,36 @@ body {
     }
 
     async function signIn() {
-      const email = document.getElementById('authEmail').value;
-      const password = document.getElementById('authPassword').value;
+      const username = document.getElementById('signInUsername').value.trim();
+      const password = document.getElementById('signInPassword').value;
+
+      if (!username || !password) {
+        document.getElementById('signInError').textContent = 'Please enter username and password';
+        document.getElementById('signInError').style.display = 'block';
+        return;
+      }
 
       try {
-        await auth.signInWithEmailAndPassword(email, password);
+        // Find user by username
+        const userQuery = await db.collection('users').where('username', '==', username).limit(1).get();
+        
+        if (userQuery.empty) {
+          document.getElementById('signInError').textContent = 'Username not found';
+          document.getElementById('signInError').style.display = 'block';
+          return;
+        }
+
+        const userDoc = userQuery.docs[0];
+        const userData = userDoc.data();
+        
+        // Sign in with email and password
+        await auth.signInWithEmailAndPassword(userData.email, password);
         document.getElementById('authModal').classList.remove('active');
+        document.getElementById('signInError').style.display = 'none';
       } catch (error) {
-        document.getElementById('authError').textContent = error.message;
-        document.getElementById('authError').style.display = 'block';
+        console.error('[v0] Sign in error:', error);
+        document.getElementById('signInError').textContent = 'Invalid username or password';
+        document.getElementById('signInError').style.display = 'block';
       }
     }
 
@@ -946,10 +985,12 @@ body {
     }
 
     auth.onAuthStateChanged(async (user) => {
+      console.log('[v0] Auth state changed:', user ? user.uid : 'no user');
       if (user) {
         const userDoc = await db.collection('users').doc(user.uid).get();
         if (userDoc.exists) {
           currentUser = { uid: user.uid, ...userDoc.data() };
+          console.log('[v0] Current user loaded:', currentUser);
           
           if (currentUser.isBanned) {
             document.getElementById('banModal').classList.add('active');
@@ -963,10 +1004,14 @@ body {
           
           loadMessages();
           loadOnlineUsers();
+          console.log('[v0] Messages and users loaded');
+        } else {
+          console.error('[v0] User document does not exist');
         }
       } else {
         currentUser = null;
         document.getElementById('authModal').classList.add('active');
+        document.getElementById('meDisplay').textContent = '@guest';
       }
     });
 
@@ -1089,6 +1134,16 @@ body {
       if (currentUser) {
         db.collection('users').doc(currentUser.uid).update({ online: false });
       }
+    });
+
+    document.getElementById('showSignUpBtn').addEventListener('click', () => {
+      document.getElementById('signInForm').style.display = 'none';
+      document.getElementById('signUpForm').style.display = 'block';
+    });
+
+    document.getElementById('showSignInBtn').addEventListener('click', () => {
+      document.getElementById('signUpForm').style.display = 'none';
+      document.getElementById('signInForm').style.display = 'block';
     });
   </script>
 </body>
