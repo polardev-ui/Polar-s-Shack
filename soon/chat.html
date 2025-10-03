@@ -1172,7 +1172,7 @@ body {
           
           if (currentUser.dmRooms && currentUser.dmRooms.length > 0) {
             dmRooms = currentUser.dmRooms.map(dm => ({
-              roomId: dm.roomId,
+              id: dm.roomId,
               name: `@${dm.withUsername}`,
               type: 'dm',
               participants: [currentUser.uid, dm.withUser]
