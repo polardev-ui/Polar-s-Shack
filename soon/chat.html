@@ -813,6 +813,7 @@ body {
     let currentRoom = 'public';
     let unsubscribeMessages = null;
     let dmRooms = [];
+    let unreadDMs = {};
 
     document.getElementById('signUpBtn').addEventListener('click', signUp);
     document.getElementById('signInBtn').addEventListener('click', signIn);
@@ -1171,7 +1172,7 @@ body {
           
           if (currentUser.dmRooms && currentUser.dmRooms.length > 0) {
             dmRooms = currentUser.dmRooms.map(dm => ({
-              id: dm.roomId,
+              roomId: dm.roomId,
               name: `@${dm.withUsername}`,
               type: 'dm',
               participants: [currentUser.uid, dm.withUser]
@@ -1204,6 +1205,11 @@ body {
       currentRoom = roomId;
       loadMessages();
       
+      if (unreadDMs[roomId]) {
+        delete unreadDMs[roomId];
+        renderRoomTabs();
+      }
+      
       // Update active tab
       document.querySelectorAll('.room-tab').forEach(tab => {
         tab.classList.remove('active');
@@ -1233,8 +1239,12 @@ body {
         const tab = document.createElement('div');
         tab.className = `room-tab ${currentRoom === room.id ? 'active' : ''}`;
         tab.dataset.room = room.id;
+        
+        const hasUnread = unreadDMs[room.id];
+        const notifDot = hasUnread ? '<span style="width:8px;height:8px;background:#ff6666;border-radius:50%;display:inline-block;margin-left:4px;box-shadow:0 0 8px #ff6666;"></span>' : '';
+        
         tab.innerHTML = `
-          <i class='bx bx-message'></i> ${room.name}
+          <i class='bx bx-message'></i> ${room.name}${notifDot}
           <span class="close-dm" data-room="${room.id}">×</span>
         `;
         tab.addEventListener('click', (e) => {
@@ -1308,7 +1318,33 @@ body {
           });
 
           messagesDiv.scrollTop = messagesDiv.scrollHeight;
+          
+          if (currentRoom !== 'public' && currentRoom !== currentUser.uid) {
+            const lastMsg = snapshot.docs[snapshot.docs.length - 1];
+            if (lastMsg && lastMsg.data().uid !== currentUser.uid && currentRoom !== currentRoom) {
+              unreadDMs[currentRoom] = true;
+              renderRoomTabs();
+            }
+          }
         });
+      
+      dmRooms.forEach(room => {
+        if (room.id !== currentRoom) {
+          db.collection('messages')
+            .where('room', '==', room.id)
+            .orderBy('timestamp', 'desc')
+            .limit(1)
+            .onSnapshot((snapshot) => {
+              if (!snapshot.empty) {
+                const lastMsg = snapshot.docs[0].data();
+                if (lastMsg.uid !== currentUser.uid && lastMsg.timestamp > Date.now() - 5000) {
+                  unreadDMs[room.id] = true;
+                  renderRoomTabs();
+                }
+              }
+            });
+        }
+      });
     }
 
     function loadOnlineUsers() {
@@ -1351,6 +1387,12 @@ body {
 
       if (!text || !currentUser) return;
 
+      if (currentUser.isAdmin && text.startsWith('/')) {
+        await handleAdminCommand(text);
+        input.value = '';
+        return;
+      }
+
       if (containsOffensive(text)) {
         alert('Your message contains inappropriate content and cannot be sent.');
         return;
@@ -1388,6 +1430,449 @@ body {
         // You can add a sound file here
         // new Audio('/notification.mp3').play();
       }
+    }
+
+    async function handleAdminCommand(command) {
+      const parts = command.split(' ');
+      const cmd = parts[0].toLowerCase();
+      const args = parts.slice(1);
+
+      console.log('[v0] Admin command:', cmd, args);
+
+      try {
+        switch(cmd) {
+          case '/ban':
+            if (args.length < 1) {
+              alert('Usage: /ban <username> [reason]');
+              return;
+            }
+            await banUser(args[0], args.slice(1).join(' ') || 'No reason provided');
+            break;
+
+          case '/unban':
+            if (args.length < 1) {
+              alert('Usage: /unban <username>');
+              return;
+            }
+            await unbanUser(args[0]);
+            break;
+
+          case '/kick':
+            if (args.length < 1) {
+              alert('Usage: /kick <username>');
+              return;
+            }
+            await kickUser(args[0]);
+            break;
+
+          case '/mute':
+            if (args.length < 2) {
+              alert('Usage: /mute <username> <minutes>');
+              return;
+            }
+            await muteUser(args[0], parseInt(args[1]));
+            break;
+
+          case '/unmute':
+            if (args.length < 1) {
+              alert('Usage: /unmute <username>');
+              return;
+            }
+            await unmuteUser(args[0]);
+            break;
+
+          case '/clear':
+            await clearChat();
+            break;
+
+          case '/announce':
+            if (args.length < 1) {
+              alert('Usage: /announce <message>');
+              return;
+            }
+            await sendAnnouncement(args.join(' '));
+            break;
+
+          case '/warn':
+            if (args.length < 2) {
+              alert('Usage: /warn <username> <message>');
+              return;
+            }
+            await warnUser(args[0], args.slice(1).join(' '));
+            break;
+
+          case '/promote':
+            if (args.length < 1) {
+              alert('Usage: /promote <username>');
+              return;
+            }
+            await promoteUser(args[0]);
+            break;
+
+          case '/demote':
+            if (args.length < 1) {
+              alert('Usage: /demote <username>');
+              return;
+            }
+            await demoteUser(args[0]);
+            break;
+
+          case '/shutdown':
+            await shutdownChat();
+            break;
+
+          case '/restart':
+            await restartChat();
+            break;
+
+          case '/slowmode':
+            if (args.length < 1) {
+              alert('Usage: /slowmode <seconds>');
+              return;
+            }
+            await setSlowMode(parseInt(args[0]));
+            break;
+
+          case '/lockdown':
+            await toggleLockdown();
+            break;
+
+          case '/purge':
+            if (args.length < 1) {
+              alert('Usage: /purge <username>');
+              return;
+            }
+            await purgeUserMessages(args[0]);
+            break;
+
+          case '/stats':
+            await showStats();
+            break;
+
+          case '/help':
+            showAdminHelp();
+            break;
+
+          default:
+            alert(`Unknown command: ${cmd}\nType /help for a list of commands`);
+        }
+      } catch (error) {
+        console.error('[v0] Command error:', error);
+        alert(`Error executing command: ${error.message}`);
+      }
+    }
+
+    async function banUser(username, reason) {
+      const userQuery = await db.collection('users').where('username', '==', username).get();
+      if (userQuery.empty) {
+        alert('User not found');
+        return;
+      }
+
+      const userDoc = userQuery.docs[0];
+      await db.collection('users').doc(userDoc.id).update({
+        isBanned: true,
+        banReason: reason,
+        bannedBy: currentUser.username,
+        bannedAt: Date.now()
+      });
+
+      await db.collection('messages').add({
+        type: 'system',
+        text: `${username} has been banned by ${currentUser.username}. Reason: ${reason}`,
+        room: 'public',
+        timestamp: Date.now()
+      });
+
+      alert(`${username} has been banned`);
+    }
+
+    async function unbanUser(username) {
+      const userQuery = await db.collection('users').where('username', '==', username).get();
+      if (userQuery.empty) {
+        alert('User not found');
+        return;
+      }
+
+      const userDoc = userQuery.docs[0];
+      await db.collection('users').doc(userDoc.id).update({
+        isBanned: false,
+        banReason: null,
+        bannedBy: null,
+        bannedAt: null
+      });
+
+      await db.collection('messages').add({
+        type: 'system',
+        text: `${username} has been unbanned by ${currentUser.username}`,
+        room: 'public',
+        timestamp: Date.now()
+      });
+
+      alert(`${username} has been unbanned`);
+    }
+
+    async function kickUser(username) {
+      const userQuery = await db.collection('users').where('username', '==', username).get();
+      if (userQuery.empty) {
+        alert('User not found');
+        return;
+      }
+
+      const userDoc = userQuery.docs[0];
+      await db.collection('users').doc(userDoc.id).update({ online: false });
+
+      await db.collection('messages').add({
+        type: 'system',
+        text: `${username} has been kicked by ${currentUser.username}`,
+        room: 'public',
+        timestamp: Date.now()
+      });
+
+      alert(`${username} has been kicked`);
+    }
+
+    async function muteUser(username, minutes) {
+      const userQuery = await db.collection('users').where('username', '==', username).get();
+      if (userQuery.empty) {
+        alert('User not found');
+        return;
+      }
+
+      const userDoc = userQuery.docs[0];
+      const muteUntil = Date.now() + (minutes * 60 * 1000);
+      
+      await db.collection('users').doc(userDoc.id).update({
+        isMuted: true,
+        muteUntil: muteUntil,
+        mutedBy: currentUser.username
+      });
+
+      await db.collection('messages').add({
+        type: 'system',
+        text: `${username} has been muted for ${minutes} minutes by ${currentUser.username}`,
+        room: 'public',
+        timestamp: Date.now()
+      });
+
+      alert(`${username} has been muted for ${minutes} minutes`);
+    }
+
+    async function unmuteUser(username) {
+      const userQuery = await db.collection('users').where('username', '==', username).get();
+      if (userQuery.empty) {
+        alert('User not found');
+        return;
+      }
+
+      const userDoc = userQuery.docs[0];
+      await db.collection('users').doc(userDoc.id).update({
+        isMuted: false,
+        muteUntil: null,
+        mutedBy: null
+      });
+
+      await db.collection('messages').add({
+        type: 'system',
+        text: `${username} has been unmuted by ${currentUser.username}`,
+        room: 'public',
+        timestamp: Date.now()
+      });
+
+      alert(`${username} has been unmuted`);
+    }
+
+    async function clearChat() {
+      const messagesQuery = await db.collection('messages').where('room', '==', currentRoom).get();
+      const batch = db.batch();
+      messagesQuery.docs.forEach(doc => batch.delete(doc.ref));
+      await batch.commit();
+
+      await db.collection('messages').add({
+        type: 'system',
+        text: `Chat cleared by ${currentUser.username}`,
+        room: currentRoom,
+        timestamp: Date.now()
+      });
+
+      alert('Chat has been cleared');
+    }
+
+    async function sendAnnouncement(message) {
+      await db.collection('messages').add({
+        type: 'system',
+        text: `📢 ANNOUNCEMENT: ${message}`,
+        room: 'public',
+        timestamp: Date.now()
+      });
+
+      alert('Announcement sent');
+    }
+
+    async function warnUser(username, message) {
+      const userQuery = await db.collection('users').where('username', '==', username).get();
+      if (userQuery.empty) {
+        alert('User not found');
+        return;
+      }
+
+      await db.collection('messages').add({
+        type: 'system',
+        text: `⚠️ ${username} has been warned by ${currentUser.username}: ${message}`,
+        room: 'public',
+        timestamp: Date.now()
+      });
+
+      alert(`Warning sent to ${username}`);
+    }
+
+    async function promoteUser(username) {
+      const userQuery = await db.collection('users').where('username', '==', username).get();
+      if (userQuery.empty) {
+        alert('User not found');
+        return;
+      }
+
+      const userDoc = userQuery.docs[0];
+      await db.collection('users').doc(userDoc.id).update({ isAdmin: true });
+
+      await db.collection('messages').add({
+        type: 'system',
+        text: `${username} has been promoted to admin by ${currentUser.username}`,
+        room: 'public',
+        timestamp: Date.now()
+      });
+
+      alert(`${username} has been promoted to admin`);
+    }
+
+    async function demoteUser(username) {
+      const userQuery = await db.collection('users').where('username', '==', username).get();
+      if (userQuery.empty) {
+        alert('User not found');
+        return;
+      }
+
+      const userDoc = userQuery.docs[0];
+      await db.collection('users').doc(userDoc.id).update({ isAdmin: false });
+
+      await db.collection('messages').add({
+        type: 'system',
+        text: `${username} has been demoted by ${currentUser.username}`,
+        room: 'public',
+        timestamp: Date.now()
+      });
+
+      alert(`${username} has been demoted`);
+    }
+
+    async function shutdownChat() {
+      await rtdb.ref('settings/chatShutdown').set(true);
+      
+      await db.collection('messages').add({
+        type: 'system',
+        text: `🔒 Chat has been shut down by ${currentUser.username}`,
+        room: 'public',
+        timestamp: Date.now()
+      });
+
+      alert('Chat has been shut down');
+    }
+
+    async function restartChat() {
+      await rtdb.ref('settings/chatShutdown').set(false);
+      
+      await db.collection('messages').add({
+        type: 'system',
+        text: `✅ Chat has been restarted by ${currentUser.username}`,
+        room: 'public',
+        timestamp: Date.now()
+      });
+
+      alert('Chat has been restarted');
+    }
+
+    async function setSlowMode(seconds) {
+      await rtdb.ref('settings/slowMode').set(seconds);
+      
+      await db.collection('messages').add({
+        type: 'system',
+        text: `⏱️ Slow mode set to ${seconds} seconds by ${currentUser.username}`,
+        room: 'public',
+        timestamp: Date.now()
+      });
+
+      alert(`Slow mode set to ${seconds} seconds`);
+    }
+
+    async function toggleLockdown() {
+      const lockdownRef = rtdb.ref('settings/lockdown');
+      const snapshot = await lockdownRef.once('value');
+      const isLocked = snapshot.val() || false;
+      
+      await lockdownRef.set(!isLocked);
+      
+      await db.collection('messages').add({
+        type: 'system',
+        text: `🔐 Lockdown ${!isLocked ? 'enabled' : 'disabled'} by ${currentUser.username}`,
+        room: 'public',
+        timestamp: Date.now()
+      });
+
+      alert(`Lockdown ${!isLocked ? 'enabled' : 'disabled'}`);
+    }
+
+    async function purgeUserMessages(username) {
+      const messagesQuery = await db.collection('messages').where('username', '==', username).get();
+      const batch = db.batch();
+      messagesQuery.docs.forEach(doc => batch.delete(doc.ref));
+      await batch.commit();
+
+      await db.collection('messages').add({
+        type: 'system',
+        text: `All messages from ${username} have been purged by ${currentUser.username}`,
+        room: 'public',
+        timestamp: Date.now()
+      });
+
+      alert(`All messages from ${username} have been purged`);
+    }
+
+    async function showStats() {
+      const usersSnapshot = await db.collection('users').get();
+      const messagesSnapshot = await db.collection('messages').get();
+      const onlineUsers = usersSnapshot.docs.filter(doc => doc.data().online).length;
+      
+      alert(`
+📊 Chat Statistics:
+Total Users: ${usersSnapshot.size}
+Online Users: ${onlineUsers}
+Total Messages: ${messagesSnapshot.size}
+Current Room: ${currentRoom}
+      `);
+    }
+
+    function showAdminHelp() {
+      alert(`
+🛠️ Admin Commands:
+/ban <user> [reason] - Ban a user
+/unban <user> - Unban a user
+/kick <user> - Kick a user
+/mute <user> <minutes> - Mute a user
+/unmute <user> - Unmute a user
+/warn <user> <message> - Warn a user
+/promote <user> - Promote to admin
+/demote <user> - Demote from admin
+/clear - Clear chat messages
+/purge <user> - Delete all user messages
+/announce <message> - Send announcement
+/slowmode <seconds> - Set slow mode
+/lockdown - Toggle lockdown mode
+/shutdown - Shutdown chat
+/restart - Restart chat
+/stats - Show statistics
+/help - Show this help
+      `);
     }
 
     window.addEventListener('beforeunload', () => {
