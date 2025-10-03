@@ -18,7 +18,7 @@
 
         body {
             font-family: 'JetBrains Mono', 'Courier New', monospace;
-            background: #1a1a1a;
+            background: linear-gradient(180deg,#0b0b0b,#111);
             color: #888;
             min-height: 100vh;
         }
@@ -31,6 +31,7 @@
             width: 100%;
             z-index: 1000;
             border-bottom: 1px solid #333;
+            backdrop-filter: blur(10px);
         }
 
         .nav-container {
@@ -133,7 +134,7 @@
 
         .page-header h1 {
             font-size: clamp(2rem, 6vw, 2.5rem);
-            font-weight: 400;
+            font-weight: 600;
             margin-bottom: 1rem;
             color: #fff;
             position: relative;
@@ -181,17 +182,18 @@
         }
 
         .category-card {
-            background: #2a2a2a;
-            border-radius: 8px;
+            background: linear-gradient(135deg,#1e1e1e,#1a1a1a);
+            border-radius: 12px;
             border: 1px solid #333;
             overflow: hidden;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
         }
 
         .category-card:hover {
             border-color: #00ff00;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
-            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,255,0,0.2);
+            transform: translateY(-4px);
         }
 
         .category-header {
@@ -287,18 +289,21 @@
         }
 
         .tool-item {
-            background: #333;
+            background: linear-gradient(135deg,#2a2a2a,#222);
             padding: 1.5rem;
-            border-radius: 4px;
+            border-radius: 8px;
             border: 1px solid #444;
             text-align: center;
             transition: all 0.3s ease;
             cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
 
         .tool-item:hover {
-            background: #444;
+            background: linear-gradient(135deg,#333,#2a2a2a);
             border-color: #00ff00;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,255,0,0.2);
         }
 
         .tool-item i {
