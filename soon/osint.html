@@ -18,7 +18,7 @@
 
         body {
             font-family: 'JetBrains Mono', 'Courier New', monospace;
-            background: #1a1a1a;
+            background: linear-gradient(180deg,#0b0b0b,#111);
             color: #888;
             min-height: 100vh;
         }
@@ -31,6 +31,7 @@
             width: 100%;
             z-index: 1000;
             border-bottom: 1px solid #333;
+            backdrop-filter: blur(10px);
         }
 
         .nav-container {
@@ -133,7 +134,7 @@
 
         .page-header h1 {
             font-size: clamp(2rem, 6vw, 2.5rem);
-            font-weight: 400;
+            font-weight: 600;
             margin-bottom: 1rem;
             color: #fff;
             position: relative;
@@ -181,17 +182,18 @@
         }
 
         .tool-card {
-            background: #2a2a2a;
-            border-radius: 8px;
+            background: linear-gradient(135deg,#1e1e1e,#1a1a1a);
+            border-radius: 12px;
             border: 1px solid #333;
             overflow: hidden;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
         }
 
         .tool-card:hover {
             border-color: #00ff00;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
-            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,255,0,0.2);
+            transform: translateY(-4px);
         }
 
         .tool-header {
@@ -242,12 +244,13 @@
         }
 
         .tool-btn {
-            background: #333;
+            background: #2a2a2a;
             color: #00ff00;
             border: 1px solid #444;
             padding: 0.6rem 1.2rem;
-            border-radius: 4px;
+            border-radius: 8px;
             font-size: 0.8rem;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             width: 100%;
@@ -256,8 +259,10 @@
         }
 
         .tool-btn:hover {
-            background: #444;
+            background: #333;
             border-color: #00ff00;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,255,0,0.2);
         }
 
         .tool-btn:disabled {
@@ -643,41 +648,6 @@
                     resultsDiv.textContent = 'error: failed to lookup domain information';
                 }
             }
-
-            <script>
-(function maintenanceListener(){
-  if (!window.firebase?.database) return;
-  const rtdb = firebase.database();
-  const ref = rtdb.ref('settings/maintenance');
-  let box;
-
-  function ensureBox(){
-    if (box) return box;
-    box = document.createElement('div');
-    box.id = 'ps-maintenance';
-    box.style.cssText = 'position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.85);z-index:999999;';
-    box.innerHTML = `
-      <div style="background:#2a2a2a;border:1px solid #444;border-radius:10px;max-width:620px;width:92%;padding:1.25rem;font-family:JetBrains Mono,monospace;color:#ddd;text-align:center">
-        <h2 style="color:#fff;margin:0 0 .5rem">Maintenance</h2>
-        <p id="ps-maint-msg" style="margin:.5rem 0 1rem;color:#bbb"></p>
-        <button id="ps-maint-dismiss" style="display:none;background:#333;color:#0f0;border:1px solid #444;padding:.6rem 1rem;border-radius:6px;cursor:pointer">dismiss</button>
-      </div>`;
-    document.body.appendChild(box);
-    box.querySelector('#ps-maint-dismiss').addEventListener('click', ()=>{ box.style.display='none'; });
-    return box;
-  }
-
-  ref.on('value', snap => {
-    const s = snap.val() || {};
-    const active = !!(s.lockdownMode || s.maintenanceMode);
-    const dismissible = !!s.allowDismissal && !s.lockdownMode;
-    const msg = s.maintenanceMessage || 'We are performing maintenance. Please check back soon.';
-    const el = ensureBox();
-    el.querySelector('#ps-maint-msg').textContent = msg;
-    el.querySelector('#ps-maint-dismiss').style.display = dismissible ? '' : 'none';
-    el.style.display = active ? 'flex' : 'none';
-  });
-})()
 
             async geolocateIP() {
                 const ip = document.getElementById('ipInput').value.trim();
