@@ -627,8 +627,8 @@ body {
         <div class="input-row">
           <input id="messageInput" placeholder="Say something — press Enter to send" autocomplete="off" />
           <button class="send-btn" id="sendBtn">send</button>
-          <div id="sendHint" style="font-size:.8rem;color:#888;margin-top:.25rem;"></div>
         </div>
+       <div id="sendHint" style="font-size:.8rem;color:#888;margin-top:.25rem;"></div>
       </div>
     </section>
   </div>
@@ -809,6 +809,23 @@ body {
   slowMode: 0,               // seconds
   lastSentAt: 0,             // per-session cache
 };
+
+    // paste your block RIGHT HERE:
+function renderSendHint(){
+  const el = document.getElementById('sendHint');
+  if (!el) return;
+  if (settings.chatShutdown) el.textContent = 'Chat is shut down by an admin.';
+  else if (settings.lockdown) el.textContent = 'Lockdown is active. Only admins can send messages.';
+  else if (settings.slowMode > 0) el.textContent = `Slow mode: ${settings.slowMode}s`;
+  else el.textContent = '';
+}
+['chatShutdown','lockdown','slowMode'].forEach(k=>{
+  Object.defineProperty(settings, k, {
+    set(v){ this['_' + k] = v; renderSendHint(); },
+    get(){ return this['_' + k]; }
+  });
+});
+renderSendHint();
 
 function nowMs(){ return Date.now(); }
 function secondsLeft(endMs){ return Math.max(0, Math.ceil((endMs - nowMs())/1000)); }
