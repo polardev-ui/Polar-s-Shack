@@ -599,7 +599,7 @@
       async initializeProxyCheck(){
         const el = document.getElementById('proxyStatus');
         try {
-          await fetch(this.proxyServerUrl + '/health', { mode:'no-cors' });
+          await fetch(this.proxyServerUrl + '/healthz', { mode:'no-cors' });
           if (el){ el.className = 'status-badge online'; el.textContent = 'online'; }
         } catch {
           if (el){ el.className = 'status-badge offline'; el.textContent = 'offline'; }
