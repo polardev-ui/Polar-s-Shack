@@ -627,6 +627,7 @@ body {
         <div class="input-row">
           <input id="messageInput" placeholder="Say something — press Enter to send" autocomplete="off" />
           <button class="send-btn" id="sendBtn">send</button>
+          <div id="sendHint" style="font-size:.8rem;color:#888;margin-top:.25rem;"></div>
         </div>
       </div>
     </section>
@@ -802,6 +803,16 @@ body {
       return offensiveWords.some(word => lower.includes(word));
     }
 
+    const settings = {
+  chatShutdown: false,
+  lockdown: false,
+  slowMode: 0,               // seconds
+  lastSentAt: 0,             // per-session cache
+};
+
+function nowMs(){ return Date.now(); }
+function secondsLeft(endMs){ return Math.max(0, Math.ceil((endMs - nowMs())/1000)); }
+
     let lastMessage = '';
     let lastMessageTime = 0;
 
@@ -814,6 +825,22 @@ body {
     let unsubscribeMessages = null;
     let dmRooms = [];
     let unreadDMs = {};
+
+    // existing: shutdown modal listener (keep it)
+rtdb.ref('settings/chatShutdown').on('value', s => {
+  settings.chatShutdown = !!s.val();
+  document.getElementById('shutdownModal').classList.toggle('active', settings.chatShutdown);
+});
+
+// add these two listeners
+rtdb.ref('settings/lockdown').on('value', s => {
+  settings.lockdown = !!s.val();
+});
+
+rtdb.ref('settings/slowMode').on('value', s => {
+  const v = s.val();
+  settings.slowMode = typeof v === 'number' && v > 0 ? v : 0;
+});
 
     document.getElementById('signUpBtn').addEventListener('click', signUp);
     document.getElementById('signInBtn').addEventListener('click', signIn);
@@ -1382,55 +1409,74 @@ body {
     });
 
     async function sendMessage() {
-      const input = document.getElementById('messageInput');
-      const text = input.value.trim();
+  const input = document.getElementById('messageInput');
+  const text = (input.value || '').trim();
+  if (!text) return;
+  if (!currentUser) { alert('Sign in to chat.'); return; }
 
-      if (!text || !currentUser) return;
+  // Global switches
+  if (settings.chatShutdown) { alert('Chat is shut down by an admin.'); return; }
+  if (settings.lockdown && !currentUser.isAdmin) { alert('Chat is in lockdown.'); return; }
 
-      if (currentUser.isAdmin && text.startsWith('/')) {
-        await handleAdminCommand(text);
-        input.value = '';
-        return;
-      }
+  // User state (fresh read to avoid stale client-only state)
+  const meDoc = await db.collection('users').doc(currentUser.uid).get();
+  const me = meDoc.exists ? meDoc.data() : currentUser;
 
-      if (containsOffensive(text)) {
-        alert('Your message contains inappropriate content and cannot be sent.');
-        return;
-      }
+  if (me.isBanned) {
+    document.getElementById('banModal').classList.add('active');
+    document.getElementById('banReason').textContent = me.banReason || 'You have been banned from chat.';
+    await auth.signOut();
+    return;
+  }
 
-      const now = Date.now();
-      if (text === lastMessage && now - lastMessageTime < 3000) {
-        alert('Please do not spam the same message.');
-        return;
-      }
+  if (me.isMuted) {
+    const until = typeof me.muteUntil === 'number' ? me.muteUntil :
+                  (me.muteUntil && me.muteUntil.toMillis ? me.muteUntil.toMillis() : 0);
+    const wait = until ? secondsLeft(until) : null;
+    alert(wait ? `You are muted for ${wait} more second(s).` : 'You are muted.');
+    return;
+  }
 
-      lastMessage = text;
-      lastMessageTime = now;
+  // Content checks
+  if (containsOffensive(text)) { alert('Message blocked by content filter.'); return; }
 
-      const messageData = {
-        uid: currentUser.uid,
-        username: currentUser.username,
-        isAdmin: currentUser.isAdmin,
-        text,
-        room: currentRoom,
-        timestamp: Date.now()
-      };
-
-      if (replyingTo) {
-        messageData.replyTo = replyingTo;
-        replyingTo = null;
-        document.getElementById('replyIndicator').classList.remove('active');
-      }
-
-      await db.collection('messages').add(messageData);
-      input.value = '';
-      
-      // Play sound notification if enabled
-      if (localStorage.getItem('soundNotifications') !== 'false') {
-        // You can add a sound file here
-        // new Audio('/notification.mp3').play();
-      }
+  // Per-user slowmode (RTDB setting)
+  if (settings.slowMode > 0 && !me.isAdmin) {
+    const elapsed = (nowMs() - settings.lastSentAt) / 1000;
+    if (elapsed < settings.slowMode) {
+      alert(`Slow mode is on. Wait ${Math.ceil(settings.slowMode - elapsed)}s.`);
+      return;
     }
+  }
+
+  // Per-device anti-spam (existing)
+  const now = nowMs();
+  if (text === lastMessage && now - lastMessageTime < 3000) {
+    alert('Please do not spam the same message.');
+    return;
+  }
+
+  // Build message
+  const messageData = {
+    uid: currentUser.uid,
+    username: currentUser.username,
+    isAdmin: !!currentUser.isAdmin,
+    text,
+    room: currentRoom,
+    timestamp: now
+  };
+  if (replyingTo) {
+    messageData.replyTo = replyingTo;
+    replyingTo = null;
+    document.getElementById('replyIndicator').classList.remove('active');
+  }
+
+  await db.collection('messages').add(messageData);
+  settings.lastSentAt = now;
+  lastMessage = text;
+  lastMessageTime = now;
+  input.value = '';
+}
 
     async function handleAdminCommand(command) {
       const parts = command.split(' ');
