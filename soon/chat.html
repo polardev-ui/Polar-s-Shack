@@ -1421,17 +1421,25 @@ rtdb.ref('settings/slowMode').on('value', s => {
     }
 
     document.getElementById('sendBtn').addEventListener('click', sendMessage);
-    document.getElementById('messageInput').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') sendMessage();
-    });
+    document.getElementById('messageInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); sendMessage(); }
+  });
 
     async function sendMessage() {
   const input = document.getElementById('messageInput');
-  const text = (input.value || '').trim();
+  const textRaw = (input.value || '');
+  const text = textRaw.trim();
   if (!text) return;
   if (!currentUser) { alert('Sign in to chat.'); return; }
 
-  // Global switches
+  // --- ADMIN COMMANDS FIRST (so admins can act during shutdown/lockdown) ---
+  if (text.startsWith('/') && !!currentUser.isAdmin) {
+    await handleAdminCommand(text);
+    input.value = '';
+    return;
+  }
+
+  // --- Global switches ---
   if (settings.chatShutdown) { alert('Chat is shut down by an admin.'); return; }
   if (settings.lockdown && !currentUser.isAdmin) { alert('Chat is in lockdown.'); return; }
 
