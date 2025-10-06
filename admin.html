@@ -564,6 +564,9 @@
         this.maintenanceRef = rtdb.ref('settings/maintenance');
         this.chatSettingsRef = db.collection('settings').doc('chat');
         this.adminPasswordHash = '50172b3e278ccc1f2caaac89e2911df21304024b98578c4642af9d340fc73b71';
+        this.chatShutdownRef = rtdb.ref('settings/chatShutdown');
+        this.lockdownRef     = rtdb.ref('settings/lockdown');
+        this.slowModeRef     = rtdb.ref('settings/slowMode');
         this.isLoggedIn = false;
       }
 
@@ -817,28 +820,39 @@
       }
 
       subscribeChatSettings(){
-        this.chatSettingsRef.onSnapshot(doc => {
-          if (!doc.exists) return;
-          const data = doc.data();
-          
-          // Update lock button
-          const lockBtn = document.getElementById('lockChatBtn');
-          const lockText = document.getElementById('lockChatText');
-          if (data.locked) {
-            lockBtn.classList.add('active');
-            lockText.textContent = 'unlock chat';
-          } else {
-            lockBtn.classList.remove('active');
-            lockText.textContent = 'lock chat';
-          }
-          
-          // Update slowmode input
-          if (typeof data.slowmode === 'number') {
-            document.getElementById('slowmodeInput').value = data.slowmode;
-          }
-        });
-      }
+  // shutdown
+  this.chatShutdownRef.on('value', snap => {
+    const isDown = !!snap.val();
+    const chatStatus = document.getElementById('chatStatus');
+    const onlineBtn  = document.getElementById('chatOnlineBtn');
+    const offBtn     = document.getElementById('chatOfflineBtn');
+    if (isDown){
+      chatStatus.className = 'status-badge offline';
+      chatStatus.textContent = 'shutdown';
+      onlineBtn.classList.remove('active'); offBtn.classList.add('active');
+    } else {
+      chatStatus.className = 'status-badge online';
+      chatStatus.textContent = 'online';
+      onlineBtn.classList.add('active'); offBtn.classList.remove('active');
+    }
+  });
 
+  // lockdown
+  this.lockdownRef.on('value', snap => {
+    const locked = !!snap.val();
+    const btn  = document.getElementById('lockChatBtn');
+    const text = document.getElementById('lockChatText');
+    if (locked){ btn.classList.add('active'); text.textContent = 'unlock chat'; }
+    else { btn.classList.remove('active'); text.textContent = 'lock chat'; }
+  });
+
+  // slowmode
+  this.slowModeRef.on('value', snap => {
+    const v = snap.val();
+    if (typeof v === 'number') document.getElementById('slowmodeInput').value = v;
+  });
+}
+      
       subscribeMaintenance(){
         this.maintenanceRef.on('value', snap=>{
           const s = snap.val() || {};
@@ -921,50 +935,47 @@
       }
 
       async setChatOnline(online){
-        try {
-          await this.chatSettingsRef.set({ chatOnline: online }, { merge: true });
-          const chatStatus = document.getElementById('chatStatus');
-          if (online) {
-            chatStatus.className = 'status-badge online';
-            chatStatus.textContent = 'online';
-            document.getElementById('chatOnlineBtn').classList.add('active');
-            document.getElementById('chatOfflineBtn').classList.remove('active');
-            alert('Chat system is now online');
-          } else {
-            chatStatus.className = 'status-badge offline';
-            chatStatus.textContent = 'shutdown';
-            document.getElementById('chatOnlineBtn').classList.remove('active');
-            document.getElementById('chatOfflineBtn').classList.add('active');
-            alert('Chat system has been shut down - all users will see shutdown popup immediately');
-          }
-        } catch (e) {
-          alert('Failed to update chat status');
-          console.error(e);
-        }
-      }
+  try {
+    await this.chatShutdownRef.set(!online); // false = online, true = shutdown
+    const chatStatus = document.getElementById('chatStatus');
+    if (online) {
+      chatStatus.className = 'status-badge online';
+      chatStatus.textContent = 'online';
+      document.getElementById('chatOnlineBtn').classList.add('active');
+      document.getElementById('chatOfflineBtn').classList.remove('active');
+      alert('Chat system is now online');
+    } else {
+      chatStatus.className = 'status-badge offline';
+      chatStatus.textContent = 'shutdown';
+      document.getElementById('chatOnlineBtn').classList.remove('active');
+      document.getElementById('chatOfflineBtn').classList.add('active');
+      alert('Chat system has been shut down');
+    }
+  } catch (e) {
+    alert('Failed to update chat status'); console.error(e);
+  }
+}
 
       async toggleChatLock(){
-        try {
-          const doc = await this.chatSettingsRef.get();
-          const currentLocked = doc.exists && doc.data().locked;
-          await this.chatSettingsRef.set({ locked: !currentLocked }, { merge: true });
-          alert(currentLocked ? 'Chat unlocked' : 'Chat locked');
-        } catch (e) {
-          alert('Failed to toggle chat lock');
-          console.error(e);
-        }
-      }
+  try {
+    const snap = await this.lockdownRef.get();
+    const current = !!snap.val();
+    await this.lockdownRef.set(!current);
+    alert(!current ? 'Chat locked' : 'Chat unlocked');
+  } catch (e) {
+    alert('Failed to toggle chat lock'); console.error(e);
+  }
+}
 
       async setSlowmode(){
-        const seconds = parseInt(document.getElementById('slowmodeInput').value, 10) || 0;
-        try {
-          await this.chatSettingsRef.set({ slowmode: seconds }, { merge: true });
-          alert(`Slowmode set to ${seconds} seconds`);
-        } catch (e) {
-          alert('Failed to set slowmode');
-          console.error(e);
-        }
-      }
+  const seconds = parseInt(document.getElementById('slowmodeInput').value, 10) || 0;
+  try {
+    await this.slowModeRef.set(seconds);
+    alert(`Slowmode set to ${seconds} seconds`);
+  } catch (e) {
+    alert('Failed to set slowmode'); console.error(e);
+  }
+}
 
       async clearMessages(){
         const count = parseInt(document.getElementById('clearCountInput').value, 10) || 50;
