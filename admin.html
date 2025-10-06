@@ -731,7 +731,7 @@
           });
 
           // Load users
-          const usersSnap = await this.db.collection('chat_users').orderBy('username').get();
+          const usersSnap = await this.db.collection('users').orderBy('username').get();
           const usersBody = document.getElementById('usersTable');
           usersBody.innerHTML = '';
           usersSnap.forEach(d => {
@@ -1000,7 +1000,7 @@
         const reason = prompt(`Ban ${username}? Enter reason:`);
         if (!reason) return;
         try {
-          const q = await this.db.collection('chat_users').where('username','==',username).limit(1).get();
+          const q = await this.db.collection('users').where('username','==',username).limit(1).get();
           if (q.empty) {
             alert('User not found');
             return;
@@ -1012,7 +1012,7 @@
             bannedBy: 'admin',
             bannedAt: firebase.firestore.FieldValue.serverTimestamp()
           });
-          await this.db.collection('chat_users').doc(uid).update({
+          await this.db.collection('users').doc(uid).update({
             online: false,
             banned: true,
             banReason: reason
@@ -1085,11 +1085,11 @@
       const username = document.getElementById('unbanUsername').value.trim();
       if (!username) return alert('Please enter a username');
       try {
-        const q = await adminPanel.db.collection('chat_users').where('username','==',username).limit(1).get();
+        const q = await adminPanel.db.collection('users').where('username','==',username).limit(1).get();
         if (q.empty) return alert('User not found');
         const uid = q.docs[0].id;
         await adminPanel.db.collection('banned_users').doc(uid).delete();
-        await adminPanel.db.collection('chat_users').doc(uid).update({
+        await adminPanel.db.collection('users').doc(uid).update({
           banned: false,
           banReason: firebase.firestore.FieldValue.delete()
         });
@@ -1105,11 +1105,11 @@
       const duration = parseInt(document.getElementById('muteDuration').value, 10) || 10;
       if (!username) return alert('Please enter a username');
       try {
-        const q = await adminPanel.db.collection('chat_users').where('username','==',username).limit(1).get();
+        const q = await adminPanel.db.collection('users').where('username','==',username).limit(1).get();
         if (q.empty) return alert('User not found');
         const uid = q.docs[0].id;
         const muteUntil = Date.now() + (duration * 60 * 1000);
-        await adminPanel.db.collection('chat_users').doc(uid).update({
+        await adminPanel.db.collection('users').doc(uid).update({
           muted: true,
           muteUntil: firebase.firestore.Timestamp.fromMillis(muteUntil)
         });
@@ -1124,10 +1124,10 @@
       const username = document.getElementById('kickUsername').value.trim();
       if (!username) return alert('Please enter a username');
       try {
-        const q = await adminPanel.db.collection('chat_users').where('username','==',username).limit(1).get();
+        const q = await adminPanel.db.collection('users').where('username','==',username).limit(1).get();
         if (q.empty) return alert('User not found');
         const uid = q.docs[0].id;
-        await adminPanel.db.collection('chat_users').doc(uid).update({
+        await adminPanel.db.collection('users').doc(uid).update({
           online: false,
           kicked: true,
           kickedAt: firebase.firestore.FieldValue.serverTimestamp()
