@@ -706,7 +706,7 @@
               reason:r.reason || '-',
               description:r.description || '',
               status:r.status || 'pending',
-              timestamp:r.timestamp?.toDate?.() || (r.timestamp || Date.now()),
+              timestamp: tsToMillis(r.timestamp) ?? Date.now(),
               gameName:r.gameName || r.game || '-'
             });
           });
@@ -737,8 +737,8 @@
             tr.innerHTML = `
               <td>${u.username}</td>
               <td>${u.email || '-'}</td>
-              <td>${u.firstSeen ? new Date(u.firstSeen.toDate()).toLocaleString() : '-'}</td>
-              <td>${u.lastSeen ? new Date(u.lastSeen.toDate()).toLocaleString() : '-'}</td>
+              <td>${u.firstSeen ? fmtDateTime(u.firstSeen) : '-'}</td>
+              <td>${u.lastSeen ? fmtDateTime(u.lastSeen) : '-'}</td>
               <td>${u.online ? '<span class="status-badge online">online</span>' : '<span class="status-badge offline">offline</span>'}</td>
               <td>
                 <button class="action-btn" onclick="adminPanel.viewUser('${d.id}')">view</button>
@@ -767,7 +767,7 @@
                 <div class="live-msg-meta">
                   <span class="live-msg-user">@${msg.username}</span>
                   ${msg.isAdmin ? '<span style="color:#ff6666;font-size:.75rem;margin-left:.3rem">admin</span>' : ''}
-                  <span style="color:#666;margin-left:.5rem;font-size:.75rem">${msg.timestamp ? new Date(msg.timestamp.toDate()).toLocaleTimeString() : ''}</span>
+                  <span style="color:#666;margin-left:.5rem;font-size:.75rem">${fmtTime(msg.timestamp)}</span>
                 </div>
                 <div class="live-msg-text">${msg.text}</div>
               `;
@@ -795,7 +795,7 @@
               div.innerHTML = `
                 <div class="mod-call-header">
                   <span class="mod-call-user">@${call.username}</span>
-                  <span class="mod-call-time">${call.timestamp ? new Date(call.timestamp.toDate()).toLocaleString() : ''}</span>
+                  <span class="mod-call-time">${fmtDateTime(call.timestamp)}</span>
                 </div>
                 <div class="mod-call-reason">${call.reason}</div>
                 <div class="mod-call-actions">
@@ -1031,6 +1031,26 @@
         s.style.color = on ? '#4CAF50' : '#ff6666';
       }
     }
+
+  // put this ABOVE any place you render timestamps
+  function tsToMillis(v){
+    if (!v) return null;
+    if (typeof v.toMillis === 'function') return v.toMillis();
+    if (typeof v.toDate  === 'function')  return v.toDate().getTime();
+    if (typeof v === 'number')            return v;
+    if (typeof v === 'string') {
+      const n = Number(v);
+      if (!Number.isNaN(n)) return n;                 // "1712345678901"
+      const p = Date.parse(v);
+      if (!Number.isNaN(p)) return p;                 // ISO string
+    }
+    if (typeof v === 'object' && 'seconds' in v) {    // {seconds, nanoseconds}
+      return (v.seconds * 1000) + Math.floor((v.nanoseconds || 0) / 1e6);
+    }
+    return null;
+  }
+  function fmtDateTime(v){ const m = tsToMillis(v); return m ? new Date(m).toLocaleString() : ''; }
+  function fmtTime(v){ const m = tsToMillis(v); return m ? new Date(m).toLocaleTimeString() : ''; }
 
     const adminPanel = new AdminPanel();
 
