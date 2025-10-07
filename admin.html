@@ -699,7 +699,7 @@
 
       async loadFirebaseData(){
         try{
-          const qs = await this.db.collection('reports').orderBy('timestamp','desc').limit(100).get();
+          const qs = await this.db.collection('game_reports').orderBy('timestamp','desc').limit(100).get();
           const rows = [];
           qs.forEach(d=>{
             const r = d.data() || {};
