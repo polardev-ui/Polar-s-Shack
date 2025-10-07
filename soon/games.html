@@ -975,6 +975,32 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+// Report Logic for games.html (ADD this block)
+document.addEventListener('DOMContentLoaded', () => {
+    // Attach listener to all report buttons to open the modal
+    document.querySelectorAll('.report-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            // Assuming the report button is inside a game card with a .game-title
+            const card = button.closest('.game-card');
+            const title = card ? card.querySelector('.game-title').textContent.trim() : 'Unknown Game';
+            
+            document.getElementById('reportGameTitle').textContent = `"${title}"`;
+            document.getElementById('reportGameSourceTitle').value = title;
+            document.getElementById('reportModal').classList.add('active');
+        });
+    });
+
+    // Close modal if clicked outside of content
+    const reportModal = document.getElementById('reportModal');
+    if (reportModal) {
+        document.addEventListener('click', function(event) {
+            if (event.target === reportModal) {
+                reportModal.classList.remove('active');
+            }
+        });
+    }
+
     // Handle the report form submission to Firestore
     document.getElementById('gamesReportForm').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -990,7 +1016,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             const db = firebase.firestore();
-            await db.collection('game_reports').add({
+            await db.collection('game_reports').add({ // CORRECT COLLECTION: game_reports
                 source: 'games.html (Game Library)',
                 gameTitle: gameTitle,
                 reason: reason,
