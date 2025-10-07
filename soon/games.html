@@ -642,14 +642,15 @@
 </script>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs",
-            authDomain: "polars-shack.firebaseapp.com",
-            projectId: "polars-shack",
-            storageBucket: "polars-shack.firebasestorage.app",
-            messagingSenderId: "205388124682",
-            appId: "1:205388124682:web:2b0b1605517e0c6c53c5f3"
-        };
+    const firebaseConfig = {
+      apiKey: "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs",
+      authDomain: "polars-shack.firebaseapp.com",
+      projectId: "polars-shack",
+      storageBucket: "polars-shack.firebasestorage.app",
+      messagingSenderId: "205388124682",
+      appId: "1:205388124682:web:2b0b1605517e0c6c53c5f3",
+      databaseURL: "https://polars-shack-default-rtdb.firebaseio.com"
+    };
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
