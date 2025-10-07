@@ -915,19 +915,6 @@
         }
 
         function reportGame(gameName) {
-            const reason = prompt(`Report "${gameName}" for:\n\n1. Inappropriate content\n2. Broken/not working\n3. Copyright violation\n4. Other\n\nEnter reason number (1-4):`);
-            
-            if (reason && ['1', '2', '3', '4'].includes(reason)) {
-                const reasons = {
-                    '1': 'Inappropriate content',
-                    '2': 'Broken/not working', 
-                    '3': 'Copyright violation',
-                    '4': 'Other'
-                };
-                
-                const description = prompt('Additional details (optional):');
-                
-                alert(`Thank you for reporting "${gameName}" for: ${reasons[reason]}`);
             }
         }
 
