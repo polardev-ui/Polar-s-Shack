@@ -652,8 +652,8 @@
       databaseURL: "https://polars-shack-default-rtdb.firebaseio.com"
     };
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
     </script>
     
     <script>    
@@ -952,90 +952,64 @@
             }
         });
 
-        // Report Logic for games.html (ADD this block)
-document.addEventListener('DOMContentLoaded', () => {
-    // Attach listener to all report buttons to open the modal
-    document.querySelectorAll('.report-btn').forEach(button => {
-        button.addEventListener('click', (e) => {
-            e.preventDefault();
-            const card = button.closest('.game-card');
-            const title = card.querySelector('.game-title').textContent.trim();
-            
-            document.getElementById('reportGameTitle').textContent = `"${title}"`;
-            document.getElementById('reportGameSourceTitle').value = title;
-            document.getElementById('reportModal').classList.add('active');
-        });
-    });
-
-    // Close modal if clicked outside of content
-    const reportModal = document.getElementById('reportModal');
-    if (reportModal) {
-        document.addEventListener('click', function(event) {
-            if (event.target === reportModal) {
-                reportModal.classList.remove('active');
-            }
-        });
-    }
-
-// Report Logic for games.html (ADD this block)
-document.addEventListener('DOMContentLoaded', () => {
-    // Attach listener to all report buttons to open the modal
-    document.querySelectorAll('.report-btn').forEach(button => {
-        button.addEventListener('click', (e) => {
-            e.preventDefault();
-            // Assuming the report button is inside a game card with a .game-title
-            const card = button.closest('.game-card');
-            const title = card ? card.querySelector('.game-title').textContent.trim() : 'Unknown Game';
-            
-            document.getElementById('reportGameTitle').textContent = `"${title}"`;
-            document.getElementById('reportGameSourceTitle').value = title;
-            document.getElementById('reportModal').classList.add('active');
-        });
-    });
-
-    // Close modal if clicked outside of content
-    const reportModal = document.getElementById('reportModal');
-    if (reportModal) {
-        document.addEventListener('click', function(event) {
-            if (event.target === reportModal) {
-                reportModal.classList.remove('active');
-            }
-        });
-    }
-
-    // Handle the report form submission to Firestore
-    document.getElementById('gamesReportForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const reason = document.getElementById('gamesReportReason').value;
-        const description = document.getElementById('gamesReportDescription').value;
-        const gameTitle = document.getElementById('reportGameSourceTitle').value;
-        
-        if (!reason) {
-            alert('Please select a reason for the report.');
-            return;
-        }
-        
-        try {
-            const db = firebase.firestore();
-            await db.collection('game_reports').add({ // CORRECT COLLECTION: game_reports
-                source: 'games.html (Game Library)',
-                gameTitle: gameTitle,
-                reason: reason,
-                description: description,
-                url: window.location.href,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+// --- Report Logic (Using 'game_reports' Collection) ---
+    document.addEventListener('DOMContentLoaded', () => {
+        // ... (existing logic to open modal) ...
+        document.querySelectorAll('.report-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                const card = button.closest('.game-card');
+                const title = card ? card.querySelector('.game-title').textContent.trim() : 'Unknown Game';
+                
+                document.getElementById('reportGameTitle').textContent = `"${title}"`;
+                document.getElementById('reportGameSourceTitle').value = title;
+                document.getElementById('reportModal').classList.add('active');
             });
-            
-            alert('Report successfully sent! Thank you.');
-            document.getElementById('reportModal').classList.remove('active');
-            document.getElementById('gamesReportForm').reset();
-        } catch (error) {
-            console.error("Error writing document: ", error);
-            alert('Failed to send report. Please check the console for details.');
+        });
+
+        // Close modal if clicked outside of content
+        const reportModal = document.getElementById('reportModal');
+        if (reportModal) {
+            document.addEventListener('click', function(event) {
+                if (event.target === reportModal) {
+                    reportModal.classList.remove('active');
+                }
+            });
         }
+        
+        // Handle the report form submission to Firestore
+        document.getElementById('gamesReportForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const reason = document.getElementById('gamesReportReason').value;
+            const description = document.getElementById('gamesReportDescription').value;
+            const gameTitle = document.getElementById('reportGameSourceTitle').value;
+            
+            if (!reason) {
+                alert('Please select a reason for the report.');
+                return;
+            }
+            
+            try {
+                // Ensure db is defined (it is at the top of this script)
+                await db.collection('game_reports').add({ 
+                    source: 'games.html (Game Library)',
+                    gameTitle: gameTitle,
+                    reason: reason,
+                    description: description,
+                    url: window.location.href,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                alert('Report successfully sent! Thank you.');
+                document.getElementById('reportModal').classList.remove('active');
+                document.getElementById('gamesReportForm').reset();
+            } catch (error) {
+                console.error("Error writing document: ", error);
+                alert('Failed to send report. Please check the console for details.');
+            }
+        });
     });
-});
 
         const maintenanceScript = document.createElement('script');
         maintenanceScript.src = '../maintenance-mode.js';
