@@ -1003,7 +1003,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             const db = firebase.firestore();
-            await db.collection('reports').add({
+            await db.collection('game_reports').add({
                 source: 'games.html (Game Library)',
                 gameTitle: gameTitle,
                 reason: reason,
