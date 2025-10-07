@@ -709,13 +709,37 @@
             
             const reason = document.getElementById('reportReason').value;
             const description = document.getElementById('reportDescription').value;
+            // get game title for context cs reports needs it
+            const gameTitleElement = document.querySelector('.game-title');
+            const gameTitle = gameTitleElement ? gameTitleElement.textContent.trim() : 'Unknown Game';
             
             if (!reason) {
-                alert('please select a reason for the report.');
+                alert('Please select a reason for the report.');
                 return;
             }
-            
-            await gamePlayer.submitReport(reason, description);
+
+            try {
+                const db = firebase.firestore();
+                await db.collection('reports').add({
+                    source: 'play.html (Game Player)',
+                    gameTitle: gameTitle,
+                    reason: reason,
+                    description: description,
+                    url: window.location.href,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                alert('Report successfully sent! Thank you.');
+                
+                // mann close form and send func
+                const reportModal = document.querySelector('.report-modal');
+                if (reportModal) reportModal.classList.remove('active');
+                document.getElementById('reportForm').reset();
+
+            } catch (error) {
+                console.error("Error writing document: ", error);
+                alert('Failed to send report. Please check the console for details.');
+            }
         });
 
         document.addEventListener('click', (e) => {
