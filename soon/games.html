@@ -7,9 +7,6 @@
     <link id="favicon" rel="icon" href="../logo.png" type="image/png">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9156548662984796"
      crossorigin="anonymous"></script>
@@ -633,15 +630,10 @@
     <!-- Firebase scripts here first -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
-<!-- Import analytics.js -->
-<script src="analytics.js"></script>
+<!-- Initialize Firebase before loading analytics -->
 <script>
-  // Call it once when the page loads
-  initAnalytics();
-</script>
-
-    <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs",
       authDomain: "polars-shack.firebaseapp.com",
@@ -654,8 +646,15 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    </script>
-    
+</script>
+
+<!-- Import analytics.js after Firebase is initialized -->
+<script src="analytics.js"></script>
+<script>
+  // Call it once when the page loads
+  initAnalytics();
+</script>
+
     <script>    
         const games = [
             { name: "1v1.lol", url: "https://storage.googleapis.com/test-41376.appspot.com/1.html", icon: "https://th.bing.com/th/id/R.23c1cb7d41a5475776fc3186ead79f20?rik=XpxnUj55%2bqpiUA&pid=ImgRaw&r=0", description: "Battle royale building game with 1v1 combat" },
@@ -679,7 +678,7 @@
             { name: "A Dance of Fire & Ice", url: "https://ubg-reborn-eosin.vercel.app/games/a-dance-of-fire-and-ice/index.html", icon: "https://ubg-reborn-eosin.vercel.app/games/a-dance-of-fire-and-ice/splash.png", description: "Rhythm game with geometric patterns" },
             { name: "COD Zombies", url: "https://node-unblock.vercel.app/proxy/https://nzp.gay", icon: "https://ubg-reborn-eosin.vercel.app/games/cod-zombies.png", description: "Survive waves of zombies" },
             { name: "Shell Shockers", url: "https://ubg-reborn-eosin.vercel.app/games/shellshockers/index.html", icon: "https://ubg-reborn-eosin.vercel.app/games/shellshockers/img/favicon.png", description: "Multiplayer egg shooter game" },
-            { name: "Roblox", url: "https://ubg-reborn-eosin.vercel.app/error/roblox/index.html", icon: "https://ubg-reborn-eosin.vercel.app/error/roblox/UPDATED.png", description: "Create and play in virtual worlds" },
+            { name: "Roblox", url: "https://ubg-reborn-eosin.vercel.app/games/among-us/index.html", icon: "https://ubg-reborn-eosin.vercel.app/games/among-us/red.png", description: "Social deduction party game" },
             { name: "Yohoho.io", url: "https://rm.gmsgroup.app/misc/yohoho/index.html", icon: "https://rm.gmsgroup.app/misc/yohoho/favicon/android-chrome-512x512.png", description: "Pirate battle royale game" },
             { name: "Block Blast", url: "https://rm.gmsgroup.app/misc/block-blast/", icon: "https://rm.gmsgroup.app/img/games/blockblast.webp", description: "Addictive block puzzle game" },
             { name: "Emulator", url: "https://rm.gmsgroup.app/misc/emulator/emulatorjs/index.html", icon: "https://rm.gmsgroup.app/misc/emulator/emulatorjs/logo.png", description: "Play retro console games" },
@@ -916,8 +915,9 @@
         }
 
         function reportGame(gameName) {
-            
-            }
+            document.getElementById('reportGameTitle').textContent = `"${gameName}"`;
+            document.getElementById('reportGameSourceTitle').value = gameName;
+            document.getElementById('reportModal').classList.add('active');
         }
 
         function toggleMobileMenu() {
