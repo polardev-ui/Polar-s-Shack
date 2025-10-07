@@ -11,6 +11,7 @@
      crossorigin="anonymous"></script>
       <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
   <script defer data-domain="https://polars-shack.vercel.app" src="https://analytics.vercel-insights.com/script.js"></script>
     <style>
@@ -489,6 +490,30 @@
                 padding: 0.4rem 0.8rem;
             }
         }
+
+.report-modal { 
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+    background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); 
+    display: none; align-items: center; justify-content: center; z-index: 1000; 
+} 
+.report-modal.active { display: flex; } 
+.report-content { 
+    background: #2a2a2a; padding: 2rem; border-radius: 12px; border: 1px solid #333; 
+    max-width: 500px; width: 90%; max-height: 85vh; overflow-y: auto; color: #fff;
+}
+.report-content h2 { color: #00ff00; margin-bottom: 1rem; }
+.report-content p { color: #888; margin-bottom: 1.5rem; font-size: 0.9rem; }
+.report-content label { display: block; margin-bottom: 0.5rem; color: #888; font-size: 0.85rem; }
+.report-content select, .report-content textarea { 
+    width: 100%; padding: 0.8rem; background: #333; border: 1px solid #444; 
+    border-radius: 4px; color: #fff; font-family: 'JetBrains Mono', monospace; margin-bottom: 1rem;
+}
+.modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
+.submit-btn, .cancel-btn { padding: 0.75rem 1.25rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+.submit-btn { background: #00ff00; color: #1a1a1a; }
+.submit-btn:hover { background: #00cc00; }
+.cancel-btn { background: #444; color: #fff; }
+.cancel-btn:hover { background: #555; }
     </style>
 </head>
 <body>
@@ -576,6 +601,34 @@
             no games found matching your search.
         </div>
     </main>
+
+    <div class="report-modal" id="reportModal">
+    <div class="report-content">
+        <h2>Report Game: <span id="reportGameTitle"></span></h2>
+        <p>Please provide details about the issue with this game.</p>
+        <form id="gamesReportForm">
+            <div class="form-group">
+                <label for="gamesReportReason">Reason</label>
+                <select id="gamesReportReason" required>
+                    <option value="">Select a reason</option>
+                    <option value="broken">Game is broken/does not load</option>
+                    <option value="inappropriate">Inappropriate/offensive content</option>
+                    <option value="misleading">Misleading title/description</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="gamesReportDescription">Description (Optional)</label>
+                <textarea id="gamesReportDescription" rows="4" placeholder="provide more details..."></textarea>
+            </div>
+            <input type="hidden" id="reportGameSourceTitle" value="">
+            <div class="modal-actions">
+                <button type="submit" class="submit-btn">Send Report</button>
+                <button type="button" class="cancel-btn" onclick="document.getElementById('reportModal').classList.remove('active');">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
 
     <!-- Firebase scripts here first -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -909,6 +962,65 @@
                 document.getElementById("favicon").href = "../logo.png";
             }
         });
+
+        // Report Logic for games.html (ADD this block)
+document.addEventListener('DOMContentLoaded', () => {
+    // Attach listener to all report buttons to open the modal
+    document.querySelectorAll('.report-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            const card = button.closest('.game-card');
+            const title = card.querySelector('.game-title').textContent.trim();
+            
+            document.getElementById('reportGameTitle').textContent = `"${title}"`;
+            document.getElementById('reportGameSourceTitle').value = title;
+            document.getElementById('reportModal').classList.add('active');
+        });
+    });
+
+    // Close modal if clicked outside of content
+    const reportModal = document.getElementById('reportModal');
+    if (reportModal) {
+        document.addEventListener('click', function(event) {
+            if (event.target === reportModal) {
+                reportModal.classList.remove('active');
+            }
+        });
+    }
+
+    // Handle the report form submission to Firestore
+    document.getElementById('gamesReportForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const reason = document.getElementById('gamesReportReason').value;
+        const description = document.getElementById('gamesReportDescription').value;
+        const gameTitle = document.getElementById('reportGameSourceTitle').value;
+        
+        if (!reason) {
+            alert('Please select a reason for the report.');
+            return;
+        }
+        
+        try {
+            const db = firebase.firestore();
+            await db.collection('reports').add({
+                source: 'games.html (Game Library)',
+                gameTitle: gameTitle,
+                reason: reason,
+                description: description,
+                url: window.location.href,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            alert('Report successfully sent! Thank you.');
+            document.getElementById('reportModal').classList.remove('active');
+            document.getElementById('gamesReportForm').reset();
+        } catch (error) {
+            console.error("Error writing document: ", error);
+            alert('Failed to send report. Please check the console for details.');
+        }
+    });
+});
 
         const maintenanceScript = document.createElement('script');
         maintenanceScript.src = '../maintenance-mode.js';
