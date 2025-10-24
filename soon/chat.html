@@ -852,12 +852,6 @@ function secondsLeft(endMs){ return Math.max(0, Math.ceil((endMs - nowMs())/1000
     let dmRooms = [];
     let unreadDMs = {};
 
-    // existing: shutdown modal listener (keep it)
-rtdb.ref('settings/chatShutdown').on('value', s => {
-  settings.chatShutdown = !!s.val();
-  document.getElementById('shutdownModal').classList.toggle('active', settings.chatShutdown);
-});
-
 // add these two listeners
 rtdb.ref('settings/lockdown').on('value', s => {
   settings.lockdown = !!s.val();
@@ -1399,16 +1393,6 @@ function renderMessages({ keepPos = false } = {}) {
         tag.textContent = 'ADMIN';
         meta.appendChild(tag);
       }
-
-      // inside renderMessages loop, after building the content for a non-system msg:
-if (currentRoom !== 'public' && (currentUser && msg.uid === currentUser.uid)) {
-  const seen = document.createElement('div');
-  seen.className = 'meta';
-  seen.style.fontSize = '.7rem';
-  seen.dataset.seenFor = msg.id; // <-- important for updateDmSeenMarkers()
-  // text is filled later by updateDmSeenMarkers()
-  outer.appendChild(seen);
-}
 
       const time = document.createElement('span');
       time.textContent = new Date(ts).toLocaleTimeString();
