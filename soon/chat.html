@@ -1332,67 +1332,215 @@ rtdb.ref('settings/slowMode').on('value', s => {
       });
     }
 
-    function loadMessages() {
-  if (unsubscribeMessages) unsubscribeMessages();
+    // ===== Infinite scroll + realtime (25/page, cap 100) =====
+const PAGE_SIZE = 25;
+const MAX_CACHE = 100;
 
-  const q = db.collection('messages')
-    .where('room', '==', currentRoom)
-    .orderBy('timestamp', 'desc')   // newest first from Firestore
-    .limit(100);                    // only keep a small live window
+let messagesCache = [];           // always ASC (oldest -> newest)
+let unsubscribeLatest = null;     // realtime unsub for newest tail
+let olderCursorDesc = null;       // desc cursor to fetch older pages
+let latestCursorAsc = null;       // asc cursor to fetch truly-new messages
+let hasMoreOlder = true;
+let isLoadingOlder = false;
 
-  unsubscribeMessages = q.onSnapshot((snapshot) => {
-    const messagesDiv = document.getElementById('messages');
-    messagesDiv.innerHTML = '';
+// safe DOM text setter (prevents XSS)
+function setText(el, text) {
+  el.textContent = (text ?? '').toString();
+}
 
-    // render oldest -> newest so chat reads naturally
-    const docs = snapshot.docs.slice().reverse();
+// render all cached messages (ASC). If keepPos is true, preserve scroll position (used when prepending older).
+function renderMessages(keepPos = false) {
+  const box = document.getElementById('messages');
+  let prevH = 0;
+  if (keepPos) prevH = box.scrollHeight;
 
-    docs.forEach((doc) => {
-      const msg = doc.data();
+  box.innerHTML = '';
+  const frag = document.createDocumentFragment();
 
-      // robust timestamp fallback (handles serverTimestamp not resolved yet)
-      const ts = msg.timestamp && typeof msg.timestamp.toMillis === 'function'
-        ? msg.timestamp.toMillis()
-        : (typeof msg.timestamp === 'number' ? msg.timestamp : Date.now());
+  for (const msg of messagesCache) {
+    // robust ts (handles serverTimestamp and numbers)
+    const ts = msg.timestamp && typeof msg.timestamp.toMillis === 'function'
+      ? msg.timestamp.toMillis()
+      : (typeof msg.timestamp === 'number' ? msg.timestamp : Date.now());
 
-      const mine = currentUser && msg.uid === currentUser.uid;
-      const cls = msg.type === 'system' ? 'system' : (mine ? 'me' : 'other');
+    const mine = currentUser && msg.uid === currentUser.uid;
+    const cls = msg.type === 'system' ? 'system' : (mine ? 'me' : 'other');
 
-      const msgEl = document.createElement('div');
-      msgEl.className = `msg ${cls}`;
+    const outer = document.createElement('div');
+    outer.className = `msg ${cls}`;
 
-      if (msg.type === 'system') {
-        msgEl.innerHTML = `<div class="content">${msg.text || ''}</div>`;
-      } else {
-        let replyHTML = '';
-        if (msg.replyTo) {
-          const safeReplyUser = (msg.replyTo.username || '').toString();
-          const safeReplyContent = (msg.replyTo.content || '').toString();
-          replyHTML = `
-            <div class="reply-preview">
-              <div class="reply-to">@${safeReplyUser}</div>${safeReplyContent}
-            </div>`;
-        }
+    if (msg.type === 'system') {
+      const c = document.createElement('div');
+      c.className = 'content';
+      setText(c, msg.text || '');
+      outer.appendChild(c);
+    } else {
+      const meta = document.createElement('div');
+      meta.className = 'meta';
 
-        msgEl.innerHTML = `
-          <div class="meta">
-            <span class="username">${msg.username || 'unknown'}</span>
-            ${msg.isAdmin ? '<span class="admin-tag">ADMIN</span>' : ''}
-            <span>${new Date(ts).toLocaleTimeString()}</span>
-          </div>
-          ${replyHTML}
-          <div class="content">${msg.text || ''}</div>
-        `;
+      const name = document.createElement('span');
+      name.className = 'username';
+      setText(name, msg.username || 'unknown');
+      meta.appendChild(name);
+
+      if (msg.isAdmin) {
+        const tag = document.createElement('span');
+        tag.className = 'admin-tag';
+        tag.textContent = 'ADMIN';
+        meta.appendChild(tag);
       }
 
-      messagesDiv.appendChild(msgEl);
-    });
+      const time = document.createElement('span');
+      time.textContent = new Date(ts).toLocaleTimeString();
+      meta.appendChild(time);
 
-    // always scroll to bottom on updates
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      outer.appendChild(meta);
+
+      if (msg.replyTo) {
+        const rp = document.createElement('div');
+        rp.className = 'reply-preview';
+        const to = document.createElement('div');
+        to.className = 'reply-to';
+        setText(to, '@' + (msg.replyTo.username || ''));
+        rp.appendChild(to);
+        const rc = document.createElement('div');
+        setText(rc, (msg.replyTo.content || ''));
+        rp.appendChild(rc);
+        outer.appendChild(rp);
+      }
+
+      const content = document.createElement('div');
+      content.className = 'content';
+      setText(content, msg.text || '');
+      outer.appendChild(content);
+    }
+
+    frag.appendChild(outer);
+  }
+
+  box.appendChild(frag);
+
+  if (keepPos) {
+    // keep viewport anchored after prepending
+    box.scrollTop = box.scrollHeight - prevH;
+  } else {
+    // default: scroll to bottom
+    box.scrollTop = box.scrollHeight;
+  }
+}
+
+// fetch older (next page up). Prepends into cache. Respects MAX_CACHE by trimming from the NEWEST end.
+async function loadOlderPage() {
+  if (!hasMoreOlder || isLoadingOlder) return;
+  isLoadingOlder = true;
+
+  try {
+    // query older chunk in DESC order starting after the last DESC cursor
+    let q = db.collection('messages')
+      .where('room', '==', currentRoom)
+      .orderBy('timestamp', 'desc')
+      .limit(PAGE_SIZE);
+
+    if (olderCursorDesc) q = q.startAfter(olderCursorDesc);
+
+    const snap = await q.get();
+    if (snap.empty) {
+      hasMoreOlder = false;
+      isLoadingOlder = false;
+      return;
+    }
+
+    // update desc cursor (oldest of this batch in DESC is the last doc)
+    olderCursorDesc = snap.docs[snap.docs.length - 1];
+
+    // convert to ASC array
+    const chunkAsc = snap.docs.map(d => ({ id: d.id, ...d.data() })).reverse();
+
+    // prepend older
+    messagesCache = [...chunkAsc, ...messagesCache];
+
+    // hard cap (drop from the NEWEST end to preserve the user's scrolled-up view)
+    if (messagesCache.length > MAX_CACHE) {
+      messagesCache = messagesCache.slice(0, MAX_CACHE);
+    }
+
+    renderMessages(true);
+  } finally {
+    isLoadingOlder = false;
+  }
+}
+
+// attach/refresh everything for the current room
+async function loadMessages() {
+  // kill previous realtime
+  if (unsubscribeMessages) unsubscribeMessages();
+  if (unsubscribeLatest) unsubscribeLatest = null;
+
+  messagesCache = [];
+  hasMoreOlder = true;
+  olderCursorDesc = null;
+  latestCursorAsc = null;
+
+  const box = document.getElementById('messages');
+  // replace onscroll so we don’t double-bind between rooms
+  box.onscroll = async () => {
+    if (box.scrollTop <= 60) {
+      await loadOlderPage();
+    }
+  };
+
+  // 1) initial: newest 25
+  let initQ = db.collection('messages')
+    .where('room', '==', currentRoom)
+    .orderBy('timestamp', 'desc')
+    .limit(PAGE_SIZE);
+
+  const initSnap = await initQ.get();
+
+  if (initSnap.empty) {
+    renderMessages(); // renders nothing, still clears box
+    // still set up realtime for any new future messages
+    latestCursorAsc = null;
+  } else {
+    // store cursors:
+    // for older paging in DESC:
+    olderCursorDesc = initSnap.docs[initSnap.docs.length - 1]; // oldest of the batch (DESC)
+    // for realtime (ASC): startAfter the newest we have
+    const newestDoc = initSnap.docs[0]; // newest in DESC batch
+    latestCursorAsc = newestDoc;
+
+    // seed cache in ASC
+    messagesCache = initSnap.docs.map(d => ({ id: d.id, ...d.data() })).reverse();
+
+    renderMessages(false);
+  }
+
+  // 2) realtime for messages newer than current newest
+  // Use ASC so additions come in natural order, then append & trim from OLDEST to keep tail fresh.
+  let liveQ = db.collection('messages')
+    .where('room', '==', currentRoom)
+    .orderBy('timestamp', 'asc');
+
+  if (latestCursorAsc) liveQ = liveQ.startAfter(latestCursorAsc);
+
+  unsubscribeLatest = liveQ.onSnapshot((snap) => {
+    if (snap.empty) return;
+
+    // move cursor forward
+    latestCursorAsc = snap.docs[snap.docs.length - 1];
+
+    // append new items (already ASC)
+    const additions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    messagesCache = [...messagesCache, ...additions];
+
+    // cap: when *appending new ones*, drop from the OLDEST end
+    if (messagesCache.length > MAX_CACHE) {
+      messagesCache = messagesCache.slice(messagesCache.length - MAX_CACHE);
+    }
+
+    renderMessages(false);
   });
-
-  // (Optional) keep your DM unread watchers elsewhere; removed the broken currentRoom!==currentRoom check.
 }
 
     function loadOnlineUsers() {
