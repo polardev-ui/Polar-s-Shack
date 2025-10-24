@@ -1400,6 +1400,16 @@ function renderMessages({ keepPos = false } = {}) {
         meta.appendChild(tag);
       }
 
+      // inside renderMessages loop, after building the content for a non-system msg:
+if (currentRoom !== 'public' && (currentUser && msg.uid === currentUser.uid)) {
+  const seen = document.createElement('div');
+  seen.className = 'meta';
+  seen.style.fontSize = '.7rem';
+  seen.dataset.seenFor = msg.id; // <-- important for updateDmSeenMarkers()
+  // text is filled later by updateDmSeenMarkers()
+  outer.appendChild(seen);
+}
+
       const time = document.createElement('span');
       time.textContent = new Date(ts).toLocaleTimeString();
       meta.appendChild(time);
@@ -1579,6 +1589,134 @@ async function loadMessages() {
   // hook up DM extras for current room (typing + seen)
   initDmExtrasForRoom();
 }
+
+    // ===== DM EXTRAS: typing indicator + seen receipts (RTDB) =====
+// RTDB paths used:
+//   typing/{roomId}/{uid}: boolean
+//   reads/{roomId}/{uid}: serverTimeMillis
+
+let typingTimer = null;
+let unsubTyping = null;
+let readsInterval = null;
+let dmTypingInputHandler = null;
+
+function markDmSeenNow(){
+  if (!currentUser || currentRoom === 'public') return;
+  const box = document.getElementById('messages');
+  // Only mark seen when you’re caught up to the bottom
+  if (!box || (box.scrollHeight - box.scrollTop - box.clientHeight) > 80) return;
+  const myRef = rtdb.ref(`reads/${currentRoom}/${currentUser.uid}`);
+  myRef.set(firebase.database.ServerValue.TIMESTAMP);
+}
+
+function initDmReadsWatcher(){
+  if (readsInterval) { clearInterval(readsInterval); readsInterval = null; }
+  if (!currentUser || currentRoom === 'public') return;
+  // ping “seen” while you’re at bottom and the room is focused
+  readsInterval = setInterval(markDmSeenNow, 1500);
+}
+
+function updateDmSeenMarkers(){
+  if (!currentUser || currentRoom === 'public') return;
+  const otherUid = currentRoom.split('_').find(u => u !== currentUser.uid);
+  if (!otherUid) return;
+  const otherReadRef = rtdb.ref(`reads/${currentRoom}/${otherUid}`);
+  otherReadRef.once('value').then(s => {
+    const otherReadAt = s.val() || 0;
+
+    // find newest message I sent
+    let lastMine = null;
+    for (let i = messagesCache.length - 1; i >= 0; i--){
+      const m = messagesCache[i];
+      if (m && m.uid === currentUser.uid && !m.type) { lastMine = m; break; }
+    }
+    if (!lastMine) return;
+
+    const ts = lastMine.timestamp && typeof lastMine.timestamp.toMillis === 'function'
+      ? lastMine.timestamp.toMillis()
+      : (typeof lastMine.timestamp === 'number' ? lastMine.timestamp : 0);
+
+    const tag = document.querySelector(`[data-seen-for="${lastMine.id}"]`);
+    if (!tag) return;
+
+    tag.textContent = (otherReadAt && ts && otherReadAt >= ts) ? 'Seen' : '';
+  });
+}
+
+function initDmExtrasForRoom(){
+  // cleanup previous listeners/timers
+  if (unsubTyping) { unsubTyping(); unsubTyping = null; }
+  if (typingTimer) { clearTimeout(typingTimer); typingTimer = null; }
+  if (readsInterval) { clearInterval(readsInterval); readsInterval = null; }
+
+  // remove old input handler if present
+  const input = document.getElementById('messageInput');
+  if (dmTypingInputHandler && input) {
+    input.removeEventListener('input', dmTypingInputHandler);
+    dmTypingInputHandler = null;
+  }
+
+  if (!currentUser || currentRoom === 'public') {
+    // clear any typing dot in header if we left a DM
+    const dot = document.getElementById('typingDot');
+    if (dot) dot.textContent = '';
+    return;
+  }
+
+  const otherUid = currentRoom.split('_').find(u => u !== currentUser.uid);
+  if (!otherUid) return;
+
+  // --- Typing indicator ---
+  const myRef = rtdb.ref(`typing/${currentRoom}/${currentUser.uid}`);
+  const otherRef = rtdb.ref(`typing/${currentRoom}/${otherUid}`);
+
+  // header “typing…” dot
+  const headerRight = document.querySelector('.chat-header .right');
+  let dot = document.getElementById('typingDot');
+  if (!dot) {
+    dot = document.createElement('span');
+    dot.id = 'typingDot';
+    dot.style.color = 'var(--muted)';
+    dot.style.marginLeft = '.4rem';
+    headerRight.appendChild(dot);
+  }
+
+  unsubTyping = otherRef.on('value', s => {
+    dot.textContent = s.val() ? 'typing…' : '';
+  });
+
+  if (input) {
+    dmTypingInputHandler = () => {
+      myRef.set(true);
+      if (typingTimer) clearTimeout(typingTimer);
+      typingTimer = setTimeout(() => myRef.set(false), 2000);
+    };
+    input.addEventListener('input', dmTypingInputHandler);
+  }
+
+  // --- Seen receipts ---
+  initDmReadsWatcher();
+  markDmSeenNow();
+  updateDmSeenMarkers();
+}
+
+// One-time: keep seen current when you scroll to bottom
+(function initDmGlobalScrollHook(){
+  const box = document.getElementById('messages');
+  if (!box) return;
+  box.addEventListener('scroll', () => {
+    if (currentRoom !== 'public') {
+      markDmSeenNow();
+      updateDmSeenMarkers();
+    }
+  });
+})();
+
+// Ensure typing=false when closing the page
+window.addEventListener('beforeunload', () => {
+  if (!currentUser || currentRoom === 'public') return;
+  rtdb.ref(`typing/${currentRoom}/${currentUser.uid}`).set(false);
+});
     
     function loadOnlineUsers() {
       db.collection('users').where('online', '==', true).onSnapshot((snapshot) => {
