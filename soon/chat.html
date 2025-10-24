@@ -1332,33 +1332,43 @@ rtdb.ref('settings/slowMode').on('value', s => {
       });
     }
 
-    // ===== Infinite scroll + realtime (25/page, cap 100) =====
+// ===== Infinite scroll + realtime (25/page, cap 100) =====
 const PAGE_SIZE = 25;
 const MAX_CACHE = 100;
 
-let messagesCache = [];           // always ASC (oldest -> newest)
+let messagesCache = [];           // ASC (oldest -> newest)
+let knownIds = new Set();         // for dedupe across sources
 let unsubscribeLatest = null;     // realtime unsub for newest tail
 let olderCursorDesc = null;       // desc cursor to fetch older pages
 let latestCursorAsc = null;       // asc cursor to fetch truly-new messages
 let hasMoreOlder = true;
 let isLoadingOlder = false;
 
+let autoScroll = true;            // if true, stick to bottom as new msgs come in
+let nearTopPx = 60;
+let nearBottomPx = 80;
+
 // safe DOM text setter (prevents XSS)
-function setText(el, text) {
-  el.textContent = (text ?? '').toString();
+function setText(el, text) { el.textContent = (text ?? '').toString(); }
+
+function isNearBottom(box){
+  return (box.scrollHeight - box.scrollTop - box.clientHeight) <= nearBottomPx;
+}
+function isNearTop(box){
+  return box.scrollTop <= nearTopPx;
 }
 
 // render all cached messages (ASC). If keepPos is true, preserve scroll position (used when prepending older).
-function renderMessages(keepPos = false) {
+function renderMessages({ keepPos = false } = {}) {
   const box = document.getElementById('messages');
   let prevH = 0;
   if (keepPos) prevH = box.scrollHeight;
 
-  box.innerHTML = '';
   const frag = document.createDocumentFragment();
+  // OPTIONAL: faster incremental render — clear and rebuild since cap ≤ 100
+  box.innerHTML = '';
 
   for (const msg of messagesCache) {
-    // robust ts (handles serverTimestamp and numbers)
     const ts = msg.timestamp && typeof msg.timestamp.toMillis === 'function'
       ? msg.timestamp.toMillis()
       : (typeof msg.timestamp === 'number' ? msg.timestamp : Date.now());
@@ -1393,7 +1403,6 @@ function renderMessages(keepPos = false) {
       const time = document.createElement('span');
       time.textContent = new Date(ts).toLocaleTimeString();
       meta.appendChild(time);
-
       outer.appendChild(meta);
 
       if (msg.replyTo) {
@@ -1413,6 +1422,15 @@ function renderMessages(keepPos = false) {
       content.className = 'content';
       setText(content, msg.text || '');
       outer.appendChild(content);
+
+      // DM “Seen” tag on my last message (filled by DM extras hook)
+      if (currentRoom !== 'public' && mine) {
+        const seen = document.createElement('div');
+        seen.className = 'meta';
+        seen.style.fontSize = '.7rem';
+        seen.dataset.seenFor = msg.id; // used by DM extras updater
+        outer.appendChild(seen);
+      }
     }
 
     frag.appendChild(outer);
@@ -1421,11 +1439,9 @@ function renderMessages(keepPos = false) {
   box.appendChild(frag);
 
   if (keepPos) {
-    // keep viewport anchored after prepending
-    box.scrollTop = box.scrollHeight - prevH;
-  } else {
-    // default: scroll to bottom
-    box.scrollTop = box.scrollHeight;
+    box.scrollTop = box.scrollHeight - prevH;     // anchor after prepend
+  } else if (autoScroll) {
+    box.scrollTop = box.scrollHeight;             // stick to bottom
   }
 }
 
@@ -1435,7 +1451,6 @@ async function loadOlderPage() {
   isLoadingOlder = true;
 
   try {
-    // query older chunk in DESC order starting after the last DESC cursor
     let q = db.collection('messages')
       .where('room', '==', currentRoom)
       .orderBy('timestamp', 'desc')
@@ -1446,25 +1461,34 @@ async function loadOlderPage() {
     const snap = await q.get();
     if (snap.empty) {
       hasMoreOlder = false;
-      isLoadingOlder = false;
       return;
     }
 
     // update desc cursor (oldest of this batch in DESC is the last doc)
     olderCursorDesc = snap.docs[snap.docs.length - 1];
 
-    // convert to ASC array
-    const chunkAsc = snap.docs.map(d => ({ id: d.id, ...d.data() })).reverse();
+    // convert to ASC, dedupe by id
+    const chunkAsc = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .reverse()
+      .filter(d => !knownIds.has(d.id));
 
     // prepend older
-    messagesCache = [...chunkAsc, ...messagesCache];
+    if (chunkAsc.length) {
+      chunkAsc.forEach(m => knownIds.add(m.id));
+      messagesCache = [...chunkAsc, ...messagesCache];
 
-    // hard cap (drop from the NEWEST end to preserve the user's scrolled-up view)
-    if (messagesCache.length > MAX_CACHE) {
-      messagesCache = messagesCache.slice(0, MAX_CACHE);
+      // hard cap (drop from the NEWEST end to preserve the user's scrolled-up view)
+      if (messagesCache.length > MAX_CACHE) {
+        const toRemove = messagesCache.length - MAX_CACHE;
+        const removed = messagesCache.splice(messagesCache.length - toRemove, toRemove);
+        removed.forEach(m => knownIds.delete(m.id));
+      }
+
+      renderMessages({ keepPos: true });
+      // update DM seen markers if needed
+      updateDmSeenMarkers();
     }
-
-    renderMessages(true);
   } finally {
     isLoadingOlder = false;
   }
@@ -1473,20 +1497,24 @@ async function loadOlderPage() {
 // attach/refresh everything for the current room
 async function loadMessages() {
   // kill previous realtime
-  if (unsubscribeMessages) unsubscribeMessages();
-  if (unsubscribeLatest) unsubscribeLatest = null;
+  if (unsubscribeMessages) { unsubscribeMessages(); unsubscribeMessages = null; }
+  if (unsubscribeLatest) { unsubscribeLatest(); unsubscribeLatest = null; }
 
   messagesCache = [];
+  knownIds = new Set();
   hasMoreOlder = true;
   olderCursorDesc = null;
   latestCursorAsc = null;
 
   const box = document.getElementById('messages');
-  // replace onscroll so we don’t double-bind between rooms
+
+  // scroll logic: up loads older, down enables auto-follow to newest
   box.onscroll = async () => {
-    if (box.scrollTop <= 60) {
+    if (isNearTop(box)) {
       await loadOlderPage();
     }
+    // if user scrolls near bottom, re-enable auto follow
+    autoScroll = isNearBottom(box);
   };
 
   // 1) initial: newest 25
@@ -1498,25 +1526,24 @@ async function loadMessages() {
   const initSnap = await initQ.get();
 
   if (initSnap.empty) {
-    renderMessages(); // renders nothing, still clears box
-    // still set up realtime for any new future messages
+    messagesCache = [];
+    knownIds.clear();
+    renderMessages(); // clears and sits at bottom
     latestCursorAsc = null;
   } else {
-    // store cursors:
-    // for older paging in DESC:
-    olderCursorDesc = initSnap.docs[initSnap.docs.length - 1]; // oldest of the batch (DESC)
-    // for realtime (ASC): startAfter the newest we have
-    const newestDoc = initSnap.docs[0]; // newest in DESC batch
+    olderCursorDesc = initSnap.docs[initSnap.docs.length - 1]; // oldest of DESC batch
+    const newestDoc = initSnap.docs[0];                        // newest of DESC batch
     latestCursorAsc = newestDoc;
 
-    // seed cache in ASC
+    // seed cache in ASC + dedupe set
     messagesCache = initSnap.docs.map(d => ({ id: d.id, ...d.data() })).reverse();
+    messagesCache.forEach(m => knownIds.add(m.id));
 
-    renderMessages(false);
+    autoScroll = true;
+    renderMessages();
   }
 
-  // 2) realtime for messages newer than current newest
-  // Use ASC so additions come in natural order, then append & trim from OLDEST to keep tail fresh.
+  // 2) realtime for messages newer than current newest (ASC)
   let liveQ = db.collection('messages')
     .where('room', '==', currentRoom)
     .orderBy('timestamp', 'asc');
@@ -1526,23 +1553,33 @@ async function loadMessages() {
   unsubscribeLatest = liveQ.onSnapshot((snap) => {
     if (snap.empty) return;
 
-    // move cursor forward
     latestCursorAsc = snap.docs[snap.docs.length - 1];
 
-    // append new items (already ASC)
-    const additions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // append new items, dedupe
+    const additions = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(d => !knownIds.has(d.id));
 
+    if (!additions.length) return;
+
+    additions.forEach(m => knownIds.add(m.id));
     messagesCache = [...messagesCache, ...additions];
 
-    // cap: when *appending new ones*, drop from the OLDEST end
+    // cap: when appending, trim from the OLDEST end
     if (messagesCache.length > MAX_CACHE) {
-      messagesCache = messagesCache.slice(messagesCache.length - MAX_CACHE);
+      const toRemove = messagesCache.length - MAX_CACHE;
+      const removed = messagesCache.splice(0, toRemove);
+      removed.forEach(m => knownIds.delete(m.id));
     }
 
-    renderMessages(false);
+    renderMessages({ keepPos: false });
+    updateDmSeenMarkers();
   });
-}
 
+  // hook up DM extras for current room (typing + seen)
+  initDmExtrasForRoom();
+}
+    
     function loadOnlineUsers() {
       db.collection('users').where('online', '==', true).onSnapshot((snapshot) => {
         const usersDiv = document.getElementById('usersList');
