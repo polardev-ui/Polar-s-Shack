@@ -1333,72 +1333,67 @@ rtdb.ref('settings/slowMode').on('value', s => {
     }
 
     function loadMessages() {
-      if (unsubscribeMessages) unsubscribeMessages();
+  if (unsubscribeMessages) unsubscribeMessages();
 
-      unsubscribeMessages = db.collection('messages')
-        .where('room', '==', currentRoom)
-        .orderBy('timestamp', 'asc')
-        .limit(100)
-        .onSnapshot((snapshot) => {
-          const messagesDiv = document.getElementById('messages');
-          messagesDiv.innerHTML = '';
+  const q = db.collection('messages')
+    .where('room', '==', currentRoom)
+    .orderBy('timestamp', 'desc')   // newest first from Firestore
+    .limit(100);                    // only keep a small live window
 
-          snapshot.forEach((doc) => {
-            const msg = doc.data();
-            const msgEl = document.createElement('div');
-            msgEl.className = `msg ${msg.uid === currentUser.uid ? 'me' : msg.type === 'system' ? 'system' : 'other'}`;
-            
-            if (msg.type === 'system') {
-              msgEl.innerHTML = `<div class="content">${msg.text}</div>`;
-            } else {
-              let replyHTML = '';
-              if (msg.replyTo) {
-                replyHTML = `<div class="reply-preview"><div class="reply-to">@${msg.replyTo.username}</div>${msg.replyTo.content}</div>`;
-              }
-              
-              msgEl.innerHTML = `
-                <div class="meta">
-                  <span class="username">${msg.username}</span>
-                  ${msg.isAdmin ? '<span class="admin-tag">ADMIN</span>' : ''}
-                  <span>${new Date(msg.timestamp).toLocaleTimeString()}</span>
-                </div>
-                ${replyHTML}
-                <div class="content">${msg.text}</div>
-              `;
-            }
+  unsubscribeMessages = q.onSnapshot((snapshot) => {
+    const messagesDiv = document.getElementById('messages');
+    messagesDiv.innerHTML = '';
 
-            messagesDiv.appendChild(msgEl);
-          });
+    // render oldest -> newest so chat reads naturally
+    const docs = snapshot.docs.slice().reverse();
 
-          messagesDiv.scrollTop = messagesDiv.scrollHeight;
-          
-          if (currentRoom !== 'public' && currentRoom !== currentUser.uid) {
-            const lastMsg = snapshot.docs[snapshot.docs.length - 1];
-            if (lastMsg && lastMsg.data().uid !== currentUser.uid && currentRoom !== currentRoom) {
-              unreadDMs[currentRoom] = true;
-              renderRoomTabs();
-            }
-          }
-        });
-      
-      dmRooms.forEach(room => {
-        if (room.id !== currentRoom) {
-          db.collection('messages')
-            .where('room', '==', room.id)
-            .orderBy('timestamp', 'desc')
-            .limit(1)
-            .onSnapshot((snapshot) => {
-              if (!snapshot.empty) {
-                const lastMsg = snapshot.docs[0].data();
-                if (lastMsg.uid !== currentUser.uid && lastMsg.timestamp > Date.now() - 5000) {
-                  unreadDMs[room.id] = true;
-                  renderRoomTabs();
-                }
-              }
-            });
+    docs.forEach((doc) => {
+      const msg = doc.data();
+
+      // robust timestamp fallback (handles serverTimestamp not resolved yet)
+      const ts = msg.timestamp && typeof msg.timestamp.toMillis === 'function'
+        ? msg.timestamp.toMillis()
+        : (typeof msg.timestamp === 'number' ? msg.timestamp : Date.now());
+
+      const mine = currentUser && msg.uid === currentUser.uid;
+      const cls = msg.type === 'system' ? 'system' : (mine ? 'me' : 'other');
+
+      const msgEl = document.createElement('div');
+      msgEl.className = `msg ${cls}`;
+
+      if (msg.type === 'system') {
+        msgEl.innerHTML = `<div class="content">${msg.text || ''}</div>`;
+      } else {
+        let replyHTML = '';
+        if (msg.replyTo) {
+          const safeReplyUser = (msg.replyTo.username || '').toString();
+          const safeReplyContent = (msg.replyTo.content || '').toString();
+          replyHTML = `
+            <div class="reply-preview">
+              <div class="reply-to">@${safeReplyUser}</div>${safeReplyContent}
+            </div>`;
         }
-      });
-    }
+
+        msgEl.innerHTML = `
+          <div class="meta">
+            <span class="username">${msg.username || 'unknown'}</span>
+            ${msg.isAdmin ? '<span class="admin-tag">ADMIN</span>' : ''}
+            <span>${new Date(ts).toLocaleTimeString()}</span>
+          </div>
+          ${replyHTML}
+          <div class="content">${msg.text || ''}</div>
+        `;
+      }
+
+      messagesDiv.appendChild(msgEl);
+    });
+
+    // always scroll to bottom on updates
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  });
+
+  // (Optional) keep your DM unread watchers elsewhere; removed the broken currentRoom!==currentRoom check.
+}
 
     function loadOnlineUsers() {
       db.collection('users').where('online', '==', true).onSnapshot((snapshot) => {
@@ -1441,18 +1436,18 @@ rtdb.ref('settings/slowMode').on('value', s => {
   if (!text) return;
   if (!currentUser) { alert('Sign in to chat.'); return; }
 
-  // --- ADMIN COMMANDS FIRST (so admins can act during shutdown/lockdown) ---
+  // Admin commands first (should work even during shutdown/lockdown)
   if (text.startsWith('/') && !!currentUser.isAdmin) {
     await handleAdminCommand(text);
     input.value = '';
     return;
   }
 
-  // --- Global switches ---
+  // Global switches
   if (settings.chatShutdown) { alert('Chat is shut down by an admin.'); return; }
   if (settings.lockdown && !currentUser.isAdmin) { alert('Chat is in lockdown.'); return; }
 
-  // User state (fresh read to avoid stale client-only state)
+  // Fresh read of user record to avoid stale state
   const meDoc = await db.collection('users').doc(currentUser.uid).get();
   const me = meDoc.exists ? meDoc.data() : currentUser;
 
@@ -1464,41 +1459,43 @@ rtdb.ref('settings/slowMode').on('value', s => {
   }
 
   if (me.isMuted) {
-    const until = typeof me.muteUntil === 'number' ? me.muteUntil :
-                  (me.muteUntil && me.muteUntil.toMillis ? me.muteUntil.toMillis() : 0);
-    const wait = until ? secondsLeft(until) : null;
-    alert(wait ? `You are muted for ${wait} more second(s).` : 'You are muted.');
+    const untilMs =
+      typeof me.muteUntil === 'number' ? me.muteUntil :
+      (me.muteUntil && typeof me.muteUntil.toMillis === 'function' ? me.muteUntil.toMillis() : 0);
+    const remaining = untilMs ? Math.max(0, Math.ceil((untilMs - Date.now()) / 1000)) : null;
+    alert(remaining ? `You are muted for ${remaining} more second(s).` : 'You are muted.');
     return;
   }
 
   // Content checks
   if (containsOffensive(text)) { alert('Message blocked by content filter.'); return; }
 
-  // Per-user slowmode (RTDB setting)
+  // Slow mode (per device, backed by RTDB setting)
   if (settings.slowMode > 0 && !me.isAdmin) {
-    const elapsed = (nowMs() - settings.lastSentAt) / 1000;
+    const elapsed = (nowMs() - (settings.lastSentAt || 0)) / 1000;
     if (elapsed < settings.slowMode) {
       alert(`Slow mode is on. Wait ${Math.ceil(settings.slowMode - elapsed)}s.`);
       return;
     }
   }
 
-  // Per-device anti-spam (existing)
-  const now = nowMs();
-  if (text === lastMessage && now - lastMessageTime < 3000) {
+  // Simple anti-spam: identical message within 3s
+  const nowLocal = nowMs();
+  if (text === lastMessage && (nowLocal - lastMessageTime) < 3000) {
     alert('Please do not spam the same message.');
     return;
   }
 
-  // Build message
+  // Build & send message with serverTimestamp (authoritative ordering)
   const messageData = {
     uid: currentUser.uid,
     username: currentUser.username,
     isAdmin: !!currentUser.isAdmin,
     text,
     room: currentRoom,
-    timestamp: now
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
   };
+
   if (replyingTo) {
     messageData.replyTo = replyingTo;
     replyingTo = null;
@@ -1506,9 +1503,11 @@ rtdb.ref('settings/slowMode').on('value', s => {
   }
 
   await db.collection('messages').add(messageData);
-  settings.lastSentAt = now;
+
+  // Local bookkeeping
+  settings.lastSentAt = nowLocal;
   lastMessage = text;
-  lastMessageTime = now;
+  lastMessageTime = nowLocal;
   input.value = '';
 }
 
