@@ -568,7 +568,8 @@
         this.maintenanceRef = rtdb.ref('settings/maintenance');
   this.chatSettingsRef = db.collection('settings').doc('chat');
   this.adminPasswordHash = '50172b3e278ccc1f2caaac89e2911df21304024b98578c4642af9d340fc73b71';
-        this.isLoggedIn = false;
+    this.isLoggedIn = false;
+    this.isAdminUser = false;
       }
 
       init(){
@@ -627,6 +628,33 @@
         const hash = await crypto.subtle.digest('SHA-256', enc);
         return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
       }
+
+      // Ensure there is a live Firebase auth session and the user is an admin
+      async ensureSignedInAdmin(){
+        // Fast path: already verified
+        if (this.isAdminUser && auth.currentUser) return true;
+
+        // Wait briefly for auth to initialize if needed
+        if (!auth.currentUser){
+          await new Promise(resolve => {
+            const unsub = auth.onAuthStateChanged(()=>{ unsub(); resolve(); });
+          });
+        }
+        const user = auth.currentUser;
+        if (!user) {
+          // No session available
+          throw new Error('auth-required');
+        }
+        try {
+          const doc = await db.collection('users').doc(user.uid).get();
+          const isAdmin = doc.exists && doc.data().isAdmin === true;
+          if (!isAdmin) throw new Error('not-admin');
+          this.isAdminUser = true;
+          return true;
+        } catch (e){
+          throw e;
+        }
+      }
       
       async handleLogin(e){
         e.preventDefault();
@@ -643,6 +671,7 @@
           if (!isAdmin) throw new Error('not-admin');
 
           this.isLoggedIn = true;
+          this.isAdminUser = true;
           localStorage.setItem('adminLoggedIn','true');
           localStorage.setItem('loginTime', Date.now().toString());
           document.getElementById('loginContainer').style.display='none';
@@ -857,6 +886,12 @@
       }
       
       async updateServerMaintenanceState(state){
+        // Require signed-in admin before updating RTDB
+        try { await this.ensureSignedInAdmin(); } catch (e){
+          if (e && e.message === 'auth-required') { this.logout(true); alert('Please sign in again to perform admin actions.'); return; }
+          if (e && e.message === 'not-admin') { alert('This account does not have admin access.'); return; }
+          throw e;
+        }
         const uid = (firebase.auth().currentUser && firebase.auth().currentUser.uid) || 'unknown';
         return this.maintenanceRef.update({
           ...state,
@@ -913,6 +948,7 @@
 
       async setChatOnline(online){
         try {
+          await this.ensureSignedInAdmin();
           await this.chatSettingsRef.set({ chatShutdown: !online }, { merge: true });
           const chatStatus = document.getElementById('chatStatus');
           if (chatStatus){
@@ -923,12 +959,15 @@
           document.getElementById('chatOfflineBtn')?.classList.toggle('active', !online);
           alert(online ? 'Chat system is now online' : 'Chat system has been shut down');
         } catch (e) {
+          if (e && e.message === 'auth-required') { this.logout(true); alert('Please sign in again to perform admin actions.'); return; }
+          if (e && e.message === 'not-admin') { alert('This account does not have admin access.'); return; }
           alert('Failed to update chat status'); console.error(e);
         }
       }
 
       async toggleChatLock(){
         try {
+          await this.ensureSignedInAdmin();
           await db.runTransaction(async(tx)=>{
             const doc = await tx.get(this.chatSettingsRef);
             const current = doc.exists && doc.data().lockdown === true;
@@ -939,6 +978,8 @@
           const nowLocked = btn?.classList.contains('active') ? false : true; // UI will update via onSnapshot
           alert(nowLocked ? 'Chat locked' : 'Chat unlocked');
         } catch (e) {
+          if (e && e.message === 'auth-required') { this.logout(true); alert('Please sign in again to perform admin actions.'); return; }
+          if (e && e.message === 'not-admin') { alert('This account does not have admin access.'); return; }
           alert('Failed to toggle chat lock'); console.error(e);
         }
       }
@@ -946,9 +987,12 @@
       async setSlowmode(){
         const seconds = parseInt(document.getElementById('slowmodeInput').value, 10) || 0;
         try {
+          await this.ensureSignedInAdmin();
           await this.chatSettingsRef.set({ slowMode: seconds }, { merge: true });
           alert(`Slowmode set to ${seconds} seconds`);
         } catch (e) {
+          if (e && e.message === 'auth-required') { this.logout(true); alert('Please sign in again to perform admin actions.'); return; }
+          if (e && e.message === 'not-admin') { alert('This account does not have admin access.'); return; }
           alert('Failed to set slowmode'); console.error(e);
         }
       }
@@ -957,6 +1001,7 @@
         const count = parseInt(document.getElementById('clearCountInput').value, 10) || 50;
         if (!confirm(`Clear ${count} messages from public chat?`)) return;
         try {
+          await this.ensureSignedInAdmin();
           const snap = await this.db.collection('messages')
             .where('room','==','public')
             .orderBy('timestamp','desc')
@@ -967,6 +1012,8 @@
           await batch.commit();
           alert(`Cleared ${snap.size} messages`);
         } catch (e) {
+          if (e && e.message === 'auth-required') { this.logout(true); alert('Please sign in again to perform admin actions.'); return; }
+          if (e && e.message === 'not-admin') { alert('This account does not have admin access.'); return; }
           alert('Failed to clear messages');
           console.error(e);
         }
@@ -976,6 +1023,7 @@
         const reason = prompt(`Ban ${username}? Enter reason:`);
         if (!reason) return;
         try {
+          await this.ensureSignedInAdmin();
           const q = await this.db.collection('users').where('username','==',username).limit(1).get();
           if (q.empty) {
             alert('User not found');
@@ -995,6 +1043,8 @@
           });
           alert(`${username} has been banned`);
         } catch (e) {
+          if (e && e.message === 'auth-required') { this.logout(true); alert('Please sign in again to perform admin actions.'); return; }
+          if (e && e.message === 'not-admin') { alert('This account does not have admin access.'); return; }
           alert('Failed to ban user');
           console.error(e);
         }
@@ -1058,6 +1108,7 @@
     window.clearMessages             = ()=>adminPanel.clearMessages();
     window.banUser                   = ()=>{ const u=document.getElementById('banUsername').value; const r=document.getElementById('banReason').value; if(u) adminPanel.quickBan(u); };
     window.unbanUser                 = async ()=>{
+      try { await adminPanel.ensureSignedInAdmin(); } catch (e){ if (e && e.message==='auth-required'){ adminPanel.logout(true); alert('Please sign in again to perform admin actions.'); return; } if (e && e.message==='not-admin'){ alert('This account does not have admin access.'); return; } throw e; }
       const username = document.getElementById('unbanUsername').value.trim();
       if (!username) return alert('Please enter a username');
       try {
@@ -1077,6 +1128,7 @@
       }
     };
     window.muteUser                  = async ()=>{
+      try { await adminPanel.ensureSignedInAdmin(); } catch (e){ if (e && e.message==='auth-required'){ adminPanel.logout(true); alert('Please sign in again to perform admin actions.'); return; } if (e && e.message==='not-admin'){ alert('This account does not have admin access.'); return; } throw e; }
       const username = document.getElementById('muteUsername').value.trim();
       const duration = parseInt(document.getElementById('muteDuration').value, 10) || 10;
       if (!username) return alert('Please enter a username');
@@ -1097,6 +1149,7 @@
       }
     };
     window.kickUser                  = async ()=>{
+      try { await adminPanel.ensureSignedInAdmin(); } catch (e){ if (e && e.message==='auth-required'){ adminPanel.logout(true); alert('Please sign in again to perform admin actions.'); return; } if (e && e.message==='not-admin'){ alert('This account does not have admin access.'); return; } throw e; }
       const username = document.getElementById('kickUsername').value.trim();
       if (!username) return alert('Please enter a username');
       try {
