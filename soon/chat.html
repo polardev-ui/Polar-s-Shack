@@ -665,6 +665,13 @@ body {
 .call-devices {margin-top:.9rem; display:flex; gap:.5rem; justify-content:center; align-items:center; flex-wrap:wrap; color:#aaa; font-size:.85rem;}
 .call-devices label {opacity:.8; margin:0 .15rem;}
 .call-devices select {background:#2a2a2a; border:1px solid var(--border); color:#ddd; border-radius:8px; padding:.35rem .6rem; font-family:'JetBrains Mono', monospace;}
+/* Video stage */
+.video-stage { position:relative; width:100%; margin:.75rem auto 0; max-width:900px; aspect-ratio:16/9; background:#0e0e0e; border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+.video-stage video { width:100%; height:100%; object-fit:cover; background:#000; }
+.video-stage .local-preview { position:absolute; width:26%; aspect-ratio:16/9; right:10px; bottom:10px; border:1px solid var(--border); border-radius:8px; box-shadow:0 6px 20px rgba(0,0,0,0.5); }
+.video-settings { margin-top:.6rem; display:flex; gap:.5rem; justify-content:center; align-items:center; flex-wrap:wrap; color:#aaa; font-size:.85rem; }
+.video-settings label {opacity:.8; margin:0 .15rem;}
+.video-settings select, .video-settings input {background:#2a2a2a; border:1px solid var(--border); color:#ddd; border-radius:8px; padding:.35rem .6rem; font-family:'JetBrains Mono', monospace;}
   </style>
 </head>
 <body>
@@ -878,16 +885,17 @@ body {
       <div class="call-avatar" id="callAvatar">U</div>
       <div class="call-name" id="callName">username</div>
       <div class="call-status" id="callStatus">calling…</div>
+      <div class="video-stage hidden" id="videoStage">
+        <video id="remoteVideo" autoplay playsinline></video>
+        <video id="localVideo" class="local-preview" autoplay playsinline muted></video>
+      </div>
       <div class="call-controls">
         <button class="btn" id="toggleMicBtn"><i class='bx bx-microphone'></i><span class="lbl">mic</span></button>
+        <button class="btn" id="toggleVideoBtn" title="Toggle camera"><i class='bx bx-video'></i><span class="lbl">video</span></button>
+        <button class="btn" id="shareScreenBtn" title="Share your screen"><i class='bx bx-desktop'></i><span class="lbl">share</span></button>
+        <button class="btn" id="callSettingsBtn" title="Call settings"><i class='bx bx-slider-alt'></i><span class="lbl">settings</span></button>
         <button class="btn" id="minimizeCallBtn"><i class='bx bx-message'></i><span class="lbl">chat</span></button>
         <button class="btn btn-danger" id="hangupBtn"><i class='bx bx-phone-off'></i><span class="lbl">hang up</span></button>
-      </div>
-      <div class="call-devices">
-        <label for="micSelect">mic</label>
-        <select id="micSelect"></select>
-        <label for="spkSelect">output</label>
-        <select id="spkSelect"></select>
       </div>
     </div>
   </div>
@@ -918,6 +926,79 @@ body {
         <button id="acceptCallBtn" class="btn btn-primary"><i class='bx bx-phone'></i> accept</button>
         <button id="declineCallBtn" class="btn btn-secondary"><i class='bx bx-phone-off'></i> decline</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Call Settings modal -->
+  <div class="modal-overlay" id="callSettingsModal">
+    <div class="modal-content" style="max-width:640px;">
+      <h2>call settings</h2>
+
+      <div class="settings-section">
+        <h3>audio input</h3>
+        <div class="form-group">
+          <label for="micSelect">microphone</label>
+          <select id="micSelect"></select>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>audio output</h3>
+        <div class="form-group">
+          <label for="spkSelect">speaker/output</label>
+          <select id="spkSelect"></select>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>camera</h3>
+        <div class="form-group">
+          <label for="camSelect">camera device</label>
+          <select id="camSelect"></select>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>video quality</h3>
+        <div class="form-group">
+          <label for="videoResSelect">resolution</label>
+          <select id="videoResSelect">
+            <option value="1080">1080p</option>
+            <option value="720">720p</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="videoFpsSelect">frame rate</label>
+          <select id="videoFpsSelect">
+            <option value="60">60</option>
+            <option value="30">30</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="videoBitrate">bitrate (kbps)</label>
+          <input id="videoBitrate" type="number" min="300" max="12000" step="100" />
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>screen share</h3>
+        <div class="form-group">
+          <label for="screenResSelect">resolution</label>
+          <select id="screenResSelect">
+            <option value="1080">1080p</option>
+            <option value="720">720p</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="screenFpsSelect">frame rate</label>
+          <select id="screenFpsSelect">
+            <option value="60">60</option>
+            <option value="30">30</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn btn-secondary" id="closeCallSettingsBtn">close</button>
     </div>
   </div>
 
@@ -1862,6 +1943,16 @@ let globalStateWatchers = {};
 let dmMsgWatchers = {};
 let dmMsgLastDocId = {};
 
+// Video/screen share state
+let localVideoStream = null; // camera
+let screenStream = null;     // screen share
+let remoteVideoStream = null;
+let videoSender = null;      // RTCRtpSender for video
+let isSharingScreen = false;
+let makingOffer = false;     // for renegotiation
+let isPolite = false;        // simple glare mitigation
+let renegoRefs = { offer: null, answer: null };
+
 let rtcConfig = { iceServers: [{ urls: [
   'stun:stun.l.google.com:19302',
   'stun:stun1.l.google.com:19302'
@@ -1896,6 +1987,7 @@ function dmOtherUid(){
 function showCallOverlay(){
   document.getElementById('callOverlay').classList.add('active');
   document.getElementById('callWidget').classList.remove('active');
+  try { updateVideoStageVisibility(); } catch {}
 }
 function hideCallOverlay(){
   document.getElementById('callOverlay').classList.remove('active');
@@ -1953,8 +2045,15 @@ async function endCall(reason='ended'){
   hideCallWidget();
   if (pc) { try { pc.getSenders().forEach(s=>s.track&&s.track.stop()); pc.close(); } catch{} pc=null; }
   if (localStream) { try { localStream.getTracks().forEach(t=>t.stop()); } catch{} localStream=null; }
+  if (localVideoStream) { try { localVideoStream.getTracks().forEach(t=>t.stop()); } catch{} localVideoStream=null; }
+  if (screenStream) { try { screenStream.getTracks().forEach(t=>t.stop()); } catch{} screenStream=null; }
   remoteStream=null;
+  remoteVideoStream=null;
+  videoSender=null;
+  isSharingScreen=false;
   document.getElementById('remoteAudio').srcObject = null;
+  const rv = document.getElementById('remoteVideo'); if (rv) rv.srcObject = null;
+  const lv = document.getElementById('localVideo'); if (lv) lv.srcObject = null;
   cleanupCallListeners();
   // best-effort cleanup of signaling for this call
   if (currentCallRoom) {
@@ -1962,10 +2061,12 @@ async function endCall(reason='ended'){
     base.child('offer').remove();
     base.child('answer').remove();
     base.child('candidates').remove();
+    base.child('renegotiate').remove();
   }
   currentCallRoom = null;
   isCaller = false;
   callStartAt = null;
+  updateVideoStageVisibility();
 }
 
 function bindPeerEvents(){
@@ -1988,17 +2089,222 @@ function bindPeerEvents(){
     }
   };
   pc.ontrack = (e) => {
-    if (!remoteStream) remoteStream = new MediaStream();
-    e.streams[0].getTracks().forEach(t => remoteStream.addTrack(t));
-    const audio = document.getElementById('remoteAudio');
-    audio.srcObject = remoteStream;
-    audio.volume = 1.0;
-    const prefSpk = localStorage.getItem('prefSpkId');
-    if (prefSpk && typeof audio.setSinkId === 'function') {
-      audio.setSinkId(prefSpk).catch(()=>{});
-    }
-    audio.play && audio.play().catch(()=>{});
+    // Route audio tracks to hidden audio element; video tracks to remoteVideo element
+    e.streams.forEach(stream => {
+      stream.getTracks().forEach(t => {
+        if (t.kind === 'audio') {
+          if (!remoteStream) remoteStream = new MediaStream();
+          remoteStream.addTrack(t);
+          const audio = document.getElementById('remoteAudio');
+          audio.srcObject = remoteStream;
+          audio.volume = 1.0;
+          const prefSpk = localStorage.getItem('prefSpkId');
+          if (prefSpk && typeof audio.setSinkId === 'function') {
+            audio.setSinkId(prefSpk).catch(()=>{});
+          }
+          audio.play && audio.play().catch(()=>{});
+        } else if (t.kind === 'video') {
+          if (!remoteVideoStream) remoteVideoStream = new MediaStream();
+          remoteVideoStream.addTrack(t);
+          const rv = document.getElementById('remoteVideo');
+          rv.srcObject = remoteVideoStream;
+          rv.play && rv.play().catch(()=>{});
+          try {
+            t.addEventListener('ended', ()=>{ try { remoteVideoStream && remoteVideoStream.removeTrack(t); } catch{}; updateVideoStageVisibility(); });
+          } catch {}
+        }
+      });
+    });
+    updateVideoStageVisibility();
   };
+}
+
+function getVideoPrefs(){
+  return {
+    camDeviceId: localStorage.getItem('prefCamId') || undefined,
+    videoRes: parseInt(localStorage.getItem('prefVideoRes')||'1080',10),
+    videoFps: parseInt(localStorage.getItem('prefVideoFps')||'60',10),
+    videoBitrateKbps: parseInt(localStorage.getItem('prefVideoBitrate')||'4500',10),
+    screenRes: parseInt(localStorage.getItem('prefScreenRes')||'1080',10),
+    screenFps: parseInt(localStorage.getItem('prefScreenFps')||'60',10)
+  };
+}
+
+function initVideoSelectorsUI(){
+  const prefs = getVideoPrefs();
+  const vRes = document.getElementById('videoResSelect'); if (vRes) vRes.value = String(prefs.videoRes);
+  const vFps = document.getElementById('videoFpsSelect'); if (vFps) vFps.value = String(prefs.videoFps);
+  const vBr = document.getElementById('videoBitrate'); if (vBr) vBr.value = String(prefs.videoBitrateKbps);
+  const sRes = document.getElementById('screenResSelect'); if (sRes) sRes.value = String(prefs.screenRes);
+  const sFps = document.getElementById('screenFpsSelect'); if (sFps) sFps.value = String(prefs.screenFps);
+}
+
+async function getCameraStream(){
+  const prefs = getVideoPrefs();
+  const width = prefs.videoRes === 1080 ? 1920 : 1280;
+  const height = prefs.videoRes === 1080 ? 1080 : 720;
+  const fps = prefs.videoFps;
+  const constraints = {
+    video: {
+      width: { ideal: width },
+      height: { ideal: height },
+      frameRate: { ideal: fps, max: fps },
+      deviceId: prefs.camDeviceId ? { exact: prefs.camDeviceId } : undefined
+    },
+    audio: false
+  };
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    return stream;
+  } catch (e) {
+    // fallback to default video
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    return stream;
+  }
+}
+
+async function startCamera(){
+  localVideoStream = await getCameraStream();
+  const lv = document.getElementById('localVideo');
+  lv.srcObject = localVideoStream; lv.play && lv.play().catch(()=>{});
+  const track = localVideoStream.getVideoTracks()[0];
+  if (!track) return;
+  if (pc) {
+    if (!videoSender) {
+      const trans = pc.addTransceiver('video', { direction: 'sendrecv' });
+      videoSender = trans.sender;
+    }
+    await videoSender.replaceTrack(track);
+    await ensureRenegotiation();
+    await applyVideoEncodingPrefs();
+  }
+  updateVideoStageVisibility();
+}
+
+async function stopCamera(){
+  try { if (localVideoStream) localVideoStream.getTracks().forEach(t=>t.stop()); } catch{}
+  localVideoStream = null;
+  const lv = document.getElementById('localVideo'); lv.srcObject = null;
+  if (videoSender && !isSharingScreen) {
+    await videoSender.replaceTrack(null);
+    await ensureRenegotiation();
+  }
+  updateVideoStageVisibility();
+}
+
+async function startScreenShare(){
+  const prefs = getVideoPrefs();
+  const width = prefs.screenRes === 1080 ? 1920 : 1280;
+  const height = prefs.screenRes === 1080 ? 1080 : 720;
+  const fps = prefs.screenFps;
+  const constraints = { video: { frameRate: { ideal: fps, max: fps }, width: { ideal: width }, height: { ideal: height }, cursor: 'always' }, audio: false };
+  try {
+    screenStream = await navigator.mediaDevices.getDisplayMedia(constraints);
+  } catch (e) {
+    console.warn('getDisplayMedia failed', e);
+    return;
+  }
+  isSharingScreen = true;
+  const track = screenStream.getVideoTracks()[0];
+  if (track) {
+    const lv = document.getElementById('localVideo'); lv.srcObject = screenStream; lv.play && lv.play().catch(()=>{});
+    if (!videoSender) {
+      const trans = pc.addTransceiver('video', { direction: 'sendrecv' });
+      videoSender = trans.sender;
+    }
+    await videoSender.replaceTrack(track);
+    await ensureRenegotiation();
+    await applyVideoEncodingPrefs(true);
+  }
+  // When user stops sharing via browser UI
+  const onEnded = () => { stopScreenShare(); };
+  track && track.addEventListener('ended', onEnded, { once:true });
+  updateVideoStageVisibility();
+}
+
+async function stopScreenShare(){
+  try { if (screenStream) screenStream.getTracks().forEach(t=>t.stop()); } catch{}
+  screenStream = null; isSharingScreen = false;
+  if (localVideoStream && videoSender) {
+    await videoSender.replaceTrack(localVideoStream.getVideoTracks()[0]||null);
+    await ensureRenegotiation();
+    await applyVideoEncodingPrefs();
+    const lv = document.getElementById('localVideo'); lv.srcObject = localVideoStream;
+  } else {
+    if (videoSender) { await videoSender.replaceTrack(null); await ensureRenegotiation(); }
+    const lv = document.getElementById('localVideo'); lv.srcObject = null;
+  }
+  updateVideoStageVisibility();
+}
+
+async function applyVideoEncodingPrefs(isScreen=false){
+  if (!videoSender) return;
+  const params = videoSender.getParameters();
+  if (!params.encodings) params.encodings = [{}];
+  const prefs = getVideoPrefs();
+  const kbps = Math.max(300, parseInt(prefs.videoBitrateKbps||'4500',10));
+  params.encodings[0].maxBitrate = kbps * 1000;
+  try { await videoSender.setParameters(params); } catch {}
+  try {
+    const track = (isScreen ? screenStream?.getVideoTracks()[0] : localVideoStream?.getVideoTracks()[0]);
+    if (track) {
+      const fps = isScreen ? getVideoPrefs().screenFps : getVideoPrefs().videoFps;
+      await track.applyConstraints({ frameRate: { ideal: fps, max: fps } });
+    }
+  } catch {}
+}
+
+async function ensureRenegotiation(){
+  if (!pc) return;
+  try {
+    await doNegotiation();
+  } catch (e) { console.warn('renegotiation error', e); }
+}
+
+function setupRenegotiationChannel(){
+  const other = dmOtherUid();
+  isPolite = other && currentUser && String(currentUser.uid) > String(other);
+  const base = rtdb.ref(`calls/${currentCallRoom}/renegotiate`);
+  renegoRefs.offer = base.child(`inbox/${currentUser.uid}/offer`);
+  renegoRefs.offer.on('value', async (s) => {
+    const v = s.val();
+    if (!v) return;
+    try {
+      if (pc.signalingState !== 'stable') {
+        if (!isPolite) { return; }
+      }
+      await pc.setRemoteDescription(new RTCSessionDescription({ type:'offer', sdp: v.sdp }));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      const ansRef = base.child(`inbox/${v.from}/answer`);
+      await ansRef.set({ sdp: answer.sdp, type: answer.type, from: currentUser.uid, at: firebase.database.ServerValue.TIMESTAMP });
+    } catch (e) { console.warn('negotiation offer error', e); }
+    finally { renegoRefs.offer.set(null); }
+  });
+  renegoRefs.answer = base.child(`inbox/${currentUser.uid}/answer`);
+  renegoRefs.answer.on('value', async (s) => {
+    const v = s.val();
+    if (!v) return;
+    try {
+      await pc.setRemoteDescription(new RTCSessionDescription({ type:'answer', sdp: v.sdp }));
+    } catch (e) { console.warn('negotiation answer error', e); }
+    finally { renegoRefs.answer.set(null); }
+  });
+}
+
+async function doNegotiation(){
+  if (!pc) return;
+  const other = dmOtherUid();
+  if (!other) return;
+  const base = rtdb.ref(`calls/${currentCallRoom}/renegotiate`);
+  const outRef = base.child(`inbox/${other}/offer`);
+  try {
+    makingOffer = true;
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    await outRef.set({ sdp: offer.sdp, type: offer.type, from: currentUser.uid, at: firebase.database.ServerValue.TIMESTAMP });
+  } catch (e) { console.warn('doNegotiation failed', e); }
+  finally { makingOffer = false; }
 }
 
 async function startOutgoingCall(){
@@ -2011,8 +2317,12 @@ async function startOutgoingCall(){
 
   pc = new RTCPeerConnection(rtcConfig);
   bindPeerEvents();
+  setupRenegotiationChannel();
   const mic = await getMic();
   mic.getTracks().forEach(t => pc.addTrack(t, mic));
+  // Prepare a video transceiver for future camera/screen tracks
+  const vTrans = pc.addTransceiver('video', { direction: 'sendrecv' });
+  videoSender = vTrans.sender;
 
   const offer = await pc.createOffer({ offerToReceiveAudio: true });
   await pc.setLocalDescription(offer);
@@ -2061,8 +2371,11 @@ async function acceptIncomingCall(offer){
 
   pc = new RTCPeerConnection(rtcConfig);
   bindPeerEvents();
+  setupRenegotiationChannel();
   const mic = await getMic();
   mic.getTracks().forEach(t => pc.addTrack(t, mic));
+  const vTrans = pc.addTransceiver('video', { direction: 'sendrecv' });
+  videoSender = vTrans.sender;
 
   await pc.setRemoteDescription(new RTCSessionDescription(offer));
   const answer = await pc.createAnswer();
@@ -2148,6 +2461,41 @@ document.getElementById('toggleMicBtn').addEventListener('click', () => {
   if (track.enabled) { icon.className = 'bx bx-microphone'; document.getElementById('toggleMicBtn').title = 'Mute mic'; }
   else { icon.className = 'bx bx-microphone-off'; document.getElementById('toggleMicBtn').title = 'Unmute mic'; }
 });
+document.getElementById('toggleVideoBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('toggleVideoBtn');
+  const icon = btn.querySelector('i');
+  if (!localVideoStream && !isSharingScreen) {
+    await startCamera();
+    icon.className = 'bx bx-video-off'; btn.title = 'Turn off camera';
+    return;
+  }
+  if (isSharingScreen) {
+    await stopScreenShare();
+    icon.className = localVideoStream ? 'bx bx-video-off' : 'bx bx-video';
+    btn.title = localVideoStream ? 'Turn off camera' : 'Turn on camera';
+    return;
+  }
+  await stopCamera();
+  icon.className = 'bx bx-video'; btn.title = 'Turn on camera';
+});
+document.getElementById('shareScreenBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('shareScreenBtn');
+  const icon = btn.querySelector('i');
+  if (!isSharingScreen) {
+    await startScreenShare();
+    if (isSharingScreen) { icon.className = 'bx bx-stop'; btn.title = 'Stop sharing'; }
+  } else {
+    await stopScreenShare();
+    icon.className = 'bx bx-desktop'; btn.title = 'Share your screen';
+  }
+});
+document.getElementById('callSettingsBtn').addEventListener('click', async () => {
+  document.getElementById('callSettingsModal').classList.add('active');
+  try { await initDeviceSelectors(); } catch {}
+});
+document.getElementById('closeCallSettingsBtn').addEventListener('click', () => {
+  document.getElementById('callSettingsModal').classList.remove('active');
+});
 
 // Device selectors: mic and speaker
 async function initDeviceSelectors(){
@@ -2205,6 +2553,62 @@ async function initDeviceSelectors(){
   navigator.mediaDevices.ondevicechange = async ()=>{
     try { await initDeviceSelectors(); } catch{}
   };
+
+  // Populate camera select
+  const devices2 = await navigator.mediaDevices.enumerateDevices();
+  const cams = devices2.filter(d=>d.kind==='videoinput');
+  const camSel = document.getElementById('camSelect');
+  if (camSel){
+    const prefCam = localStorage.getItem('prefCamId');
+    camSel.innerHTML = '';
+    cams.forEach((d, idx)=>{
+      const opt = document.createElement('option');
+      opt.value = d.deviceId; opt.textContent = d.label || `Camera ${idx+1}`;
+      if (prefCam && d.deviceId===prefCam) opt.selected = true;
+      camSel.appendChild(opt);
+    });
+    camSel.onchange = async ()=>{
+      const id = camSel.value; localStorage.setItem('prefCamId', id);
+      if (localVideoStream) {
+        try {
+          const prefs = getVideoPrefs();
+          const width = prefs.videoRes===1080?1920:1280; const height = prefs.videoRes===1080?1080:720; const fps = prefs.videoFps;
+          const newStream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: id }, width: { ideal: width }, height: { ideal: height }, frameRate: { ideal: fps, max: fps } } });
+          const newTrack = newStream.getVideoTracks()[0];
+          if (videoSender) await videoSender.replaceTrack(newTrack);
+          localVideoStream.getTracks().forEach(t=>t.stop());
+          localVideoStream = newStream;
+          document.getElementById('localVideo').srcObject = newStream;
+          await ensureRenegotiation();
+        } catch(e){ console.warn('camera switch failed', e); }
+      }
+    };
+  }
+
+  // Hook video settings to localStorage and live updates
+  ['videoResSelect','videoFpsSelect','videoBitrate','screenResSelect','screenFpsSelect'].forEach(id=>{
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('change', ()=>{
+      if (id==='videoResSelect') localStorage.setItem('prefVideoRes', el.value);
+      if (id==='videoFpsSelect') localStorage.setItem('prefVideoFps', el.value);
+      if (id==='videoBitrate') localStorage.setItem('prefVideoBitrate', el.value);
+      if (id==='screenResSelect') localStorage.setItem('prefScreenRes', el.value);
+      if (id==='screenFpsSelect') localStorage.setItem('prefScreenFps', el.value);
+      if (id==='videoBitrate') applyVideoEncodingPrefs(isSharingScreen);
+    });
+  });
+  initVideoSelectorsUI();
+}
+
+function updateVideoStageVisibility(){
+  const stage = document.getElementById('videoStage');
+  if (!stage) return;
+  const localOn = !!(localVideoStream && typeof localVideoStream.getVideoTracks === 'function' && localVideoStream.getVideoTracks().some(t=>t.readyState==='live'));
+  const screenOn = !!(isSharingScreen && screenStream && typeof screenStream.getVideoTracks === 'function' && screenStream.getVideoTracks().some(t=>t.readyState==='live'));
+  const remoteOn = !!(remoteVideoStream && typeof remoteVideoStream.getVideoTracks === 'function' && remoteVideoStream.getVideoTracks().some(t=>t.readyState==='live'));
+  if (localOn || screenOn || remoteOn) stage.classList.remove('hidden');
+  else stage.classList.add('hidden');
 }
 
 // incoming call modal buttons
