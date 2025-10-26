@@ -212,8 +212,12 @@
       <p>enter credentials to access the administration panel</p>
       <form id="loginForm">
         <div class="form-group">
+          <label for="adminEmail">email</label>
+          <input type="email" id="adminEmail" placeholder="admin email" autocomplete="username" required/>
+        </div>
+        <div class="form-group">
           <label for="password">password</label>
-          <input type="password" id="password" placeholder="enter admin password" required/>
+          <input type="password" id="password" placeholder="enter admin password" autocomplete="current-password" required/>
         </div>
         <button type="submit" class="login-btn"><i class='bx bx-log-in'></i> authenticate</button>
         <div class="error-message" id="errorMessage"></div>
@@ -562,11 +566,8 @@
         this.rtdb = rtdb;
         this.db   = db;
         this.maintenanceRef = rtdb.ref('settings/maintenance');
-        this.chatSettingsRef = db.collection('settings').doc('chat');
-        this.adminPasswordHash = '50172b3e278ccc1f2caaac89e2911df21304024b98578c4642af9d340fc73b71';
-        this.chatShutdownRef = rtdb.ref('settings/chatShutdown');
-        this.lockdownRef     = rtdb.ref('settings/lockdown');
-        this.slowModeRef     = rtdb.ref('settings/slowMode');
+  this.chatSettingsRef = db.collection('settings').doc('chat');
+  this.adminPasswordHash = '50172b3e278ccc1f2caaac89e2911df21304024b98578c4642af9d340fc73b71';
         this.isLoggedIn = false;
       }
 
@@ -629,24 +630,33 @@
       
       async handleLogin(e){
         e.preventDefault();
+        const email = (document.getElementById('adminEmail').value || '').trim();
         const pwd = document.getElementById('password').value;
         const err = document.getElementById('errorMessage');
+        err.style.display = 'none'; err.textContent='';
         try{
-          const h = await this.hashPassword(pwd);
-          if (h === this.adminPasswordHash){
-            this.isLoggedIn = true;
-            localStorage.setItem('adminLoggedIn','true');
-            localStorage.setItem('loginTime', Date.now().toString());
-            document.getElementById('loginContainer').style.display='none';
-            document.getElementById('adminPanel').style.display='block';
-            this.addSecurityLog('Admin login successful','info');
-          } else {
-            this.securityData.failedLogins++;
-            localStorage.setItem('failedLogins', String(this.securityData.failedLogins));
-            this.updateSecurityStats();
-            err.textContent = 'Invalid password. Please try again.'; err.style.display='block';
-          }
-        } catch (e){ err.textContent='Login failed. Try again.'; err.style.display='block'; }
+          const cred = await auth.signInWithEmailAndPassword(email, pwd);
+          const uid = cred.user.uid;
+          // Check Firestore users doc for admin flag
+          const udoc = await db.collection('users').doc(uid).get();
+          const isAdmin = udoc.exists && udoc.data().isAdmin === true;
+          if (!isAdmin) throw new Error('not-admin');
+
+          this.isLoggedIn = true;
+          localStorage.setItem('adminLoggedIn','true');
+          localStorage.setItem('loginTime', Date.now().toString());
+          document.getElementById('loginContainer').style.display='none';
+          document.getElementById('adminPanel').style.display='block';
+          this.addSecurityLog('Admin login successful','info');
+        } catch (e){
+          console.error('admin login error', e);
+          try { await auth.signOut(); } catch {}
+          this.securityData.failedLogins++;
+          localStorage.setItem('failedLogins', String(this.securityData.failedLogins));
+          this.updateSecurityStats();
+          err.textContent = (e && e.message === 'not-admin') ? 'This account does not have admin access.' : 'Invalid email or password.';
+          err.style.display='block';
+        }
       }
       
       checkLoginStatus(){
@@ -661,12 +671,13 @@
         }
       }
       
-      logout(onlyShow=false){
+      async logout(onlyShow=false){
         this.isLoggedIn = false;
         localStorage.removeItem('adminLoggedIn'); localStorage.removeItem('loginTime');
         if (!onlyShow) this.addSecurityLog('Admin logged out','info');
         document.getElementById('adminPanel').style.display='none';
         document.getElementById('loginContainer').style.display='block';
+        try { await auth.signOut(); } catch {}
       }
 
       showSection(id){
@@ -779,39 +790,43 @@
           });
       }
 
-      subscribeModCalls(){
-        this.db.collection('mod_calls')
-          .where('seen','==',false)
-          .orderBy('timestamp','desc')
-          .limit(20)
-          .onSnapshot(snap => {
-            const list = document.getElementById('modCallsList');
-            list.innerHTML = '';
-            if (snap.empty) {
-              list.innerHTML = '<p style="color:#666;text-align:center;padding:2rem">no pending mod calls</p>';
-              return;
-            }
-            snap.forEach(d => {
-              const call = d.data();
-              const div = document.createElement('div');
-              div.className = 'mod-call-item';
-              div.innerHTML = `
-                <div class="mod-call-header">
-                  <span class="mod-call-user">@${call.username}</span>
-                  <span class="mod-call-time">${fmtDateTime(call.timestamp)}</span>
-                </div>
-                <div class="mod-call-reason">${call.reason}</div>
-                <div class="mod-call-actions">
-                  <button class="action-btn" onclick="adminPanel.markModCallSeen('${d.id}')">mark seen</button>
-                  <button class="action-btn danger" onclick="adminPanel.quickBan('${call.username}')">ban user</button>
-                </div>
-              `;
-              list.appendChild(div);
-            });
-          });
-      }
+      subscribeChatSettings(){
+        if (!this.chatSettingsRef) return;
+        this.unsubscribeChatSettings && this.unsubscribeChatSettings();
+        this.unsubscribeChatSettings = this.chatSettingsRef.onSnapshot((doc)=>{
+          const data = (doc && doc.exists) ? doc.data() : {};
+          const isDown = !!data.chatShutdown;
+          const locked = !!data.lockdown;
+          const slow   = typeof data.slowMode === 'number' ? data.slowMode : 0;
 
-      async markModCallSeen(id){
+          const chatStatus = document.getElementById('chatStatus');
+          const onlineBtn  = document.getElementById('chatOnlineBtn');
+          const offBtn     = document.getElementById('chatOfflineBtn');
+          if (chatStatus && onlineBtn && offBtn){
+            if (isDown){
+              chatStatus.className = 'status-badge offline';
+              chatStatus.textContent = 'shutdown';
+              onlineBtn.classList.remove('active');
+              offBtn.classList.add('active');
+            } else {
+              chatStatus.className = 'status-badge online';
+              chatStatus.textContent = 'online';
+              onlineBtn.classList.add('active');
+              offBtn.classList.remove('active');
+            }
+          }
+
+          const btn  = document.getElementById('lockChatBtn');
+          const text = document.getElementById('lockChatText');
+          if (btn && text){
+            if (locked){ btn.classList.add('active'); text.textContent = 'unlock chat'; }
+            else { btn.classList.remove('active'); text.textContent = 'lock chat'; }
+          }
+
+          const slowInput = document.getElementById('slowmodeInput');
+          if (slowInput && typeof slow === 'number') slowInput.value = slow;
+        });
+      }
         try {
           await this.db.collection('mod_calls').doc(id).update({ seen: true });
         } catch (e) {
@@ -935,47 +950,46 @@
       }
 
       async setChatOnline(online){
-  try {
-    await this.chatShutdownRef.set(!online); // false = online, true = shutdown
-    const chatStatus = document.getElementById('chatStatus');
-    if (online) {
-      chatStatus.className = 'status-badge online';
-      chatStatus.textContent = 'online';
-      document.getElementById('chatOnlineBtn').classList.add('active');
-      document.getElementById('chatOfflineBtn').classList.remove('active');
-      alert('Chat system is now online');
-    } else {
-      chatStatus.className = 'status-badge offline';
-      chatStatus.textContent = 'shutdown';
-      document.getElementById('chatOnlineBtn').classList.remove('active');
-      document.getElementById('chatOfflineBtn').classList.add('active');
-      alert('Chat system has been shut down');
-    }
-  } catch (e) {
-    alert('Failed to update chat status'); console.error(e);
-  }
-}
+        try {
+          await this.chatSettingsRef.set({ chatShutdown: !online }, { merge: true });
+          const chatStatus = document.getElementById('chatStatus');
+          if (chatStatus){
+            chatStatus.className = online ? 'status-badge online' : 'status-badge offline';
+            chatStatus.textContent = online ? 'online' : 'shutdown';
+          }
+          document.getElementById('chatOnlineBtn')?.classList.toggle('active', !!online);
+          document.getElementById('chatOfflineBtn')?.classList.toggle('active', !online);
+          alert(online ? 'Chat system is now online' : 'Chat system has been shut down');
+        } catch (e) {
+          alert('Failed to update chat status'); console.error(e);
+        }
+      }
 
       async toggleChatLock(){
-  try {
-    const snap = await this.lockdownRef.get();
-    const current = !!snap.val();
-    await this.lockdownRef.set(!current);
-    alert(!current ? 'Chat locked' : 'Chat unlocked');
-  } catch (e) {
-    alert('Failed to toggle chat lock'); console.error(e);
-  }
-}
+        try {
+          await db.runTransaction(async(tx)=>{
+            const doc = await tx.get(this.chatSettingsRef);
+            const current = doc.exists && doc.data().lockdown === true;
+            tx.set(this.chatSettingsRef, { lockdown: !current }, { merge: true });
+          });
+          const btn  = document.getElementById('lockChatBtn');
+          const text = document.getElementById('lockChatText');
+          const nowLocked = btn?.classList.contains('active') ? false : true; // UI will update via onSnapshot
+          alert(nowLocked ? 'Chat locked' : 'Chat unlocked');
+        } catch (e) {
+          alert('Failed to toggle chat lock'); console.error(e);
+        }
+      }
 
       async setSlowmode(){
-  const seconds = parseInt(document.getElementById('slowmodeInput').value, 10) || 0;
-  try {
-    await this.slowModeRef.set(seconds);
-    alert(`Slowmode set to ${seconds} seconds`);
-  } catch (e) {
-    alert('Failed to set slowmode'); console.error(e);
-  }
-}
+        const seconds = parseInt(document.getElementById('slowmodeInput').value, 10) || 0;
+        try {
+          await this.chatSettingsRef.set({ slowMode: seconds }, { merge: true });
+          alert(`Slowmode set to ${seconds} seconds`);
+        } catch (e) {
+          alert('Failed to set slowmode'); console.error(e);
+        }
+      }
 
       async clearMessages(){
         const count = parseInt(document.getElementById('clearCountInput').value, 10) || 50;
