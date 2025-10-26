@@ -660,6 +660,11 @@ body {
 .call-widget .meta {color:#888;font-size:.8rem;}
 .call-widget .actions {display:flex;gap:.35rem;}
 .hidden {display:none !important;}
+
+/* Call devices row */
+.call-devices {margin-top:.9rem; display:flex; gap:.5rem; justify-content:center; align-items:center; flex-wrap:wrap; color:#aaa; font-size:.85rem;}
+.call-devices label {opacity:.8; margin:0 .15rem;}
+.call-devices select {background:#2a2a2a; border:1px solid var(--border); color:#ddd; border-radius:8px; padding:.35rem .6rem; font-family:'JetBrains Mono', monospace;}
   </style>
 </head>
 <body>
@@ -877,6 +882,12 @@ body {
         <button class="btn" id="toggleMicBtn"><i class='bx bx-microphone'></i><span class="lbl">mic</span></button>
         <button class="btn" id="minimizeCallBtn"><i class='bx bx-message'></i><span class="lbl">chat</span></button>
         <button class="btn btn-danger" id="hangupBtn"><i class='bx bx-phone-off'></i><span class="lbl">hang up</span></button>
+      </div>
+      <div class="call-devices">
+        <label for="micSelect">mic</label>
+        <select id="micSelect"></select>
+        <label for="spkSelect">output</label>
+        <select id="spkSelect"></select>
       </div>
     </div>
   </div>
@@ -1897,7 +1908,10 @@ function stopTimer(){ if (callInterval) { clearInterval(callInterval); callInter
 
 async function getMic(){
   if (localStream) return localStream;
-  localStream = await navigator.mediaDevices.getUserMedia({ audio:true });
+  const prefMic = localStorage.getItem('prefMicId');
+  const constraints = prefMic ? { audio: { deviceId: { exact: prefMic } } } : { audio: true };
+  localStream = await navigator.mediaDevices.getUserMedia(constraints);
+  try { await initDeviceSelectors(); } catch {}
   return localStream;
 }
 
@@ -1950,6 +1964,12 @@ function bindPeerEvents(){
     e.streams[0].getTracks().forEach(t => remoteStream.addTrack(t));
     const audio = document.getElementById('remoteAudio');
     audio.srcObject = remoteStream;
+    audio.volume = 1.0;
+    const prefSpk = localStorage.getItem('prefSpkId');
+    if (prefSpk && typeof audio.setSinkId === 'function') {
+      audio.setSinkId(prefSpk).catch(()=>{});
+    }
+    audio.play && audio.play().catch(()=>{});
   };
 }
 
@@ -2100,6 +2120,64 @@ document.getElementById('toggleMicBtn').addEventListener('click', () => {
   if (track.enabled) { icon.className = 'bx bx-microphone'; document.getElementById('toggleMicBtn').title = 'Mute mic'; }
   else { icon.className = 'bx bx-microphone-off'; document.getElementById('toggleMicBtn').title = 'Unmute mic'; }
 });
+
+// Device selectors: mic and speaker
+async function initDeviceSelectors(){
+  if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  const inputs = devices.filter(d=>d.kind==='audioinput');
+  const outputs = devices.filter(d=>d.kind==='audiooutput');
+  const micSel = document.getElementById('micSelect');
+  const spkSel = document.getElementById('spkSelect');
+  if (micSel){
+    const prefMic = localStorage.getItem('prefMicId');
+    micSel.innerHTML = '';
+    inputs.forEach(d=>{
+      const opt = document.createElement('option');
+      opt.value = d.deviceId; opt.textContent = d.label || `Microphone ${micSel.length+1}`;
+      if (prefMic && d.deviceId===prefMic) opt.selected = true;
+      micSel.appendChild(opt);
+    });
+    micSel.onchange = async ()=>{
+      const id = micSel.value; localStorage.setItem('prefMicId', id);
+      try {
+        const newStream = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: { exact: id } } });
+        const newTrack = newStream.getAudioTracks()[0];
+        if (pc) {
+          const sender = pc.getSenders().find(s=>s.track && s.track.kind==='audio');
+          if (sender) await sender.replaceTrack(newTrack);
+        }
+        if (localStream) localStream.getTracks().forEach(t=>t.stop());
+        localStream = newStream;
+      } catch(e) { console.warn('mic switch failed', e); }
+    };
+  }
+  if (spkSel){
+    const prefSpk = localStorage.getItem('prefSpkId');
+    spkSel.innerHTML = '';
+    outputs.forEach(d=>{
+      const opt = document.createElement('option');
+      opt.value = d.deviceId; opt.textContent = d.label || `Speaker ${spkSel.length+1}`;
+      if (prefSpk && d.deviceId===prefSpk) opt.selected = true;
+      spkSel.appendChild(opt);
+    });
+    if (typeof document.getElementById('remoteAudio').setSinkId !== 'function') {
+      // Speaker selection unsupported; hide just the label + select
+      const label = spkSel.previousElementSibling;
+      if (label) label.style.display = 'none';
+      spkSel.style.display = 'none';
+    } else {
+      spkSel.onchange = async ()=>{
+        const id = spkSel.value; localStorage.setItem('prefSpkId', id);
+        try { await document.getElementById('remoteAudio').setSinkId(id); } catch(e){ console.warn('setSinkId failed', e);} 
+      };
+    }
+  }
+  // refresh lists when devices change
+  navigator.mediaDevices.ondevicechange = async ()=>{
+    try { await initDeviceSelectors(); } catch{}
+  };
+}
 
 // incoming call modal buttons
 document.getElementById('acceptCallBtn').addEventListener('click', async ()=>{
