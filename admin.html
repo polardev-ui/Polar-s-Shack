@@ -8,6 +8,10 @@
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 
+  <!-- Environment config (generated) -->
+  <script src="env.js"></script>
+  <script src="env.fallback.js"></script>
+
   <!-- Firebase compat SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -495,15 +499,15 @@
 
   <!-- Firebase init (ONE time) -->
   <script>
-    // Replace with your config if different
+    // Centralized config via env
     const firebaseConfig = {
-      apiKey: "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs",
-      authDomain: "polars-shack.firebaseapp.com",
-      projectId: "polars-shack",
-      storageBucket: "polars-shack.firebasestorage.app",
-      messagingSenderId: "205388124682",
-      appId: "1:205388124682:web:2b0b1605517e0c6c53c5f3",
-      databaseURL: "https://polars-shack-default-rtdb.firebaseio.com"
+      apiKey: window.__ENV?.FIREBASE_API_KEY,
+      authDomain: window.__ENV?.FIREBASE_AUTH_DOMAIN,
+      projectId: window.__ENV?.FIREBASE_PROJECT_ID,
+      storageBucket: window.__ENV?.FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: window.__ENV?.FIREBASE_MESSAGING_SENDER_ID,
+      appId: window.__ENV?.FIREBASE_APP_ID,
+      databaseURL: window.__ENV?.FIREBASE_DATABASE_URL
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 
@@ -555,7 +559,7 @@
     class AdminPanel {
       constructor(){
         this.startTime = Date.now();
-        this.proxyServerUrl = 'https://render-proxy-6x2v.onrender.com';
+  this.proxyServerUrl = (window.__ENV && window.__ENV.PROXY_SERVER_URL) || 'https://render-proxy-6x2v.onrender.com';
         this.securityData = {
           failedLogins: parseInt(localStorage.getItem('failedLogins') || '0', 10),
           proxyBlocks:  parseInt(localStorage.getItem('proxyBlocks')  || '0', 10),
@@ -567,7 +571,7 @@
         this.db   = db;
         this.maintenanceRef = rtdb.ref('settings/maintenance');
   this.chatSettingsRef = db.collection('settings').doc('chat');
-  this.adminPasswordHash = '50172b3e278ccc1f2caaac89e2911df21304024b98578c4642af9d340fc73b71';
+  this.adminPasswordHash = (window.__ENV && window.__ENV.ADMIN_PASSWORD_HASH) || '50172b3e278ccc1f2caaac89e2911df21304024b98578c4642af9d340fc73b71';
     this.isLoggedIn = false;
     this.isAdminUser = false;
       }
