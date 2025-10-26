@@ -4,13 +4,14 @@ import "firebase/auth"
 
 class FirebaseConfig {
   constructor() {
+    const env = (typeof window !== 'undefined' ? window.__ENV : process.env) || {}
     this.config = {
-      apiKey: "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs",
-      authDomain: "polars-shack.firebaseapp.com",
-      projectId: "polars-shack",
-      storageBucket: "polars-shack.firebasestorage.app",
-      messagingSenderId: "205388124682",
-      appId: "1:205388124682:web:2b0b1605517e0c6c53c5f3",
+      apiKey: env.FIREBASE_API_KEY,
+      authDomain: env.FIREBASE_AUTH_DOMAIN,
+      projectId: env.FIREBASE_PROJECT_ID,
+      storageBucket: env.FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: env.FIREBASE_MESSAGING_SENDER_ID,
+      appId: env.FIREBASE_APP_ID,
     }
 
     this.initializeFirebase()
