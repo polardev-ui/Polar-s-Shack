@@ -3,8 +3,10 @@ class MaintenanceMode {
     this.isMaintenanceMode = false
     this.maintenanceMessage = ""
     this.popup = null
-    this.apiUrl = "https://api.jsonbin.io/v3/b/67a0f1e5e41b4d34e4684c8a" // JSONBin.io endpoint for cross-device state
-    this.apiKey = "$2a$10$FyO6Rk61cFF8tkXtzyZ61O4RM4VR4SwRvSRhbyUtCuIvO6e6OXRHq" // Read-only key
+  // Prefer Firebase RTDB (already used elsewhere) for global maintenance state.
+  // Optional JSONBin support only if provided via env, otherwise skip remote fetch.
+  this.apiUrl = (window.__ENV && window.__ENV.JSONBIN_API_URL) || ""
+  this.apiKey = (window.__ENV && window.__ENV.JSONBIN_MASTER_KEY) || ""
     this.init()
   }
 
@@ -21,10 +23,12 @@ class MaintenanceMode {
 
   async checkServerMaintenanceStatus() {
     try {
+      if (!this.apiUrl || !this.apiKey) {
+        // No JSONBin credentials: rely on local storage/RTDB listeners elsewhere
+        return this.checkMaintenanceStatus()
+      }
       const response = await fetch(`${this.apiUrl}/latest`, {
-        headers: {
-          "X-Master-Key": this.apiKey,
-        },
+        headers: { "X-Master-Key": this.apiKey },
       })
 
       if (response.ok) {
