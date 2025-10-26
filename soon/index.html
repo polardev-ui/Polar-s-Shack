@@ -19,6 +19,9 @@
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9156548662984796"
    crossorigin="anonymous"></script>
 
+    <!-- Environment config (generated) -->
+    <script src="../env.js"></script>
+    <script src="../env.fallback.js"></script>
   <!-- Firebase (new modular + compat for RTDB) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -534,12 +537,13 @@
 
   <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyBYyJuTAkVPB_65NqSeca6IueMoMO1iPzs",
-      authDomain: "polars-shack.firebaseapp.com",
-      projectId: "polars-shack",
-      storageBucket: "polars-shack.firebasestorage.app",
-      messagingSenderId: "205388124682",
-      appId: "1:205388124682:web:2b0b1605517e0c6c53c5f3"
+      apiKey: window.__ENV?.FIREBASE_API_KEY,
+      authDomain: window.__ENV?.FIREBASE_AUTH_DOMAIN,
+      projectId: window.__ENV?.FIREBASE_PROJECT_ID,
+      storageBucket: window.__ENV?.FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: window.__ENV?.FIREBASE_MESSAGING_SENDER_ID,
+      appId: window.__ENV?.FIREBASE_APP_ID,
+      databaseURL: window.__ENV?.FIREBASE_DATABASE_URL
     };
 
   firebase.initializeApp(firebaseConfig);
