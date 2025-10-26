@@ -4,9 +4,10 @@
   "description": "Advanced web proxy and unblocked access portal with admin panel and maintenance mode",
   "main": "index.html",
   "scripts": {
-    "start": "echo 'Starting Polar's Shack...' && python3 -m http.server 8080",
+    "start": "echo \"Starting Polar's Shack...\" && python3 -m http.server 8080",
     "dev": "echo 'Starting development server...' && python3 -m http.server 3000",
-    "build": "echo 'Building Polars Shack...' && mkdir -p dist && cp -r *.html *.js *.css soon/ Polar-s-Shack-main/ dist/ 2>/dev/null || true",
+    "generate-env": "node build.js",
+    "build": "echo \"Building Polar's Shack...\" && node build.js && mkdir -p dist && cp -r *.html *.js *.css soon/ Polar-s-Shack-main/ dist/ 2>/dev/null || true",
     "deploy": "./deploy.sh",
     "stop": "./deploy.sh stop",
     "restart": "./deploy.sh restart",
