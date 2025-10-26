@@ -511,8 +511,8 @@
     const db   = firebase.firestore();
     const rtdb = firebase.database();
 
-    auth.onAuthStateChanged(async u => {
-      if (!u) { try { await auth.signInAnonymously(); } catch(e){ console.log('anon auth failed', e); } }
+    auth.onAuthStateChanged(u => {
+      // Admin panel requires explicit email/password login now; no anonymous auth.
     });
   </script>
 
@@ -692,10 +692,12 @@
       }
 
       wireRealtimeStats(){
-        this.rtdb.ref('users').on('value', snap=>{
-          document.getElementById('totalUsers').textContent = String(snap.numChildren()||0);
+        // Total users from Firestore (realtime via onSnapshot)
+        this.db.collection('users').onSnapshot(snap=>{
+          document.getElementById('totalUsers').textContent = String(snap.size || 0);
         });
 
+        // Online users from RTDB (unique uids with active sessions)
         this.rtdb.ref('onlineUsers').on('value', snap=>{
           document.getElementById('onlineUsers').textContent = String(snap.numChildren()||0);
         });
@@ -827,46 +829,6 @@
           if (slowInput && typeof slow === 'number') slowInput.value = slow;
         });
       }
-        try {
-          await this.db.collection('mod_calls').doc(id).update({ seen: true });
-        } catch (e) {
-          console.error('mark seen failed', e);
-        }
-      }
-
-      subscribeChatSettings(){
-  // shutdown
-  this.chatShutdownRef.on('value', snap => {
-    const isDown = !!snap.val();
-    const chatStatus = document.getElementById('chatStatus');
-    const onlineBtn  = document.getElementById('chatOnlineBtn');
-    const offBtn     = document.getElementById('chatOfflineBtn');
-    if (isDown){
-      chatStatus.className = 'status-badge offline';
-      chatStatus.textContent = 'shutdown';
-      onlineBtn.classList.remove('active'); offBtn.classList.add('active');
-    } else {
-      chatStatus.className = 'status-badge online';
-      chatStatus.textContent = 'online';
-      onlineBtn.classList.add('active'); offBtn.classList.remove('active');
-    }
-  });
-
-  // lockdown
-  this.lockdownRef.on('value', snap => {
-    const locked = !!snap.val();
-    const btn  = document.getElementById('lockChatBtn');
-    const text = document.getElementById('lockChatText');
-    if (locked){ btn.classList.add('active'); text.textContent = 'unlock chat'; }
-    else { btn.classList.remove('active'); text.textContent = 'lock chat'; }
-  });
-
-  // slowmode
-  this.slowModeRef.on('value', snap => {
-    const v = snap.val();
-    if (typeof v === 'number') document.getElementById('slowmodeInput').value = v;
-  });
-}
       
       subscribeMaintenance(){
         this.maintenanceRef.on('value', snap=>{
