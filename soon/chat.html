@@ -1862,10 +1862,30 @@ let globalStateWatchers = {};
 let dmMsgWatchers = {};
 let dmMsgLastDocId = {};
 
-const rtcConfig = { iceServers: [{ urls: [
+let rtcConfig = { iceServers: [{ urls: [
   'stun:stun.l.google.com:19302',
   'stun:stun1.l.google.com:19302'
-] }] };
+] }], iceTransportPolicy: 'all' };
+
+// Optional: allow admins to inject TURN/ICE servers from RTDB at settings/iceServers
+// Expected format: either an array of RTCIceServer entries or a single object
+// Example array entry: { urls: ['turn:turn.example.com:3478'], username: 'user', credential: 'pass' }
+try {
+  rtdb.ref('settings/iceServers').on('value', s => {
+    const v = s.val();
+    if (!v) return;
+    const baseStuns = [{ urls: ['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302'] }];
+    if (Array.isArray(v)) {
+      rtcConfig.iceServers = [...baseStuns, ...v];
+    } else if (typeof v === 'object') {
+      rtcConfig.iceServers = [...baseStuns, v];
+    }
+  });
+  rtdb.ref('settings/iceTransportPolicy').on('value', s => {
+    const v = s.val();
+    if (v === 'relay' || v === 'all') rtcConfig.iceTransportPolicy = v;
+  });
+} catch (e) { /* ignore optional config errors */ }
 
 function dmOtherUid(){
   if (!currentUser || currentRoom === 'public') return null;
@@ -1955,8 +1975,16 @@ function bindPeerEvents(){
     }
   };
   pc.onconnectionstatechange = () => {
+    if (pc.connectionState === 'connected') {
+      document.getElementById('callStatus').textContent = 'connected';
+    }
     if (['failed','disconnected','closed'].includes(pc.connectionState)) {
-      endCall(pc.connectionState);
+      // give a brief grace period for transient disconnects before ending
+      const state = pc.connectionState;
+      setTimeout(() => {
+        if (!pc || pc.connectionState !== state) return; // recovered
+        endCall(state);
+      }, 1500);
     }
   };
   pc.ontrack = (e) => {
