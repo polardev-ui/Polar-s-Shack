@@ -620,8 +620,8 @@ body {
 }
 .call-overlay.active {display:flex;}
 .call-card {
-  width:92%;
-  max-width:460px;
+  width:96%;
+  max-width:980px;
   background:#1b1b1b;
   border:1px solid var(--border);
   border-radius:16px;
@@ -644,6 +644,8 @@ body {
   background:#2a2a2a;color:#ddd;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:.4rem;
 }
 .call-controls .btn:hover {background:#333;border-color:var(--accent);color:var(--accent);}
+/* compact controls: hide text labels to avoid squish; rely on tooltips */
+.call-controls .btn .lbl { display:none; }
 .btn-danger {background:#3a1f1f;border-color:#552222;color:#ff9a9a;}
 .btn-danger:hover {background:#4a2323;border-color:#ff6666;color:#ff6666;}
 
@@ -667,10 +669,16 @@ body {
 .call-devices {margin-top:.9rem; display:flex; gap:.5rem; justify-content:center; align-items:center; flex-wrap:wrap; color:#aaa; font-size:.85rem;}
 .call-devices label {opacity:.8; margin:0 .15rem;}
 .call-devices select {background:#2a2a2a; border:1px solid var(--border); color:#ddd; border-radius:8px; padding:.35rem .6rem; font-family:'JetBrains Mono', monospace;}
-/* Video stage */
-.video-stage { position:relative; width:100%; margin:.75rem auto 0; max-width:900px; aspect-ratio:16/9; background:#0e0e0e; border:1px solid var(--border); border-radius:10px; overflow:hidden; }
-.video-stage video { width:100%; height:100%; object-fit:cover; background:#000; }
-.video-stage .local-preview { position:absolute; width:26%; aspect-ratio:16/9; right:10px; bottom:10px; border:1px solid var(--border); border-radius:8px; box-shadow:0 6px 20px rgba(0,0,0,0.5); }
+/* Video stage: responsive 1-up / 2-up grid */
+.video-stage { 
+  position:relative; width:100%; margin:.75rem auto 0; max-width:1100px;
+  background:#0e0e0e; border:1px solid var(--border); border-radius:10px; overflow:hidden;
+  display:grid; grid-template-columns:1fr; gap:8px; padding:8px;
+}
+.video-stage.two-up { grid-template-columns:1fr 1fr; }
+.video-stage video { width:100%; height:auto; aspect-ratio:16/9; object-fit:cover; background:#000; border-radius:8px; }
+/* legacy local overlay disabled by default in new grid layout */
+.video-stage .local-preview { position:static; width:100%; right:auto; bottom:auto; border:none; box-shadow:none; }
 .video-settings { margin-top:.6rem; display:flex; gap:.5rem; justify-content:center; align-items:center; flex-wrap:wrap; color:#aaa; font-size:.85rem; }
 .video-settings label {opacity:.8; margin:0 .15rem;}
 .video-settings select, .video-settings input {background:#2a2a2a; border:1px solid var(--border); color:#ddd; border-radius:8px; padding:.35rem .6rem; font-family:'JetBrains Mono', monospace;}
@@ -889,7 +897,7 @@ body {
       <div class="call-status" id="callStatus">calling…</div>
       <div class="video-stage hidden" id="videoStage">
         <video id="remoteVideo" autoplay playsinline></video>
-        <video id="localVideo" class="local-preview" autoplay playsinline muted></video>
+        <video id="localVideo" autoplay playsinline muted></video>
       </div>
       <div class="call-controls">
         <button class="btn" id="toggleMicBtn"><i class='bx bx-microphone'></i><span class="lbl">mic</span></button>
@@ -1066,14 +1074,21 @@ function secondsLeft(endMs){ return Math.max(0, Math.ceil((endMs - nowMs())/1000
     let dmRooms = [];
     let unreadDMs = {};
 
-// add these two listeners
-rtdb.ref('settings/lockdown').on('value', s => {
-  settings.lockdown = !!s.val();
-});
-
-rtdb.ref('settings/slowMode').on('value', s => {
-  const v = s.val();
+// Firestore-backed chat settings (admin-controlled)
+const settingsDoc = db.collection('settings').doc('chat');
+let unsubscribeSettings = null;
+unsubscribeSettings = settingsDoc.onSnapshot(snap => {
+  const data = snap.exists ? snap.data() : {};
+  settings.lockdown = !!data.lockdown;
+  const v = data.slowMode;
   settings.slowMode = typeof v === 'number' && v > 0 ? v : 0;
+  settings.chatShutdown = !!data.chatShutdown;
+
+  const modal = document.getElementById('shutdownModal');
+  if (modal) {
+    if (settings.chatShutdown) modal.classList.add('active');
+    else modal.classList.remove('active');
+  }
 });
 
     document.getElementById('signUpBtn').addEventListener('click', signUp);
@@ -1101,6 +1116,12 @@ rtdb.ref('settings/slowMode').on('value', s => {
       
       if (!newUsername) {
         document.getElementById('settingsError').textContent = 'Username cannot be empty';
+        document.getElementById('settingsError').style.display = 'block';
+        return;
+      }
+
+      if (/\s/.test(newUsername)) {
+        document.getElementById('settingsError').textContent = 'Usernames cannot contain spaces';
         document.getElementById('settingsError').style.display = 'block';
         return;
       }
@@ -1338,20 +1359,26 @@ rtdb.ref('settings/slowMode').on('value', s => {
       document.getElementById('adminNotification').classList.remove('active');
     }
 
-    rtdb.ref('settings/chatShutdown').on('value', (snapshot) => {
-      const isShutdown = snapshot.val();
-      if (isShutdown) {
-        document.getElementById('shutdownModal').classList.add('active');
-      } else {
-        document.getElementById('shutdownModal').classList.remove('active');
-      }
-    });
+    // chatShutdown modal is now handled by Firestore settings onSnapshot above
 
     async function signUp() {
-      const email = document.getElementById('authEmail').value;
-      const username = document.getElementById('authUsername').value;
+      const email = document.getElementById('authEmail').value.trim();
+      const usernameRaw = document.getElementById('authUsername').value;
       const password = document.getElementById('authPassword').value;
+      const username = (usernameRaw || '').trim();
+      const usernameLower = username.toLowerCase();
 
+      // Basic validation: non-empty, no spaces
+      if (!username) {
+        document.getElementById('authError').textContent = 'Please choose a username';
+        document.getElementById('authError').style.display = 'block';
+        return;
+      }
+      if (/\s/.test(username)) {
+        document.getElementById('authError').textContent = 'Usernames cannot contain spaces';
+        document.getElementById('authError').style.display = 'block';
+        return;
+      }
       if (containsOffensive(username)) {
         document.getElementById('authError').textContent = 'Username contains inappropriate content';
         document.getElementById('authError').style.display = 'block';
@@ -1359,9 +1386,19 @@ rtdb.ref('settings/slowMode').on('value', s => {
       }
 
       try {
+        // Create auth user first
         const userCred = await auth.createUserWithEmailAndPassword(email, password);
-        await db.collection('users').doc(userCred.user.uid).set({
+
+        // Reserve username and create profile atomically
+        const batch = db.batch();
+        const uid = userCred.user.uid;
+        const userRef = db.collection('users').doc(uid);
+        const unameRef = db.collection('usernames').doc(usernameLower);
+
+        batch.set(unameRef, { uid, createdAt: Date.now() });
+        batch.set(userRef, {
           username,
+          usernameLower,
           email,
           createdAt: Date.now(),
           isAdmin: false,
@@ -1371,9 +1408,18 @@ rtdb.ref('settings/slowMode').on('value', s => {
           dmRooms: [],
           showOnlineStatus: true
         });
+
+        await batch.commit();
         document.getElementById('authModal').classList.remove('active');
+        document.getElementById('authError').style.display = 'none';
       } catch (error) {
-        document.getElementById('authError').textContent = error.message;
+        console.error('[signup] error:', error);
+        // If reservation/profile write failed, try to clean up the newly created auth user
+        try { if (auth.currentUser) await auth.currentUser.delete(); } catch {}
+        const msg = (error && error.code === 'permission-denied')
+          ? 'That username is taken or invalid. Please choose another.'
+          : (error && error.message) || 'Failed to create your account';
+        document.getElementById('authError').textContent = msg;
         document.getElementById('authError').style.display = 'block';
       }
     }
@@ -1419,6 +1465,8 @@ rtdb.ref('settings/slowMode').on('value', s => {
     auth.onAuthStateChanged(async (user) => {
       console.log('[v0] Auth state changed:', user ? user.uid : 'no user');
       if (user) {
+        // Ensure auth modal is hidden on auto sign-in
+        try { document.getElementById('authModal').classList.remove('active'); } catch {}
         const userDoc = await db.collection('users').doc(user.uid).get();
         if (userDoc.exists) {
           currentUser = { uid: user.uid, ...userDoc.data() };
@@ -2606,11 +2654,21 @@ async function initDeviceSelectors(){
 function updateVideoStageVisibility(){
   const stage = document.getElementById('videoStage');
   if (!stage) return;
-  const localOn = !!(localVideoStream && typeof localVideoStream.getVideoTracks === 'function' && localVideoStream.getVideoTracks().some(t=>t.readyState==='live'));
-  const screenOn = !!(isSharingScreen && screenStream && typeof screenStream.getVideoTracks === 'function' && screenStream.getVideoTracks().some(t=>t.readyState==='live'));
+  const localVideoEl = document.getElementById('localVideo');
+  const remoteVideoEl = document.getElementById('remoteVideo');
+  // local is active if camera stream live OR screen stream live
+  const localCamOn = !!(localVideoStream && typeof localVideoStream.getVideoTracks === 'function' && localVideoStream.getVideoTracks().some(t=>t.readyState==='live'));
+  const localScreenOn = !!(isSharingScreen && screenStream && typeof screenStream.getVideoTracks === 'function' && screenStream.getVideoTracks().some(t=>t.readyState==='live'));
+  const localOn = localCamOn || localScreenOn || !!(localVideoEl && localVideoEl.srcObject && localVideoEl.srcObject.getVideoTracks && localVideoEl.srcObject.getVideoTracks().some(t=>t.readyState==='live'));
   const remoteOn = !!(remoteVideoStream && typeof remoteVideoStream.getVideoTracks === 'function' && remoteVideoStream.getVideoTracks().some(t=>t.readyState==='live'));
-  if (localOn || screenOn || remoteOn) stage.classList.remove('hidden');
-  else stage.classList.add('hidden');
+
+  // Toggle per-tile visibility
+  if (localVideoEl) localVideoEl.classList.toggle('hidden', !localOn);
+  if (remoteVideoEl) remoteVideoEl.classList.toggle('hidden', !remoteOn);
+
+  const anyOn = localOn || remoteOn;
+  stage.classList.toggle('hidden', !anyOn);
+  stage.classList.toggle('two-up', localOn && remoteOn);
 }
 
 // incoming call modal buttons
@@ -3063,7 +3121,17 @@ function initGlobalCallWatchers(){
       }
     }
 
+    // Admin utilities: gate all admin actions behind Firestore doc isAdmin
+    function ensureAdmin(){
+      if (!currentUser || currentUser.isAdmin !== true) {
+        alert('Admin only.');
+        return false;
+      }
+      return true;
+    }
+
     async function banUser(username, reason) {
+      if (!ensureAdmin()) return;
       const userQuery = await db.collection('users').where('username', '==', username).get();
       if (userQuery.empty) {
         alert('User not found');
@@ -3089,6 +3157,7 @@ function initGlobalCallWatchers(){
     }
 
     async function unbanUser(username) {
+      if (!ensureAdmin()) return;
       const userQuery = await db.collection('users').where('username', '==', username).get();
       if (userQuery.empty) {
         alert('User not found');
@@ -3114,6 +3183,7 @@ function initGlobalCallWatchers(){
     }
 
     async function kickUser(username) {
+      if (!ensureAdmin()) return;
       const userQuery = await db.collection('users').where('username', '==', username).get();
       if (userQuery.empty) {
         alert('User not found');
@@ -3134,6 +3204,7 @@ function initGlobalCallWatchers(){
     }
 
     async function muteUser(username, minutes) {
+      if (!ensureAdmin()) return;
       const userQuery = await db.collection('users').where('username', '==', username).get();
       if (userQuery.empty) {
         alert('User not found');
@@ -3160,6 +3231,7 @@ function initGlobalCallWatchers(){
     }
 
     async function unmuteUser(username) {
+      if (!ensureAdmin()) return;
       const userQuery = await db.collection('users').where('username', '==', username).get();
       if (userQuery.empty) {
         alert('User not found');
@@ -3184,6 +3256,7 @@ function initGlobalCallWatchers(){
     }
 
     async function clearChat() {
+      if (!ensureAdmin()) return;
       const messagesQuery = await db.collection('messages').where('room', '==', currentRoom).get();
       const batch = db.batch();
       messagesQuery.docs.forEach(doc => batch.delete(doc.ref));
@@ -3200,6 +3273,7 @@ function initGlobalCallWatchers(){
     }
 
     async function sendAnnouncement(message) {
+      if (!ensureAdmin()) return;
       await db.collection('messages').add({
         type: 'system',
         text: `📢 ANNOUNCEMENT: ${message}`,
@@ -3211,6 +3285,7 @@ function initGlobalCallWatchers(){
     }
 
     async function warnUser(username, message) {
+      if (!ensureAdmin()) return;
       const userQuery = await db.collection('users').where('username', '==', username).get();
       if (userQuery.empty) {
         alert('User not found');
@@ -3228,6 +3303,7 @@ function initGlobalCallWatchers(){
     }
 
     async function promoteUser(username) {
+      if (!ensureAdmin()) return;
       const userQuery = await db.collection('users').where('username', '==', username).get();
       if (userQuery.empty) {
         alert('User not found');
@@ -3248,6 +3324,7 @@ function initGlobalCallWatchers(){
     }
 
     async function demoteUser(username) {
+      if (!ensureAdmin()) return;
       const userQuery = await db.collection('users').where('username', '==', username).get();
       if (userQuery.empty) {
         alert('User not found');
@@ -3268,7 +3345,8 @@ function initGlobalCallWatchers(){
     }
 
     async function shutdownChat() {
-      await rtdb.ref('settings/chatShutdown').set(true);
+      if (!ensureAdmin()) return;
+      await db.collection('settings').doc('chat').set({ chatShutdown: true }, { merge: true });
       
       await db.collection('messages').add({
         type: 'system',
@@ -3281,7 +3359,8 @@ function initGlobalCallWatchers(){
     }
 
     async function restartChat() {
-      await rtdb.ref('settings/chatShutdown').set(false);
+      if (!ensureAdmin()) return;
+      await db.collection('settings').doc('chat').set({ chatShutdown: false }, { merge: true });
       
       await db.collection('messages').add({
         type: 'system',
@@ -3294,7 +3373,8 @@ function initGlobalCallWatchers(){
     }
 
     async function setSlowMode(seconds) {
-      await rtdb.ref('settings/slowMode').set(seconds);
+      if (!ensureAdmin()) return;
+      await db.collection('settings').doc('chat').set({ slowMode: seconds }, { merge: true });
       
       await db.collection('messages').add({
         type: 'system',
@@ -3307,11 +3387,15 @@ function initGlobalCallWatchers(){
     }
 
     async function toggleLockdown() {
-      const lockdownRef = rtdb.ref('settings/lockdown');
-      const snapshot = await lockdownRef.once('value');
-      const isLocked = snapshot.val() || false;
-      
-      await lockdownRef.set(!isLocked);
+      if (!ensureAdmin()) return;
+      const settingsRef = db.collection('settings').doc('chat');
+      let newState = false;
+      await db.runTransaction(async (tx) => {
+        const snap = await tx.get(settingsRef);
+        const cur = snap.exists && snap.data().lockdown === true;
+        newState = !cur;
+        tx.set(settingsRef, { lockdown: newState }, { merge: true });
+      });
       
       await db.collection('messages').add({
         type: 'system',
@@ -3320,10 +3404,11 @@ function initGlobalCallWatchers(){
         timestamp: Date.now()
       });
 
-      alert(`Lockdown ${!isLocked ? 'enabled' : 'disabled'}`);
+  alert(`Lockdown ${newState ? 'enabled' : 'disabled'}`);
     }
 
     async function purgeUserMessages(username) {
+      if (!ensureAdmin()) return;
       const messagesQuery = await db.collection('messages').where('username', '==', username).get();
       const batch = db.batch();
       messagesQuery.docs.forEach(doc => batch.delete(doc.ref));
@@ -3340,6 +3425,7 @@ function initGlobalCallWatchers(){
     }
 
     async function showStats() {
+      if (!ensureAdmin()) return;
       const usersSnapshot = await db.collection('users').get();
       const messagesSnapshot = await db.collection('messages').get();
       const onlineUsers = usersSnapshot.docs.filter(doc => doc.data().online).length;
