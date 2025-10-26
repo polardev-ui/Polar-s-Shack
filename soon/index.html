@@ -21,6 +21,7 @@
 
   <!-- Firebase (new modular + compat for RTDB) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
   <script defer data-domain="https://polars-shack.vercel.app" src="https://analytics.vercel-insights.com/script.js"></script>
@@ -541,8 +542,9 @@
       appId: "1:205388124682:web:2b0b1605517e0c6c53c5f3"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.database();
 
     (function maintenanceListener() {
       if (!window.firebase?.database) return;
@@ -578,18 +580,32 @@
       });
     })();
 
-    // --- Online Users + Visits ---
-    const sessionRef = db.ref("onlineUsers").push();
-    sessionRef.set({ joined: Date.now() });
-    sessionRef.onDisconnect().remove();
+    // --- Secure Online Users + Visits (requires anonymous auth) ---
+    // Sign in anonymously to bind presence and rate-limit writes by uid in rules
+    auth.signInAnonymously().catch(() => {});
 
-    // increment visits
     const visitsRef = db.ref("stats/visits");
-    visitsRef.transaction(current => (current || 0) + 1);
 
-    // show online users
+    auth.onAuthStateChanged(user => {
+      if (!user) return;
+      const uid = user.uid;
+
+      // presence under onlineUsers/{uid}/{sessionId}
+      const sessionRef = db.ref("onlineUsers").child(uid).push();
+      sessionRef.set({ joined: Date.now() }).catch(() => {});
+      sessionRef.onDisconnect().remove();
+
+      // increment visits atomically; rules will enforce +1 only
+      visitsRef.transaction(current => (current || 0) + 1);
+    });
+
+    // show online users (unique uids with at least one active session)
     db.ref("onlineUsers").on("value", snap => {
-      const count = snap.exists() ? Object.keys(snap.val()).length : 0;
+      let count = 0;
+      if (snap.exists()) {
+        const root = snap.val();
+        count = Object.values(root).reduce((acc, sessions) => acc + (sessions && Object.keys(sessions).length > 0 ? 1 : 0), 0);
+      }
       animateNumber("onlineUsers", count);
     });
 
