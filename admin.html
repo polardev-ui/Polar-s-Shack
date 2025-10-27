@@ -605,6 +605,42 @@
         el.innerHTML = "<i class='bx bx-wifi'></i> Connected (Firebase)";
       }
 
+      // Add this method inside the AdminPanel class
+subscribeModCalls(){
+  // Check for mod calls collection/path, using RTDB for high-speed calls
+  this.rtdb.ref('mod_calls').on('value', snap => {
+    const list = document.getElementById('modCallsList');
+    if (!list) return;
+    list.innerHTML = '';
+    const calls = [];
+    snap.forEach(child => {
+      calls.push({ id: child.key, ...child.val() });
+    });
+
+    // Simple sort by timestamp (assuming one exists)
+    calls.sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+    calls.forEach(call => {
+      const div = document.createElement('div');
+      // The 'seen' class is defined in CSS but not managed in the logic; 
+      // adding it based on a hypothetical 'isSeen' property for completeness.
+      div.className = `mod-call-item ${call.isSeen ? 'seen' : ''}`;
+      div.innerHTML = `
+        <div class="mod-call-header">
+          <span class="mod-call-user">${call.username || 'Unknown User'}</span>
+          <span class="mod-call-time">${fmtDateTime(call.timestamp)}</span>
+        </div>
+        <div class="mod-call-reason">${call.reason || 'No reason provided'}</div>
+        <div class="mod-call-actions">
+          <button class="action-btn" onclick="adminPanel.resolveModCall('${call.id}')">resolve</button>
+          <button class="action-btn danger" onclick="adminPanel.quickBan('${call.username}')">ban user</button>
+        </div>
+      `;
+      list.appendChild(div);
+    });
+  });
+}
+
       async initializeProxyCheck(){
         const el = document.getElementById('proxyStatus');
         try {
