@@ -1785,6 +1785,7 @@ const MAX_CACHE = 100;
 let messagesCache = [];           // ASC (oldest -> newest)
 let knownIds = new Set();         // for dedupe across sources
 let unsubscribeLatest = null;     // realtime unsub for newest tail
+let unsubscribeChanges = null;    // realtime unsub for deletes/mods within visible window
 let olderCursorDesc = null;       // desc cursor to fetch older pages
 let latestCursorAsc = null;       // asc cursor to fetch truly-new messages
 let hasMoreOlder = true;
@@ -1941,6 +1942,55 @@ function renderMessages({ keepPos = false } = {}) {
   }
 }
 
+// Watch for deletes and edits inside the currently loaded window (by timestamp)
+function startDeletionWatcher(){
+  // Clean up prior watcher
+  if (unsubscribeChanges) { try { unsubscribeChanges(); } catch {} unsubscribeChanges = null; }
+  if (!messagesCache.length) return;
+
+  // Determine the oldest timestamp currently rendered
+  const first = messagesCache[0];
+  const minTs = first && first.timestamp && typeof first.timestamp.toMillis === 'function'
+    ? first.timestamp.toMillis()
+    : (first && typeof first.timestamp === 'number' ? first.timestamp : 0);
+
+  // Build a query that covers our current visible window and forward
+  let q = db.collection('messages')
+    .where('room', '==', currentRoom)
+    .orderBy('timestamp', 'asc');
+
+  if (minTs) q = q.startAt(minTs);
+
+  unsubscribeChanges = q.onSnapshot((snap) => {
+    const changes = snap.docChanges();
+    if (!changes || !changes.length) return;
+    let mutated = false;
+    for (const ch of changes) {
+      const id = ch.doc.id;
+      if (ch.type === 'removed') {
+        const idx = messagesCache.findIndex(m => m.id === id);
+        if (idx !== -1) {
+          messagesCache.splice(idx, 1);
+          knownIds.delete(id);
+          mutated = true;
+        }
+      } else if (ch.type === 'modified') {
+        const idx = messagesCache.findIndex(m => m.id === id);
+        if (idx !== -1) {
+          messagesCache[idx] = { id, ...ch.doc.data() };
+          mutated = true;
+        }
+      } else {
+        // ignore 'added' here; additions are handled by the newest-tail listener
+      }
+    }
+    if (mutated) {
+      // keep scroll anchored if user is reading older messages
+      renderMessages({ keepPos: true });
+    }
+  });
+}
+
 // Render a poll card: fetch details and wire voting
 async function buildPollCard(pollId, card){
   const qEl = card.querySelector('.q');
@@ -2080,8 +2130,10 @@ async function loadOlderPage() {
         removed.forEach(m => knownIds.delete(m.id));
       }
 
-      renderMessages({ keepPos: true });
-      // update DM seen markers if needed
+  renderMessages({ keepPos: true });
+  // refresh deletion watcher to include newly prepended range
+  startDeletionWatcher();
+  // update DM seen markers if needed
       updateDmSeenMarkers();
     }
   } finally {
@@ -2094,6 +2146,7 @@ async function loadMessages() {
   // kill previous realtime
   if (unsubscribeMessages) { unsubscribeMessages(); unsubscribeMessages = null; }
   if (unsubscribeLatest) { unsubscribeLatest(); unsubscribeLatest = null; }
+  if (unsubscribeChanges) { try { unsubscribeChanges(); } catch {} unsubscribeChanges = null; }
 
   messagesCache = [];
   knownIds = new Set();
@@ -2136,6 +2189,8 @@ async function loadMessages() {
 
     autoScroll = true;
     renderMessages();
+    // begin watching for deletes/edits within the loaded window
+    startDeletionWatcher();
   }
 
   // 2) realtime for messages newer than current newest (ASC)
