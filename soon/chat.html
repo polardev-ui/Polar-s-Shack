@@ -313,6 +313,60 @@ body {
 .send-btn:hover {filter:brightness(1.1);transform:translateY(-1px);}
 .send-btn:active {transform:scale(.98);}
 
+/* Make the attach button visually match the input height */
+.input-row #attachBtn {
+  padding:0 12px;
+  height:44px;
+  min-width:44px;
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* Image modal styling + fade animation */
+/* Modal overlay uses visibility+opacity for smooth fade in/out */
+#imageModal {
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.7);
+  z-index:99999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  visibility:hidden;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .22s ease, visibility .22s ease;
+}
+#imageModal.active {
+  visibility:visible;
+  opacity:1;
+  pointer-events:auto;
+}
+#imageModal > div {
+  max-width:900px;
+  width:96%;
+  background:#1b1b1b;
+  border-radius:10px;
+  padding:1rem;
+  position:relative;
+  color:#ddd;
+  transform:translateY(8px) scale(.995);
+  transition:transform .22s ease, opacity .22s ease;
+  opacity:0;
+}
+#imageModal.active > div { transform:translateY(0) scale(1); opacity:1; }
+
+/* Modal action buttons look and spacing */
+.action-btn { padding:.6rem .85rem; border-radius:8px; border:1px solid var(--border); background:#2a2a2a; color:#ddd; cursor:pointer; font-weight:700; }
+.action-btn.danger { background: linear-gradient(180deg,#4a1a1a,#621a1a); border-color: var(--danger); color: #fff; }
+.action-btn.primary { background: linear-gradient(180deg,var(--accent),#00aa00); color:#000; border-color: transparent; }
+.action-btn:not(.primary):not(.danger):hover { background:#333; }
+
+/* Spinner small */
+#uploadSpinner svg { display:block; }
+
 /* Modals (auth, profile, settings, ban) */
 .modal-overlay {
   position:fixed;
@@ -734,9 +788,77 @@ body {
           <span id="replyText">replying to...</span>
           <button class="cancel-reply" id="cancelReply"><i class='bx bx-x'></i></button>
         </div>
-        <div class="input-row">
+        <div id="attachedImages" style="display:flex;gap:.5rem;margin-bottom:.5rem;"></div>
+        <div class="input-row" style="position:relative">
+          <button class="icon-btn" id="attachBtn" title="Attach" style="margin-right:.5rem"><i class='bx bx-paperclip'></i></button>
+          <!-- small attach dropdown -->
+          <div id="attachDropdown" style="display:none;position:absolute;left:0;bottom:48px;background:#1b1b1b;border:1px solid var(--border);border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.4);z-index:2000;min-width:180px;overflow:hidden">
+            <button type="button" data-action="upload" style="display:flex;gap:.5rem;align-items:center;width:100%;padding:.6rem .8rem;background:transparent;border:none;color:#ddd;cursor:pointer"><i class='bx bx-upload'></i> Upload image</button>
+            <button type="button" data-action="giphy" style="display:flex;gap:.5rem;align-items:center;width:100%;padding:.6rem .8rem;background:transparent;border:none;color:#ddd;cursor:pointer"><i class='bx bx-gif'></i> Search Giphy</button>
+            <button type="button" data-action="poll" style="display:flex;gap:.5rem;align-items:center;width:100%;padding:.6rem .8rem;background:transparent;border:none;color:#ddd;cursor:pointer"><i class='bx bx-bar-chart-alt-2'></i> Create poll</button>
+          </div>
+          <input type="file" id="imageInput" accept="image/*" style="display:none" />
           <input id="messageInput" placeholder="Say something — press Enter to send" autocomplete="off" />
           <button class="send-btn" id="sendBtn">send</button>
+          <div id="uploadSpinner" style="display:none;margin-left:.5rem;align-self:center" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="25" cy="25" r="20" stroke="rgba(255,255,255,0.12)" stroke-width="6" fill="none"/>
+              <path d="M45 25a20 20 0 0 1-20 20" stroke="var(--accent)" stroke-width="6" stroke-linecap="round" fill="none">
+                <animateTransform attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="1s" repeatCount="indefinite" />
+              </path>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Full image modal for preview/caption/send -->
+        <div id="imageModal">
+          <div style="max-width:900px;width:100%;background:#1b1b1b;border-radius:10px;padding:1rem;position:relative;color:#ddd">
+              <button id="imageModalClose" type="button" style="position:absolute;top:10px;right:10px;background:transparent;border:none;color:#fff;font-size:1.25rem;cursor:pointer">✕</button>
+            <div style="display:flex;gap:1rem;align-items:flex-start;">
+              <img id="imageModalImg" src="" alt="preview" style="max-width:60%;border-radius:8px;display:block" />
+              <div style="flex:1;display:flex;flex-direction:column;gap:.5rem">
+                <textarea id="imageModalCaption" placeholder="Add a caption (optional)" style="width:100%;height:120px;padding:.6rem;border-radius:8px;border:1px solid #333;background:#121212;color:#ddd"></textarea>
+                <div style="margin-top:auto;display:flex;gap:.5rem;justify-content:flex-end">
+                    <button id="imageModalRemove" type="button" class="action-btn danger">Remove</button>
+                    <button id="imageModalSend" type="button" class="action-btn primary">Save & Send</button>
+                    <button id="imageModalCancel" type="button" class="action-btn">Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- GIF search modal -->
+        <div id="gifModal" class="modal-overlay">
+          <div class="modal-content" style="max-width:760px;display:flex;flex-direction:column;gap:.75rem;">
+            <h2>search giphy</h2>
+            <div class="form-group" style="margin:0">
+              <input id="gifSearchInput" placeholder="search gifs" />
+            </div>
+            <div id="gifResults" style="height:420px;overflow:auto;column-count:3;column-gap:8px;border:1px solid var(--border);border-radius:8px;padding:8px;background:#111"></div>
+            <div class="btn-group" style="margin-top:.5rem;justify-content:flex-end"><button id="gifCloseBtn" class="btn btn-secondary">close</button></div>
+          </div>
+        </div>
+
+        <!-- Poll create modal -->
+        <div id="pollModal" class="modal-overlay">
+          <div class="modal-content" style="max-width:560px;display:flex;flex-direction:column;gap:.75rem;">
+            <h2>create poll</h2>
+            <div class="form-group">
+              <label for="pollQuestion">question</label>
+              <input id="pollQuestion" placeholder="what do you want to ask?" />
+            </div>
+            <div id="pollOptionsWrap" class="form-group">
+              <label>options</label>
+              <div id="pollOptions"></div>
+              <button id="addPollOption" class="btn" type="button" style="margin-top:.5rem;width:fit-content"><i class='bx bx-plus'></i> add option</button>
+            </div>
+            <div class="btn-group" style="justify-content:flex-end">
+              <button id="pollCancelBtn" class="btn btn-secondary" type="button">cancel</button>
+              <button id="createPollBtn" class="btn btn-primary" type="button">create poll</button>
+            </div>
+            <p id="pollError" class="error-msg"></p>
+          </div>
         </div>
        <div id="sendHint" style="font-size:.8rem;color:#888;margin-top:.25rem;"></div>
       </div>
@@ -854,7 +976,7 @@ body {
   <div id="banModal" class="modal-overlay">
     <div class="ban-modal">
       <h3>account banned</h3>
-      <p id="banReason">you have been banned from chat.</p>
+      <p id="banReason">you have been banned from chat for violating community guidelines.</p>
       <button class="btn" id="closeBanBtn">ok</button>
     </div>
   </div>
@@ -866,6 +988,9 @@ body {
     </div>
     <div class="context-menu-item" id="ctxCopy">
       <i class='bx bx-copy'></i> copy text
+    </div>
+    <div class="context-menu-item danger" id="ctxDelete">
+      <i class='bx bx-trash'></i> delete message
     </div>
     <div class="context-menu-item danger" id="ctxReport">
       <i class='bx bx-flag'></i> report message
@@ -1262,6 +1387,9 @@ unsubscribeSettings = settingsDoc.onSnapshot(snap => {
       if (msgEl && !msgEl.classList.contains('system')) {
         e.preventDefault();
         contextMenuTarget = msgEl;
+        // show/hide delete option depending on admin status
+        const deleteItem = document.getElementById('ctxDelete');
+        if (deleteItem) deleteItem.style.display = (currentUser && currentUser.isAdmin) ? '' : 'none';
         contextMenu.style.left = e.pageX + 'px';
         contextMenu.style.top = e.pageY + 'px';
         contextMenu.classList.add('active');
@@ -1298,6 +1426,26 @@ unsubscribeSettings = settingsDoc.onSnapshot(snap => {
         reportMessage(username, content, timestamp);
       }
     });
+
+    // Delete (admin only) via context menu
+    const ctxDeleteEl = document.getElementById('ctxDelete');
+    if (ctxDeleteEl) {
+      ctxDeleteEl.addEventListener('click', async () => {
+        if (!contextMenuTarget) return;
+        if (!currentUser || !currentUser.isAdmin) { alert('Only admins can delete messages.'); return; }
+        const id = contextMenuTarget.dataset.msgId;
+        if (!id) { alert('Message id missing. Cannot delete.'); return; }
+        if (!confirm('Delete this message? This action cannot be undone.')) return;
+        try {
+          await db.collection('messages').doc(id).delete();
+        } catch (e) {
+          console.error('Delete failed', e); alert('Failed to delete message');
+        } finally {
+          contextMenu.classList.remove('active');
+          contextMenuTarget = null;
+        }
+      });
+    }
 
     async function reportMessage(username, content, timestamp) {
       const reportData = {
@@ -1467,12 +1615,14 @@ unsubscribeSettings = settingsDoc.onSnapshot(snap => {
       auth.signOut();
     }
 
+    let unsubMeDoc = null;
     auth.onAuthStateChanged(async (user) => {
       console.log('[v0] Auth state changed:', user ? user.uid : 'no user');
       if (user) {
         // Ensure auth modal is hidden on auto sign-in
         try { document.getElementById('authModal').classList.remove('active'); } catch {}
-        const userDoc = await db.collection('users').doc(user.uid).get();
+        const meRef = db.collection('users').doc(user.uid);
+        const userDoc = await meRef.get();
         if (userDoc.exists) {
           currentUser = { uid: user.uid, ...userDoc.data() };
           console.log('[v0] Current user loaded:', currentUser);
@@ -1500,6 +1650,20 @@ unsubscribeSettings = settingsDoc.onSnapshot(snap => {
             initGlobalCallWatchers();
           }
           
+          // keep my user doc live (updates isAdmin, bio, etc.)
+          if (unsubMeDoc) { try { unsubMeDoc(); } catch{} }
+          unsubMeDoc = meRef.onSnapshot((snap)=>{
+            if (snap.exists) {
+              const prevAdmin = currentUser?.isAdmin;
+              currentUser = { uid: user.uid, ...snap.data() };
+              document.getElementById('meDisplay').textContent = `@${currentUser.username}`;
+              // If admin changed, no special action required; menus evaluate per-open
+              if (prevAdmin !== currentUser.isAdmin) {
+                console.log('[v0] isAdmin changed ->', currentUser.isAdmin);
+              }
+            }
+          });
+
           loadMessages();
           loadOnlineUsers();
           
@@ -1515,6 +1679,7 @@ unsubscribeSettings = settingsDoc.onSnapshot(snap => {
           console.error('[v0] User document does not exist');
         }
       } else {
+        if (unsubMeDoc) { try { unsubMeDoc(); } catch{} unsubMeDoc = null; }
         currentUser = null;
         document.getElementById('authModal').classList.add('active');
         document.getElementById('meDisplay').textContent = '@guest';
@@ -1657,8 +1822,10 @@ function renderMessages({ keepPos = false } = {}) {
     const mine = currentUser && msg.uid === currentUser.uid;
     const cls = msg.type === 'system' ? 'system' : (mine ? 'me' : 'other');
 
-    const outer = document.createElement('div');
-    outer.className = `msg ${cls}`;
+  const outer = document.createElement('div');
+  outer.className = `msg ${cls}`;
+  // expose the firestore id on the DOM node for context-menu actions
+  if (msg.id) outer.dataset.msgId = msg.id;
 
     if (msg.type === 'system') {
       const c = document.createElement('div');
@@ -1701,7 +1868,53 @@ function renderMessages({ keepPos = false } = {}) {
 
       const content = document.createElement('div');
       content.className = 'content';
-      setText(content, msg.text || '');
+
+      if (msg.type === 'poll' || msg.pollId) {
+        const card = document.createElement('div');
+        card.style.border='1px solid var(--border)'; card.style.borderRadius='10px'; card.style.padding='.75rem'; card.style.background='#121212'; card.style.maxWidth='520px';
+        card.innerHTML = `<div style="font-weight:700;margin-bottom:.5rem;color:#fff">poll</div><div class="q" style="color:#eee;margin-bottom:.5rem"></div><div class="opts" style="display:flex;flex-direction:column;gap:.5rem"></div>`;
+        content.appendChild(card);
+        buildPollCard(msg.pollId, card);
+      } else if (msg.type === 'gif' || msg.gifUrl) {
+        const wrap = document.createElement('div');
+        wrap.className = 'image-msg';
+        const img = document.createElement('img');
+        img.src = msg.gifUrl || msg.mediaUrl || '';
+        img.alt = msg.text || 'gif';
+        img.style.maxWidth = '320px'; img.style.borderRadius = '8px'; img.style.display = 'block'; img.style.cursor = 'pointer';
+        img.addEventListener('click', ()=>{ window.open(img.src, '_blank'); });
+        wrap.appendChild(img);
+        if (msg.text) {
+          const cap = document.createElement('div');
+          cap.className = 'image-caption';
+          setText(cap, msg.text || '');
+          cap.style.marginTop = '.4rem'; cap.style.color = '#ddd'; cap.style.fontSize = '.95rem';
+          wrap.appendChild(cap);
+        }
+        content.appendChild(wrap);
+      } else if (msg.type === 'image' || msg.imageUrl) {
+        // image message
+        const wrap = document.createElement('div');
+        wrap.className = 'image-msg';
+        const img = document.createElement('img');
+        img.src = msg.imageUrl || msg.mediaUrl || '';
+        img.alt = msg.text || msg.caption || 'image';
+        img.style.maxWidth = '320px'; img.style.borderRadius = '8px'; img.style.display = 'block'; img.style.cursor = 'pointer';
+        img.addEventListener('click', ()=>{ window.open(img.src, '_blank'); });
+        wrap.appendChild(img);
+        if (msg.text) {
+          const cap = document.createElement('div');
+          cap.className = 'image-caption';
+          setText(cap, msg.text || '');
+          cap.style.marginTop = '.4rem'; cap.style.color = '#ddd'; cap.style.fontSize = '.95rem';
+          wrap.appendChild(cap);
+        }
+        content.appendChild(wrap);
+      } else {
+        setText(content, msg.text || '');
+        // add link preview if a URL is present
+        maybeRenderLinkPreview(content, msg.text || '');
+      }
       outer.appendChild(content);
 
       // DM “Seen” tag on my last message (filled by DM extras hook)
@@ -1712,6 +1925,8 @@ function renderMessages({ keepPos = false } = {}) {
         seen.dataset.seenFor = msg.id; // used by DM extras updater
         outer.appendChild(seen);
       }
+
+        // admin delete handled via context menu (ctxDelete) — DOM holds msg id in dataset
     }
 
     frag.appendChild(outer);
@@ -1724,6 +1939,105 @@ function renderMessages({ keepPos = false } = {}) {
   } else if (autoScroll) {
     box.scrollTop = box.scrollHeight;             // stick to bottom
   }
+}
+
+// Render a poll card: fetch details and wire voting
+async function buildPollCard(pollId, card){
+  const qEl = card.querySelector('.q');
+  const optsEl = card.querySelector('.opts');
+  optsEl.innerHTML = '<div style="color:#888">loading…</div>';
+  try {
+    const resp = await fetch(`${API_BASE}/v1/polls/${encodeURIComponent(pollId)}`);
+    if (!resp.ok) throw new Error('poll fetch failed');
+    const poll = await resp.json();
+    qEl.textContent = poll.question || 'poll';
+    const total = (poll.counts || []).reduce((a,b)=>a+b,0) || 0;
+    optsEl.innerHTML = '';
+    (poll.options || []).forEach((opt, idx)=>{
+      const count = (poll.counts && poll.counts[idx]) || 0;
+      const pct = total ? Math.round((count/total)*100) : 0;
+      const row = document.createElement('div');
+      row.style.display='flex'; row.style.flexDirection='column'; row.style.gap='.4rem';
+
+      const barWrap = document.createElement('div');
+      barWrap.style.position='relative'; barWrap.style.background='#0e0e0e';
+      barWrap.style.border='1px solid var(--border)'; barWrap.style.borderRadius='12px'; barWrap.style.overflow='hidden';
+
+      const bar = document.createElement('div');
+      bar.style.width = pct+'%'; bar.style.height='38px';
+      bar.style.background='linear-gradient(90deg, #34ffa8, #00ff66)';
+      bar.style.transition='width .4s ease';
+
+      const label = document.createElement('div');
+      label.style.position='absolute'; label.style.left='12px'; label.style.top='50%'; label.style.transform='translateY(-50%)';
+      label.style.fontWeight='700'; label.style.color='#000'; label.textContent = opt;
+
+      const stat = document.createElement('div');
+      stat.style.position='absolute'; stat.style.right='12px'; stat.style.top='50%'; stat.style.transform='translateY(-50%)';
+      stat.style.color='#000'; stat.style.fontWeight='600'; stat.textContent = `${count} • ${pct}%`;
+
+      barWrap.appendChild(bar); barWrap.appendChild(label); barWrap.appendChild(stat);
+
+      const btnRow = document.createElement('div'); btnRow.style.display='flex'; btnRow.style.gap='.5rem';
+      const voteBtn = document.createElement('button');
+      voteBtn.type='button'; voteBtn.textContent='Vote';
+      voteBtn.style.padding='.45rem .9rem'; voteBtn.style.borderRadius='24px'; voteBtn.style.border='1px solid var(--border)';
+      voteBtn.style.background='#1e1e1e'; voteBtn.style.color='#fff'; voteBtn.style.cursor='pointer';
+      voteBtn.addEventListener('mouseenter', ()=>{ voteBtn.style.borderColor='var(--accent)'; voteBtn.style.color='var(--accent)'; });
+      voteBtn.addEventListener('mouseleave', ()=>{ voteBtn.style.borderColor='var(--border)'; voteBtn.style.color='#fff'; });
+
+      voteBtn.addEventListener('click', async ()=>{
+        try {
+          voteBtn.disabled = true; voteBtn.textContent = 'Voting…';
+          await fetch(`${API_BASE}/v1/polls/${encodeURIComponent(pollId)}/vote`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ option: idx }) });
+        } catch(e){ console.error('vote failed', e); }
+        finally {
+          // refresh view
+          await buildPollCard(pollId, card);
+        }
+      });
+      btnRow.appendChild(voteBtn);
+
+      row.appendChild(barWrap);
+      row.appendChild(btnRow);
+      optsEl.appendChild(row);
+    });
+    const footer = document.createElement('div');
+    footer.style.display='flex'; footer.style.justifyContent='space-between'; footer.style.marginTop='.25rem'; footer.style.color='#aaa'; footer.style.fontSize='.85rem';
+    footer.innerHTML = `<span>${total} vote${total===1?'':'s'}</span>${poll.closed?'<span>closed</span>':''}`;
+    optsEl.appendChild(footer);
+  } catch (e) {
+    console.error('poll card error', e);
+    optsEl.innerHTML = '<div style="color:#f66">failed to load poll</div>';
+  }
+}
+
+// Render link preview card under text content, if URL present
+async function maybeRenderLinkPreview(container, text){
+  const m = (text || '').match(/https?:\/\/[^\s]+/i);
+  if (!m) return;
+  const url = m[0];
+  try {
+    const resp = await fetch(`${API_BASE}/v1/link/preview?url=${encodeURIComponent(url)}`);
+    if (!resp.ok) return;
+    const meta = await resp.json();
+    const card = document.createElement('a');
+    card.href = url; card.target = '_blank';
+    card.style.display='flex'; card.style.gap='.75rem'; card.style.alignItems='center'; card.style.textDecoration='none'; card.style.marginTop='.5rem';
+    card.style.border='1px solid var(--border)'; card.style.borderRadius='10px'; card.style.padding='.6rem'; card.style.background='#121212';
+    if (meta.image) {
+      const img = document.createElement('img');
+      img.src = meta.image; img.alt = meta.title || 'preview';
+      img.style.width='72px'; img.style.height='72px'; img.style.objectFit='cover'; img.style.borderRadius='8px';
+      card.appendChild(img);
+    }
+    const info = document.createElement('div'); info.style.display='flex'; info.style.flexDirection='column';
+    const title = document.createElement('div'); title.textContent = meta.title || (new URL(url)).hostname; title.style.color='#fff'; title.style.fontWeight='700'; title.style.marginBottom='.25rem';
+    const desc = document.createElement('div'); desc.textContent = meta.description || meta.site || ''; desc.style.color='#aaa'; desc.style.fontSize='.9rem'; desc.style.maxWidth='520px';
+    info.appendChild(title); info.appendChild(desc);
+    card.appendChild(info);
+    container.appendChild(card);
+  } catch(e){ console.warn('preview failed', e); }
 }
 
 // fetch older (next page up). Prepends into cache. Respects MAX_CACHE by trimming from the NEWEST end.
@@ -2914,12 +3228,456 @@ function initGlobalCallWatchers(){
     if (e.key === 'Enter') { e.preventDefault(); sendMessage(); }
   });
 
+    // Attach menu + image/GIF/Poll handlers
+    const attachBtn = document.getElementById('attachBtn');
+    const attachDropdown = document.getElementById('attachDropdown');
+    const imageInput = document.getElementById('imageInput');
+    const attachedImages = document.getElementById('attachedImages');
+    const imageModal = document.getElementById('imageModal');
+    const imageModalImg = document.getElementById('imageModalImg');
+    const imageModalCaption = document.getElementById('imageModalCaption');
+    const imageModalClose = document.getElementById('imageModalClose');
+    const imageModalSend = document.getElementById('imageModalSend');
+    const imageModalCancel = document.getElementById('imageModalCancel');
+    const imageModalRemove = document.getElementById('imageModalRemove');
+    // GIF modal elements
+    const gifModal = document.getElementById('gifModal');
+    const gifSearchInput = document.getElementById('gifSearchInput');
+    const gifResults = document.getElementById('gifResults');
+    const gifCloseBtn = document.getElementById('gifCloseBtn');
+    // Poll modal elements
+    const pollModal = document.getElementById('pollModal');
+    const pollQuestion = document.getElementById('pollQuestion');
+    const pollOptions = document.getElementById('pollOptions');
+    const addPollOptionBtn = document.getElementById('addPollOption');
+    const createPollBtn = document.getElementById('createPollBtn');
+    const pollCancelBtn = document.getElementById('pollCancelBtn');
+    const pollError = document.getElementById('pollError');
+
+  const API_BASE = (window.__ENV && window.__ENV.API_BASE) ? window.__ENV.API_BASE : 'https://api.wsgpolar.me';
+
+    let attachedFile = null; // File object
+    let attachedUrl = null;  // object URL for preview
+    let attachedThumbEl = null;
+
+    // Attach dropdown toggle
+    function toggleAttachDropdown(show) {
+      if (!attachDropdown) return;
+      const visible = attachDropdown.style.display !== 'none';
+      const want = typeof show === 'boolean' ? show : !visible;
+      attachDropdown.style.display = want ? 'block' : 'none';
+    }
+    attachBtn && attachBtn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      toggleAttachDropdown();
+    });
+    // Handle dropdown actions
+    attachDropdown && attachDropdown.addEventListener('click', (e)=>{
+      const target = e.target.closest('button');
+      if (!target) return;
+      const action = target.getAttribute('data-action');
+      if (action === 'upload') {
+        toggleAttachDropdown(false);
+        imageInput && imageInput.click();
+      } else if (action === 'giphy') {
+        toggleAttachDropdown(false);
+        openGifModal();
+      } else if (action === 'poll') {
+        toggleAttachDropdown(false);
+        openPollModal();
+      }
+    });
+    document.addEventListener('click', (e)=>{
+      if (!attachDropdown) return;
+      if (e.target === attachBtn || attachDropdown.contains(e.target)) return;
+      toggleAttachDropdown(false);
+    });
+
+    imageInput && imageInput.addEventListener('change', (e)=>{
+      const file = (e.target.files && e.target.files[0]) || null;
+      if (!file) return;
+      if (!file.type.startsWith('image/')) { alert('Please select an image file.'); return; }
+      // replace existing attachment (single-file support)
+      clearAttachment();
+      attachedFile = file;
+      attachedUrl = URL.createObjectURL(file);
+      // create thumbnail square
+      const thumbWrap = document.createElement('div');
+      thumbWrap.className = 'attachment-thumb';
+      thumbWrap.style.width = '56px'; thumbWrap.style.height = '56px'; thumbWrap.style.borderRadius='8px'; thumbWrap.style.overflow='hidden'; thumbWrap.style.position='relative'; thumbWrap.style.border='1px solid var(--border)'; thumbWrap.style.cursor='pointer';
+      const img = document.createElement('img');
+      img.src = attachedUrl; img.style.width='100%'; img.style.height='100%'; img.style.objectFit='cover';
+      thumbWrap.appendChild(img);
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'remove-attachment';
+      removeBtn.textContent = '✕';
+      removeBtn.style.position='absolute'; removeBtn.style.top='4px'; removeBtn.style.right='4px'; removeBtn.style.background='rgba(0,0,0,0.6)'; removeBtn.style.color='#fff'; removeBtn.style.border='none'; removeBtn.style.borderRadius='50%'; removeBtn.style.width='20px'; removeBtn.style.height='20px'; removeBtn.style.cursor='pointer';
+      thumbWrap.appendChild(removeBtn);
+      attachedImages.appendChild(thumbWrap);
+      attachedThumbEl = thumbWrap;
+
+      // click opens modal for full preview and caption
+      thumbWrap.addEventListener('click', (ev)=>{ if (ev.target === removeBtn) return; openImageModal(); });
+      removeBtn.addEventListener('click', (ev)=>{ ev.stopPropagation(); clearAttachment(); });
+    });
+
+    function clearAttachment(){
+      if (attachedThumbEl && attachedThumbEl.parentNode) attachedThumbEl.parentNode.removeChild(attachedThumbEl);
+      attachedThumbEl = null;
+      if (attachedUrl) { try{ URL.revokeObjectURL(attachedUrl); }catch{} attachedUrl = null; }
+      attachedFile = null;
+      if (imageInput) imageInput.value = '';
+    }
+
+
+    function openImageModal(){
+      if (!attachedFile || !attachedUrl) return;
+      imageModalImg.src = attachedUrl;
+      imageModalCaption.value = '';
+      imageModal.classList.add('active');
+    }
+
+    function closeImageModal(){ imageModal.classList.remove('active'); }
+
+    imageModalClose.addEventListener('click', ()=> closeImageModal());
+    imageModalCancel.addEventListener('click', ()=> closeImageModal());
+
+    // close when clicking the overlay/background
+    imageModal.addEventListener('click', (e)=>{ if (e.target === imageModal) closeImageModal(); });
+
+    imageModalRemove.addEventListener('click', ()=>{ if (!confirm('Remove this attachment?')) return; clearAttachment(); closeImageModal(); });
+
+    imageModalSend.addEventListener('click', async ()=>{
+      // Upload and send (with UI lock + spinner)
+      if (!attachedFile) { alert('No image attached'); return; }
+      const caption = (imageModalCaption.value || '').trim();
+      setUploading(true);
+      try {
+        const url = await uploadImageToHost(attachedFile);
+        if (!url) throw new Error('Upload failed');
+        if (settings.chatShutdown) { alert('Chat is shut down by an admin.'); return; }
+        if (settings.lockdown && !currentUser?.isAdmin) { alert('Chat is in lockdown.'); return; }
+        const messageData = {
+          uid: currentUser.uid,
+          username: currentUser.username,
+          isAdmin: !!currentUser.isAdmin,
+          text: caption || '',
+          type: 'image',
+          imageUrl: url,
+          room: currentRoom,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        await db.collection('messages').add(messageData);
+        clearAttachment();
+        closeImageModal();
+      } catch (err) {
+        console.error('Image upload failed', err); alert('Image upload failed');
+      } finally {
+        setUploading(false);
+      }
+    });
+
+  // --- GIF modal logic ---
+  let giphyQuery = '';
+  let giphyOffset = 0;
+  let giphyLoading = false;
+  let giphyHasMore = true;
+  let gifObserver = null;
+  let gifSentinel = null;
+
+    function openGifModal(){
+      gifModal.classList.add('active');
+      gifSearchInput.value = giphyQuery || '';
+      if (!gifResults.dataset.boot) {
+        // boot once
+        // scroll fallback
+        gifResults.addEventListener('scroll', async ()=>{
+          if (giphyLoading || !giphyHasMore) return;
+          if (gifResults.scrollTop + gifResults.clientHeight >= gifResults.scrollHeight - 120) {
+            await loadMoreGifs();
+          }
+        });
+        // intersection observer sentinel for continuous load
+        gifSentinel = document.createElement('div');
+        gifSentinel.style.width = '100%';
+        gifSentinel.style.height = '1px';
+        gifSentinel.id = 'gifSentinel';
+        gifResults.appendChild(gifSentinel);
+        gifObserver = new IntersectionObserver(async (entries)=>{
+          const entry = entries[0];
+          if (entry && entry.isIntersecting && !giphyLoading && giphyHasMore) {
+            await loadMoreGifs();
+          }
+        }, { root: gifResults, rootMargin: '200px', threshold: 0 });
+        gifObserver.observe(gifSentinel);
+        gifResults.dataset.boot = '1';
+      }
+      // always kick off a load for the current or default query
+      performGifSearch(gifSearchInput.value.trim() || 'trending');
+      setTimeout(()=> gifSearchInput.focus(), 50);
+    }
+    function closeGifModal(){ gifModal.classList.remove('active'); }
+    gifCloseBtn.addEventListener('click', closeGifModal);
+    gifModal.addEventListener('click', (e)=>{ if (e.target === gifModal) closeGifModal(); });
+    gifSearchInput.addEventListener('keydown', (e)=>{
+      if (e.key === 'Enter') {
+        performGifSearch(gifSearchInput.value.trim());
+      }
+    });
+    async function performGifSearch(q){
+      const query = q || 'trending';
+      giphyQuery = query;
+      giphyOffset = 0; giphyHasMore = true;
+      gifResults.innerHTML = '';
+      // ensure sentinel exists and is last
+      if (!gifSentinel) { gifSentinel = document.createElement('div'); gifSentinel.style.width='100%'; gifSentinel.style.height='1px'; gifSentinel.id='gifSentinel'; }
+      gifResults.appendChild(gifSentinel);
+      gifResults.dataset.loaded = '1';
+      await loadMoreGifs();
+    }
+    async function loadMoreGifs(){
+      if (giphyLoading || !giphyHasMore) return;
+      giphyLoading = true;
+      try {
+  const params = new URLSearchParams({ q: giphyQuery, limit: '36', offset: String(giphyOffset) });
+        if (window.__ENV && window.__ENV.GIPHY_API_KEY) params.set('apiKey', window.__ENV.GIPHY_API_KEY);
+        const resp = await fetch(`${API_BASE}/v1/giphy/search?${params.toString()}`);
+        if (!resp.ok) throw new Error('giphy search failed');
+        const data = await resp.json();
+        const results = data.results || data.data || [];
+        if (!results.length) { giphyHasMore = false; return; }
+        giphyOffset = (data.nextOffset != null) ? data.nextOffset : (giphyOffset + results.length);
+        for (const g of results) {
+          const tile = document.createElement('div');
+          tile.style.cursor='pointer'; tile.style.borderRadius='8px'; tile.style.overflow='hidden'; tile.style.border='1px solid var(--border)'; tile.title = g.title || '';
+          // Masonry via CSS columns
+          tile.style.display = 'inline-block';
+          tile.style.width = '100%';
+          tile.style.margin = '0 0 8px';
+          const img = document.createElement('img');
+          img.src = g.preview || g.url; img.alt = g.title || 'gif'; img.style.width='100%'; img.style.height='auto';
+          tile.appendChild(img);
+          tile.addEventListener('click', async ()=>{
+            await sendGifMessage(g.url);
+            closeGifModal();
+          });
+          gifResults.appendChild(tile);
+        }
+        // keep sentinel last
+        if (gifSentinel && gifSentinel.parentNode !== gifResults) gifResults.appendChild(gifSentinel);
+        else if (gifSentinel) gifResults.appendChild(gifSentinel);
+      } catch (e) {
+        console.error('giphy error', e);
+        if (gifResults && !gifResults.childElementCount) {
+          const msg = document.createElement('div');
+          msg.style.color = '#f66'; msg.style.padding = '8px';
+          msg.textContent = 'GIF search is unavailable right now. Ask an admin to set GIPHY_API_KEY or provide it in window.__ENV.GIPHY_API_KEY.';
+          gifResults.appendChild(msg);
+        }
+      } finally {
+        giphyLoading = false;
+      }
+    }
+    async function sendGifMessage(url){
+      if (!currentUser) { alert('Sign in to chat.'); return; }
+      if (settings.chatShutdown) { alert('Chat is shut down by an admin.'); return; }
+      if (settings.lockdown && !currentUser.isAdmin) { alert('Chat is in lockdown.'); return; }
+      const meDoc = await db.collection('users').doc(currentUser.uid).get();
+      const me = meDoc.exists ? meDoc.data() : currentUser;
+      if (me.isBanned) { document.getElementById('banModal').classList.add('active'); document.getElementById('banReason').textContent = me.banReason || 'You have been banned from chat.'; await auth.signOut(); return; }
+      if (me.isMuted) { alert('You are muted.'); return; }
+      const messageData = {
+        uid: currentUser.uid,
+        username: currentUser.username,
+        isAdmin: !!currentUser.isAdmin,
+        type: 'gif',
+        gifUrl: url,
+        room: currentRoom,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      if (replyingTo) { messageData.replyTo = replyingTo; replyingTo = null; document.getElementById('replyIndicator').classList.remove('active'); }
+      await db.collection('messages').add(messageData);
+    }
+
+    // --- Poll modal logic ---
+    function openPollModal(){
+      pollQuestion.value = '';
+      pollOptions.innerHTML = '';
+      pollError.style.display = 'none';
+      addOptionInput('');
+      addOptionInput('');
+      pollModal.classList.add('active');
+      setTimeout(()=> pollQuestion.focus(), 50);
+    }
+    function closePollModal(){ pollModal.classList.remove('active'); }
+    pollCancelBtn.addEventListener('click', closePollModal);
+    pollModal.addEventListener('click', (e)=>{ if (e.target === pollModal) closePollModal(); });
+    function addOptionInput(v=''){
+      const row = document.createElement('div');
+      row.style.display='flex'; row.style.gap='.5rem'; row.style.marginBottom='.5rem';
+      const inp = document.createElement('input'); inp.placeholder = 'option'; inp.value = v;
+      const rem = document.createElement('button'); rem.type='button'; rem.className='btn'; rem.textContent='remove';
+      rem.addEventListener('click', ()=>{ row.remove(); });
+      row.appendChild(inp); row.appendChild(rem);
+      pollOptions.appendChild(row);
+    }
+    addPollOptionBtn.addEventListener('click', ()=> addOptionInput(''));
+    createPollBtn.addEventListener('click', async ()=>{
+      if (!currentUser) { alert('Sign in to chat.'); return; }
+      const q = pollQuestion.value.trim();
+      const opts = Array.from(pollOptions.querySelectorAll('input')).map(i=>i.value.trim()).filter(Boolean);
+      if (!q || opts.length < 2) {
+        pollError.textContent = 'Enter a question and at least two options.';
+        pollError.style.display = 'block';
+        return;
+      }
+      try{
+        const resp = await fetch(`${API_BASE}/v1/polls`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ question:q, options:opts }) });
+        if (!resp.ok) { const t = await resp.text(); throw new Error(t||'poll create failed'); }
+        const data = await resp.json();
+        await db.collection('messages').add({
+          uid: currentUser.uid,
+          username: currentUser.username,
+          isAdmin: !!currentUser.isAdmin,
+          type: 'poll',
+          pollId: data.id,
+          room: currentRoom,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        closePollModal();
+      } catch (e) {
+        console.error('poll create error', e);
+        pollError.textContent = 'Failed to create poll.';
+        pollError.style.display = 'block';
+      }
+    });
+
+    async function uploadImageToHost(file){
+      const base = 'https://api.wsgpolar.me/v1/images';
+      // Try raw binary POST (example curl shows this form). Some endpoints expect a trailing slash.
+      try {
+        try {
+          const buf = await file.arrayBuffer();
+          const rawResp = await fetch(base + '/', {
+            method: 'POST',
+            headers: { 'Content-Type': file.type || 'application/octet-stream' },
+            body: buf
+          });
+          if (rawResp.ok) {
+            // try parse JSON, otherwise treat text as URL
+            try {
+              const json = await rawResp.json();
+              return json?.url || json?.data?.url || json?.imageUrl || json?.result?.url || null;
+            } catch (err) {
+              const txt = (await rawResp.text()).trim();
+              if (/^https?:\/\//.test(txt)) return txt;
+            }
+          } else if (rawResp.status !== 404) {
+            // non-404 but failed; try to log body for debugging
+            const txt = await rawResp.text();
+            console.warn('Raw upload response', rawResp.status, txt);
+          }
+        } catch (errRaw) {
+          console.warn('Raw binary upload failed, will try multipart fallback', errRaw);
+        }
+
+        // Fallback to multipart/form-data POST (older behavior)
+        const fd = new FormData();
+        fd.append('file', file, file.name || 'upload');
+        const resp = await fetch(base, { method: 'POST', body: fd });
+        if (!resp.ok) { console.error('Multipart upload response not ok', resp.status); try { const t = await resp.text(); console.error(t); } catch{} return null; }
+        // try parse JSON
+        try {
+          const json = await resp.json();
+          return json?.url || json?.data?.url || json?.imageUrl || json?.result?.url || null;
+        } catch (e) {
+          const txt = (await resp.text()).trim();
+          if (/^https?:\/\//.test(txt)) return txt;
+          return null;
+        }
+      } catch (e) { console.error('uploadImageToHost error', e); return null; }
+    }
+
+    // UI helper to show uploading state (spinner + disable inputs)
+    function setUploading(flag){
+      const spinner = document.getElementById('uploadSpinner');
+      const sendBtnEl = document.getElementById('sendBtn');
+      const attachBtnEl = document.getElementById('attachBtn');
+      const modalSend = document.getElementById('imageModalSend');
+      const modalRemove = document.getElementById('imageModalRemove');
+      const modalCancel = document.getElementById('imageModalCancel');
+      const inputEl = document.getElementById('messageInput');
+      if (spinner) spinner.style.display = flag ? 'block' : 'none';
+      if (sendBtnEl) sendBtnEl.disabled = !!flag;
+      if (attachBtnEl) attachBtnEl.disabled = !!flag;
+      if (modalSend) modalSend.disabled = !!flag;
+      if (modalRemove) modalRemove.disabled = !!flag;
+      if (modalCancel) modalCancel.disabled = !!flag;
+      if (inputEl) inputEl.disabled = !!flag;
+    }
+
     async function sendMessage() {
   const input = document.getElementById('messageInput');
   const textRaw = (input.value || '');
   const text = textRaw.trim();
-  if (!text) return;
   if (!currentUser) { alert('Sign in to chat.'); return; }
+
+  // If no text but there is an attached image, upload & send it
+  if (!text && attachedFile) {
+    // Respect global switches
+    if (settings.chatShutdown) { alert('Chat is shut down by an admin.'); return; }
+    if (settings.lockdown && !currentUser.isAdmin) { alert('Chat is in lockdown.'); return; }
+
+    // Fresh read of user record
+    const meDoc = await db.collection('users').doc(currentUser.uid).get();
+    const me = meDoc.exists ? meDoc.data() : currentUser;
+    if (me.isBanned) {
+      document.getElementById('banModal').classList.add('active');
+      document.getElementById('banReason').textContent = me.banReason || 'You have been banned from chat.';
+      await auth.signOut();
+      return;
+    }
+
+    if (me.isMuted) {
+      const untilMs = typeof me.muteUntil === 'number' ? me.muteUntil : (me.muteUntil && typeof me.muteUntil.toMillis === 'function' ? me.muteUntil.toMillis() : 0);
+      const remaining = untilMs ? Math.max(0, Math.ceil((untilMs - Date.now()) / 1000)) : null;
+      alert(remaining ? `You are muted for ${remaining} more second(s).` : 'You are muted.');
+      return;
+    }
+
+    // perform upload
+    try {
+      setUploading(true);
+      const url = await uploadImageToHost(attachedFile);
+      if (!url) throw new Error('Upload failed');
+      const caption = (document.getElementById('imageModalCaption')?.value || '').trim();
+      const messageData = {
+        uid: currentUser.uid,
+        username: currentUser.username,
+        isAdmin: !!currentUser.isAdmin,
+        text: caption || '',
+        type: 'image',
+        imageUrl: url,
+        room: currentRoom,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      if (replyingTo) { messageData.replyTo = replyingTo; replyingTo = null; document.getElementById('replyIndicator').classList.remove('active'); }
+      await db.collection('messages').add(messageData);
+      // bookkeeping
+      const nowLocal = nowMs();
+      settings.lastSentAt = nowLocal;
+      lastMessage = '[image]';
+      lastMessageTime = nowLocal;
+      clearAttachment();
+      input.value = '';
+      setUploading(false);
+    } catch (err) {
+      console.error('Image upload/send failed', err);
+      alert('Failed to send image.');
+      setUploading(false);
+    }
+    return;
+  }
 
   // Admin commands first (should work even during shutdown/lockdown)
   if (text.startsWith('/') && !!currentUser.isAdmin) {
@@ -2944,13 +3702,13 @@ function initGlobalCallWatchers(){
   }
 
   if (me.isMuted) {
-    const untilMs =
-      typeof me.muteUntil === 'number' ? me.muteUntil :
-      (me.muteUntil && typeof me.muteUntil.toMillis === 'function' ? me.muteUntil.toMillis() : 0);
+    const untilMs = typeof me.muteUntil === 'number' ? me.muteUntil : (me.muteUntil && typeof me.muteUntil.toMillis === 'function' ? me.muteUntil.toMillis() : 0);
     const remaining = untilMs ? Math.max(0, Math.ceil((untilMs - Date.now()) / 1000)) : null;
     alert(remaining ? `You are muted for ${remaining} more second(s).` : 'You are muted.');
     return;
   }
+
+  if (!text) return; // Nothing to send
 
   // Content checks
   if (containsOffensive(text)) { alert('Message blocked by content filter.'); return; }
