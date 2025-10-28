@@ -835,7 +835,7 @@ body {
             <div class="form-group" style="margin:0">
               <input id="gifSearchInput" placeholder="search gifs" />
             </div>
-            <div id="gifResults" style="height:420px;overflow:auto;column-count:3;column-gap:8px;border:1px solid var(--border);border-radius:8px;padding:8px;background:#111"></div>
+            <div id="gifResults" style="height:420px;overflow-y:auto;overflow-x:hidden;column-count:3;column-gap:8px;border:1px solid var(--border);border-radius:8px;padding:8px;background:#111"></div>
             <div class="btn-group" style="margin-top:.5rem;justify-content:flex-end"><button id="gifCloseBtn" class="btn btn-secondary">close</button></div>
           </div>
         </div>
@@ -1539,37 +1539,46 @@ unsubscribeSettings = settingsDoc.onSnapshot(snap => {
       }
 
       try {
-        // Create auth user first
+        // Pre-check: prevent auth account creation if username already taken
+        const unameDoc = await db.collection('usernames').doc(usernameLower).get();
+        if (unameDoc.exists) {
+          document.getElementById('authError').textContent = 'That username is already taken.';
+          document.getElementById('authError').style.display = 'block';
+          return;
+        }
+
+        // Create auth user only after username availability check
         const userCred = await auth.createUserWithEmailAndPassword(email, password);
-
-        // Reserve username and create profile atomically
-        const batch = db.batch();
         const uid = userCred.user.uid;
-        const userRef = db.collection('users').doc(uid);
-        const unameRef = db.collection('usernames').doc(usernameLower);
 
-        batch.set(unameRef, { uid, createdAt: Date.now() });
-        batch.set(userRef, {
-          username,
-          usernameLower,
-          email,
-          createdAt: Date.now(),
-          isAdmin: false,
-          isBanned: false,
-          online: true,
-          bio: '',
-          dmRooms: [],
-          showOnlineStatus: true
+        // Transaction: reserve username and create profile atomically, fail if username got grabbed meanwhile
+        const unameRef = db.collection('usernames').doc(usernameLower);
+        const userRef = db.collection('users').doc(uid);
+        await db.runTransaction(async (tx) => {
+          const snap = await tx.get(unameRef);
+          if (snap.exists) throw new Error('username-taken');
+          tx.set(unameRef, { uid, createdAt: Date.now() });
+          tx.set(userRef, {
+            username,
+            usernameLower,
+            email,
+            createdAt: Date.now(),
+            isAdmin: false,
+            isBanned: false,
+            online: true,
+            bio: '',
+            dmRooms: [],
+            showOnlineStatus: true
+          });
         });
 
-        await batch.commit();
         document.getElementById('authModal').classList.remove('active');
         document.getElementById('authError').style.display = 'none';
       } catch (error) {
         console.error('[signup] error:', error);
         // If reservation/profile write failed, try to clean up the newly created auth user
         try { if (auth.currentUser) await auth.currentUser.delete(); } catch {}
-        const msg = (error && error.code === 'permission-denied')
+        const msg = (error && (error.code === 'permission-denied' || error.message === 'username-taken'))
           ? 'That username is taken or invalid. Please choose another.'
           : (error && error.message) || 'Failed to create your account';
         document.getElementById('authError').textContent = msg;
@@ -1588,8 +1597,8 @@ unsubscribeSettings = settingsDoc.onSnapshot(snap => {
       }
 
       try {
-        // Find user by username
-        const userQuery = await db.collection('users').where('username', '==', username).limit(1).get();
+  // Find user by username (case-insensitive)
+  const userQuery = await db.collection('users').where('usernameLower', '==', username.toLowerCase()).limit(1).get();
         
         if (userQuery.empty) {
           document.getElementById('signInError').textContent = 'Username not found';
@@ -1805,6 +1814,17 @@ function isNearTop(box){
   return box.scrollTop <= nearTopPx;
 }
 
+// Smoothly force scroll to bottom, accounting for images/gifs loading
+function scrollToBottom() {
+  const box = document.getElementById('messages');
+  if (!box) return;
+  // use RAF twice to allow layout to settle
+  requestAnimationFrame(() => {
+    box.scrollTop = box.scrollHeight;
+    requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; });
+  });
+}
+
 // render all cached messages (ASC). If keepPos is true, preserve scroll position (used when prepending older).
 function renderMessages({ keepPos = false } = {}) {
   const box = document.getElementById('messages');
@@ -1883,6 +1903,12 @@ function renderMessages({ keepPos = false } = {}) {
         img.src = msg.gifUrl || msg.mediaUrl || '';
         img.alt = msg.text || 'gif';
         img.style.maxWidth = '320px'; img.style.borderRadius = '8px'; img.style.display = 'block'; img.style.cursor = 'pointer';
+        // ensure we stay at bottom when media finishes loading
+        img.addEventListener('load', () => {
+          const box = document.getElementById('messages');
+          if (!box) return;
+          if (autoScroll || isNearBottom(box)) scrollToBottom();
+        });
         img.addEventListener('click', ()=>{ window.open(img.src, '_blank'); });
         wrap.appendChild(img);
         if (msg.text) {
@@ -1901,6 +1927,12 @@ function renderMessages({ keepPos = false } = {}) {
         img.src = msg.imageUrl || msg.mediaUrl || '';
         img.alt = msg.text || msg.caption || 'image';
         img.style.maxWidth = '320px'; img.style.borderRadius = '8px'; img.style.display = 'block'; img.style.cursor = 'pointer';
+        // ensure we stay at bottom when media finishes loading
+        img.addEventListener('load', () => {
+          const box = document.getElementById('messages');
+          if (!box) return;
+          if (autoScroll || isNearBottom(box)) scrollToBottom();
+        });
         img.addEventListener('click', ()=>{ window.open(img.src, '_blank'); });
         wrap.appendChild(img);
         if (msg.text) {
@@ -2223,6 +2255,7 @@ async function loadMessages() {
     }
 
     renderMessages({ keepPos: false });
+    if (autoScroll) scrollToBottom();
     updateDmSeenMarkers();
   });
 
@@ -3422,7 +3455,10 @@ function initGlobalCallWatchers(){
           room: currentRoom,
           timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
-        await db.collection('messages').add(messageData);
+  await db.collection('messages').add(messageData);
+  // force stick-to-bottom on media send
+  autoScroll = true;
+  scrollToBottom();
         clearAttachment();
         closeImageModal();
       } catch (err) {
@@ -3552,6 +3588,8 @@ function initGlobalCallWatchers(){
       };
       if (replyingTo) { messageData.replyTo = replyingTo; replyingTo = null; document.getElementById('replyIndicator').classList.remove('active'); }
       await db.collection('messages').add(messageData);
+      autoScroll = true;
+      scrollToBottom();
     }
 
     // --- Poll modal logic ---
@@ -3726,6 +3764,8 @@ function initGlobalCallWatchers(){
       clearAttachment();
       input.value = '';
       setUploading(false);
+      autoScroll = true;
+      scrollToBottom();
     } catch (err) {
       console.error('Image upload/send failed', err);
       alert('Failed to send image.');
@@ -3807,6 +3847,9 @@ function initGlobalCallWatchers(){
   lastMessage = text;
   lastMessageTime = nowLocal;
   input.value = '';
+  // stick to bottom after sending
+  autoScroll = true;
+  scrollToBottom();
 }
 
     async function handleAdminCommand(command) {
