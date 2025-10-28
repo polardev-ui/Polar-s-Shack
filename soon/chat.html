@@ -2092,6 +2092,11 @@ async function buildPollCard(pollId, card){
     console.error('poll card error', e);
     optsEl.innerHTML = '<div style="color:#f66">failed to load poll</div>';
   }
+  // after poll content renders/updates, keep pinned if user is at bottom
+  try {
+    const box = document.getElementById('messages');
+    if (box && (autoScroll || isNearBottom(box))) scrollToBottom();
+  } catch {}
 }
 
 // Render link preview card under text content, if URL present
@@ -2111,6 +2116,10 @@ async function maybeRenderLinkPreview(container, text){
       const img = document.createElement('img');
       img.src = meta.image; img.alt = meta.title || 'preview';
       img.style.width='72px'; img.style.height='72px'; img.style.objectFit='cover'; img.style.borderRadius='8px';
+      img.addEventListener('load', ()=>{
+        const box = document.getElementById('messages');
+        if (box && (autoScroll || isNearBottom(box))) scrollToBottom();
+      });
       card.appendChild(img);
     }
     const info = document.createElement('div'); info.style.display='flex'; info.style.flexDirection='column';
@@ -2119,6 +2128,9 @@ async function maybeRenderLinkPreview(container, text){
     info.appendChild(title); info.appendChild(desc);
     card.appendChild(info);
     container.appendChild(card);
+    // appended preview may increase height; keep pinned
+    const box = document.getElementById('messages');
+    if (box && (autoScroll || isNearBottom(box))) scrollToBottom();
   } catch(e){ console.warn('preview failed', e); }
 }
 
@@ -2383,6 +2395,16 @@ function initDmExtrasForRoom(){
       updateDmSeenMarkers();
     }
   });
+})();
+
+// Global mutation observer: if we're near the bottom or auto-following, keep pinned when DOM mutates
+(function initAutoScrollMutationObserver(){
+  const box = document.getElementById('messages');
+  if (!box || typeof MutationObserver === 'undefined') return;
+  const obs = new MutationObserver(() => {
+    if (autoScroll || isNearBottom(box)) scrollToBottom();
+  });
+  obs.observe(box, { childList: true, subtree: true });
 })();
 
 // ===== Calls (WebRTC audio over Firebase RTDB) =====
